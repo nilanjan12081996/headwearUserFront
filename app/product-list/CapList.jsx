@@ -12,24 +12,63 @@ import yellow_icon from "../assets/imagesource/yellow_icon.png";
 import gray_icon from "../assets/imagesource/gray_icon.png";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getProduct } from "../reducers/ProductSlice";
+import { getAllProduct, getProduct } from "../reducers/ProductSlice";
 
-const CapList=()=>{
+const CapList=({ selectedSupplierId })=>{
 
-    const{productList}=useSelector((state)=>state?.prod)
+    const{productList,allProList}=useSelector((state)=>state?.prod)
     const dispatch=useDispatch()
     useEffect(()=>{
-        dispatch(getProduct({}))
+      dispatch(getAllProduct({
+        page:1,
+        limit:10
+      }))
     },[])
-
+  const displayProducts = selectedSupplierId 
+    ? productList?.data?.data
+    : allProList?.data
     console.log("productList",productList);
+      console.log("allProList",allProList);
     
     return(
         <>
          <div className='team_wrap'>
               <div className='grid grid-cols-1 lg:grid-cols-4 gap-5'>
+                {
+                  displayProducts?.map((allPro)=>(
+                       <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
+                    <div>
+                      <Link href="/product-details" passHref>
+                         <Image src={product_01} alt='product_01' className="w-full" />
+                      </Link>
+                    </div>
+                    <div className='p-4 flex justify-between items-center'>
+                        <div>
+                          <p className='text-[#1A1A1A] text-xl font-medium mb-1'>{allPro?.supplierStyleCode}</p>
+                          <p className='text-[#4D4D4D] text-sm'>{allPro?.hatName}</p>
+                          <p className='text-[#1A1A1A] text-base font-medium mb-1'>{allPro?.basePrice}</p>
+                          <Image src={rating_icon} alt='rating_icon' className="" />
+                        </div>
+                        <div>
+                           <div className='flex items-center justify-end'>
+                              <div>
+                                  <Image src={red_icon} alt='red_icon' className="" />
+                              </div>
+                              <div className='left-[-15px] relative'>
+                                  <Image src={yellow_icon} alt='yellow_icon' className="" />
+                              </div>
+                              <div className='left-[-30px] relative'>
+                                  <Image src={gray_icon} alt='gray_icon' className="" />
+                              </div>
+                              <p className='left-[-20px] relative'>+ 12</p>
+                           </div>
+                        </div>
+                    </div>
+                 </div>
+                  ))
+                }
 
-                 <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
+                 {/* <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
                     <div>
                       <Link href="/product-details" passHref>
                          <Image src={product_01} alt='product_01' className="w-full" />
@@ -57,8 +96,8 @@ const CapList=()=>{
                            </div>
                         </div>
                     </div>
-                 </div>
-                 <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
+                 </div> */}
+                 {/* <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
                     <div>
                       <Image src={product_02} alt='product_02' className="w-full" />
                     </div>
@@ -138,9 +177,9 @@ const CapList=()=>{
                            </div>
                         </div>
                     </div>
-                 </div>
+                 </div> */}
 
-
+{/* 
                  <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
                     <div>
                       <Image src={product_01} alt='product_01' className="w-full" />
@@ -248,9 +287,9 @@ const CapList=()=>{
                            </div>
                         </div>
                     </div>
-                 </div>
+                 </div> */}
 
-
+{/* 
                  <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
                     <div>
                       <Image src={product_01} alt='product_01' className="w-full" />
@@ -358,10 +397,10 @@ const CapList=()=>{
                            </div>
                         </div>
                     </div>
-                 </div>
+                 </div> */}
 
 
-                 <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
+                 {/* <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
                     <div>
                       <Image src={product_01} alt='product_01' className="w-full" />
                     </div>
@@ -468,7 +507,7 @@ const CapList=()=>{
                            </div>
                         </div>
                     </div>
-                 </div>
+                 </div> */}
 
               </div>
            </div>

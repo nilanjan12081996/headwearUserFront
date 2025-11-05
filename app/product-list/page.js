@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Avatar, AvatarGroup, AvatarGroupCounter, Label, Select } from "flowbite-react";
 
@@ -51,11 +51,14 @@ import { FaPlus } from "react-icons/fa";
 import CapList from './CapList';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSuppliers } from '../reducers/SupplierSlice';
+import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 
 
 
 const page = () => {
+  const [selectedSupplier, setSelectedSupplier] = useState('')
   const{suppliersList}=useSelector((state)=>state?.suppliers)
+
 const dispatch=useDispatch()
   useEffect(()=>{
 dispatch(getSuppliers({
@@ -64,6 +67,22 @@ dispatch(getSuppliers({
 }))
   },[])
   console.log("suppliersList",suppliersList);
+
+    const handleSupplierChange = (e) => {
+    const supplierId = e.target.value
+    setSelectedSupplier(supplierId)
+    
+    // Dispatch getProduct with selected supplier ID
+    if (supplierId) {
+      dispatch(getProduct({ id: supplierId }))
+    } else {
+      // If no supplier selected, fetch all products
+      dispatch(getAllProduct({
+        page: 1,
+        limit: 10
+      }))
+    }
+  }
   
   return (
     <div>
@@ -98,7 +117,9 @@ dispatch(getSuppliers({
           <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 lg:flex justify-between items-center'>
             <div className='form_area lg:w-8/12 lg:flex items-center gap-4 mb-3 lg:mb-0'>
               <div className='w-full lg:w-3/12 mb-3 lg:mb-0'>
-                <Select required>
+                <Select  
+                value={selectedSupplier}
+                onChange={handleSupplierChange}>
                   <option>Supplier</option>
                   {
                     suppliersList?.data?.map((sup)=>(
@@ -168,7 +189,7 @@ dispatch(getSuppliers({
 
         <div className='max-w-6xl mx-auto px-5 lg:px-0'>
           
-          <CapList/>
+          <CapList selectedSupplierId={selectedSupplier}/>
         </div>
       </div>
       {/* Who We Are section ends here */}

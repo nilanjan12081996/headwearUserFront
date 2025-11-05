@@ -33,7 +33,7 @@ export const getAllProduct=createAsyncThunk(
     'getAllProduct',
      async ({page,limit}, { rejectWithValue }) => {
         try {
-            const response= await api.get(`user/hats/full/list?${page}&${limit}`);
+            const response= await api.get(`user/hats/full/list?page=${page}&limit=${limit}`);
             
             console.log("response",response);
             
@@ -56,7 +56,8 @@ export const getAllProduct=createAsyncThunk(
 const initialState={
     loading:false,
     error:false,
-    productList:[]
+    productList:[],
+    allProList:[]
 }
 const ProductSlice=createSlice(
     {
@@ -74,6 +75,18 @@ const ProductSlice=createSlice(
                 state.error=false
             })
             .addCase(getProduct.rejected,(state,{payload})=>{
+                state.loading=false
+                state.error=payload
+            })
+              .addCase(getAllProduct.pending,(state)=>{
+                state.loading=true
+            })
+            .addCase(getAllProduct.fulfilled,(state,{payload})=>{
+                state.loading=false
+                state.allProList=payload
+                state.error=false
+            })
+            .addCase(getAllProduct.rejected,(state,{payload})=>{
                 state.loading=false
                 state.error=payload
             })
