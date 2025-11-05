@@ -1,0 +1,184 @@
+'use client';
+import Link from 'next/link'
+import React, { useEffect } from 'react'
+
+import { Avatar, AvatarGroup, AvatarGroupCounter, Label, Select } from "flowbite-react";
+
+import app_store from "../assets/imagesource/app_store.png";
+
+import google_play from "../assets/imagesource/google_play.png";
+
+import mobiles_01 from "../assets/imagesource/mobiles_01.png";
+
+import about_01 from "../assets/imagesource/about_01.png";
+
+import about_02 from "../assets/imagesource/about_02.png";
+
+import stethy from "../assets/imagesource/stethy.png";
+
+import home from "../assets/imagesource/home.png";
+
+import team_01 from "../assets/imagesource/team_01.png";
+import team_02 from "../assets/imagesource/team_02.png";
+import team_03 from "../assets/imagesource/team_03.png";
+import team_04 from "../assets/imagesource/team_04.png";
+import team_05 from "../assets/imagesource/team_05.png";
+import team_06 from "../assets/imagesource/team_06.png";
+
+import list_banner from "../assets/imagesource/list_banner.png";
+
+import product_01 from "../assets/imagesource/product_01.png";
+import product_02 from "../assets/imagesource/product_02.png";
+import product_03 from "../assets/imagesource/product_03.png";
+import product_04 from "../assets/imagesource/product_04.png";
+
+import rating_icon from "../assets/imagesource/rating_icon.png";
+
+import red_icon from "../assets/imagesource/red_icon.png";
+import yellow_icon from "../assets/imagesource/yellow_icon.png";
+import gray_icon from "../assets/imagesource/gray_icon.png";
+
+
+import { GoHome } from "react-icons/go";
+import { MdOutlineArrowForwardIos } from "react-icons/md";
+
+
+
+import Image from 'next/image';
+
+
+import { FaPlus } from "react-icons/fa";
+import CapList from './CapList';
+import { useDispatch, useSelector } from 'react-redux';
+import { getSuppliers } from '../reducers/SupplierSlice';
+
+
+
+const page = () => {
+  const{suppliersList}=useSelector((state)=>state?.suppliers)
+const dispatch=useDispatch()
+  useEffect(()=>{
+dispatch(getSuppliers({
+  page:1,
+  limit:10
+}))
+  },[])
+  console.log("suppliersList",suppliersList);
+  
+  return (
+    <div>
+      <div className='banner_area py-0 lg:p-0'>
+        {/* home banner section start here */}
+        <div className="relative">
+          <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
+          <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
+        </div>
+      </div>
+
+
+
+      {/* Who We Are section start here */}
+      <div className="py-10 lg:pb-20 lg:pt-10">
+
+        <div className='mb-10'>
+          
+
+          <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 mb-10 flex justify-between items-center'>
+            <div>
+               <ul className='flex items-center gap-2'>
+                  <li>
+                    <Link href="/" passHref><GoHome className='text-[#666666] text-2xl' /></Link>
+                  </li>
+                  <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+                  <li className='text-[#ED1C24] text-base'>Caps</li>
+               </ul>
+            </div>
+          </div>
+          
+          <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 lg:flex justify-between items-center'>
+            <div className='form_area lg:w-8/12 lg:flex items-center gap-4 mb-3 lg:mb-0'>
+              <div className='w-full lg:w-3/12 mb-3 lg:mb-0'>
+                <Select required>
+                  <option>Supplier</option>
+                  {
+                    suppliersList?.data?.map((sup)=>(
+                      <option value={sup?.id}>{sup?.supplierName}</option>
+                    ))
+                  }
+                  
+                 
+                </Select>
+              </div>
+              <div className='w-full lg:w-2/12 mb-3 lg:mb-0'>
+                <Select required>
+                  <option>Color</option>
+                  <option>Color 01</option>
+                  <option>Color 02</option>
+                  <option>Color 03</option>
+                </Select>
+              </div>
+              <div className='w-full lg:w-2/12 mb-3 lg:mb-0'>
+                <Select required>
+                  <option>Size</option>
+                  <option>Size 01</option>
+                  <option>Size 02</option>
+                  <option>Size 03</option>
+                </Select>
+              </div>
+              <div className='w-full lg:w-2/12 mb-3 lg:mb-0'>
+                <Select required>
+                  <option>Price</option>
+                  <option>Price 01</option>
+                  <option>Price 02</option>
+                  <option>Price 03</option>
+                </Select>
+              </div>
+            </div>
+            <div className='form_area lg:w-4/12 flex items-center gap-4'>
+               <div className='w-6/12'>
+                  <Select required>
+                    <option>Sort by: Latest</option>
+                    <option> 01</option>
+                    <option> 02</option>
+                    <option> 03</option>
+                  </Select>
+                </div>
+                <div className='w-6/12'>
+                  <Select required>
+                    <option>Show: 16</option>
+                    <option> 01</option>
+                    <option> 02</option>
+                    <option> 03</option>
+                  </Select>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div className='border-t border-[#ebebeb] border-b mb-10'>
+          <div className='max-w-6xl mx-auto px-5 lg:px-0 py-4 lg:flex justify-between items-center'>
+            <div className='pb-2 lg:pb-0'>
+              <p className='text-sm text-[#808080] font-medium'>Active Filters: <span className='text-black'>Min $300 - Max 500</span></p>
+            </div>
+            <div>
+               <p className='text-sm text-[#808080] font-medium'><span className='text-black'>2,547</span> Results found.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className='max-w-6xl mx-auto px-5 lg:px-0'>
+          
+          <CapList/>
+        </div>
+      </div>
+      {/* Who We Are section ends here */}
+
+
+
+
+
+    </div>
+  )
+}
+
+export default page
