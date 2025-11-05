@@ -56,7 +56,7 @@ import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 
 
 const page = () => {
-  const [selectedSupplier, setSelectedSupplier] = useState('')
+  const [selectedSupplier, setSelectedSupplier] = useState('Supplier')
   const{suppliersList}=useSelector((state)=>state?.suppliers)
 
 const dispatch=useDispatch()
