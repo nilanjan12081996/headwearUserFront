@@ -69,15 +69,24 @@ dispatch(getSuppliers({
   console.log("suppliersList",suppliersList);
 
     const handleSupplierChange = (e) => {
+      
+      
     const supplierId = e.target.value
     setSelectedSupplier(supplierId)
+    console.log("Supplier", supplierId)
     
     // Dispatch getProduct with selected supplier ID
-    if (supplierId) {
+    if (supplierId && supplierId!=="Supplier" ) {
       dispatch(getProduct({ id: supplierId }))
-    } else {
+    } else if(supplierId=="Supplier"){
       // If no supplier selected, fetch all products
       dispatch(getAllProduct({
+        page: 1,
+        limit: 10
+      }))
+    }
+    else{
+       dispatch(getAllProduct({
         page: 1,
         limit: 10
       }))

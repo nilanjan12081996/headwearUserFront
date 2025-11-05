@@ -24,9 +24,12 @@ const CapList=({ selectedSupplierId })=>{
         limit:10
       }))
     },[])
-  const displayProducts = selectedSupplierId 
-    ? productList?.data?.data
-    : allProList?.data
+useEffect(()=>{
+ console.log("selectedSupplierId",selectedSupplierId);
+},[selectedSupplierId])   
+    
+  const displayProducts = selectedSupplierId=="Supplier" ? allProList?.data:productList?.data?.data
+  
     console.log("productList",productList);
       console.log("allProList",allProList);
     
