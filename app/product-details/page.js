@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { Avatar, AvatarGroup, AvatarGroupCounter, Label, Select, FileInput, Checkbox, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 
@@ -53,7 +53,7 @@ import product_details_small_img04 from "../assets/imagesource/product_details_s
 
 import product_details_big_img from "../assets/imagesource/product_details_big_img.png";
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
 import { GoHome } from "react-icons/go";
@@ -73,12 +73,24 @@ import Image from 'next/image';
 
 
 import { FaPlus } from "react-icons/fa";
+import { useDispatch, useSelector } from 'react-redux';
+import { getSingleProduct } from '../reducers/ProductSlice';
 
 
 
 const page = () => {
-  const router = useRouter();
 
+  const{singleProList}=useSelector((state)=>state?.prod)
+  const dispatch=useDispatch()
+const searchParams = useSearchParams();
+const id=atob(searchParams.get("id"))
+
+  console.log("id",id);
+  console.log("singleProList",singleProList);
+  
+  useEffect(()=>{
+    dispatch(getSingleProduct({id:id}))
+  },[id])
   const handleOrderNowClick = () => {
     router.push('/upload-artwork');
   };
@@ -107,7 +119,8 @@ const page = () => {
                   <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
                   <li className='text-[#666666] text-base'>Caps</li>
                   <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                  <li className='text-[#ED1C24] text-base'>Wooly Combed Flexifit</li>
+                  {/* <li className='text-[#ED1C24] text-base'>Wooly Combed Flexifit</li> */}
+                   <li className='text-[#ED1C24] text-base'>{singleProList?.data?.supplierStyleCode}</li>
                </ul>
             </div>
           </div>
@@ -139,8 +152,8 @@ const page = () => {
               </div>
               <div className='lg:w-6/12'>
                  <div className='border-b border-[#e5e5e5] pb-3'>
-                    <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-2'>Wooly Combed  Flexfit</h3>
-                    <p className='text-xl text-black font-medium'>$14.99</p>
+                    <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-2'>{singleProList?.data?.supplierStyleCode}</h3>
+                    <p className='text-xl text-black font-medium'>{singleProList?.data?.basePrice}</p>
                  </div>
                  <div className="overflow-x-auto mt-4 wooly_area mb-5">
                     <Table>

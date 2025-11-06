@@ -25,7 +25,7 @@ body {
 .pagination_sec li button {
   border: none;
   padding: 0 0;
-  background: #032409;
+  background: #e03636;
   color: #ffffff;
   margin: 0 2px;
   border-radius: 50%;
@@ -38,7 +38,7 @@ body {
   align-items: center;
 }
 .pagination_sec li[aria-current="page"] button {
-  background: #025e13;
+  background: #df7575;
 }
 .pagination_sec li button svg {
   font-size: 25px;

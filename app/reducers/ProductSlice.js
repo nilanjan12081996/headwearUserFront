@@ -53,11 +53,37 @@ export const getAllProduct=createAsyncThunk(
 )
 
 
+export const getSingleProduct=createAsyncThunk(
+    'getSingleProduct',
+     async ({id}, { rejectWithValue }) => {
+        try {
+            let url=`user/hats/single?id=${id}`
+            const response= await api.get(url);
+            
+            console.log("response",response);
+            
+            if (response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                if (response?.data?.errors) {
+                    return rejectWithValue(response.data.errors);
+                } else {
+                    return rejectWithValue('Something went wrong.');
+                }
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+)
+
+
 const initialState={
     loading:false,
     error:false,
     productList:[],
-    allProList:[]
+    allProList:[],
+    singleProList:[]
 }
 const ProductSlice=createSlice(
     {
@@ -87,6 +113,19 @@ const ProductSlice=createSlice(
                 state.error=false
             })
             .addCase(getAllProduct.rejected,(state,{payload})=>{
+                state.loading=false
+                state.error=payload
+            })
+
+                  .addCase(getSingleProduct.pending,(state)=>{
+                state.loading=true
+            })
+            .addCase(getSingleProduct.fulfilled,(state,{payload})=>{
+                state.loading=false
+                state.singleProList=payload
+                state.error=false
+            })
+            .addCase(getSingleProduct.rejected,(state,{payload})=>{
                 state.loading=false
                 state.error=payload
             })
