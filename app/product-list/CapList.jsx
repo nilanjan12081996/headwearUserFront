@@ -18,7 +18,7 @@ import { Pagination } from "flowbite-react";
 const CapList=({ selectedSupplierId })=>{
 
     const [totalPage, setTotalPage] = useState(1);
-    const [limit, setLimit] = useState(5);
+    const [limit, setLimit] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
 
     const{productList,allProList}=useSelector((state)=>state?.prod)
@@ -60,7 +60,8 @@ useEffect(()=>{
                        <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
                     <div>
                       <Link href={`/product-details?id=${btoa(allPro?.id)}`} passHref>
-                         <Image src={product_01} alt='product_01' className="w-full" />
+                         {/* <Image src={product_01} alt='product_01' className="w-full" /> */}
+                          <Image src={allPro?.images} height={100} width={100} alt='product_01' className="w-full" />
                       </Link>
                     </div>
                     <div className='p-4 flex justify-between items-center'>
@@ -90,7 +91,7 @@ useEffect(()=>{
                 }
               </div>
               {
-                allProList?.pagination?.totalPages>0&&(
+                allProList?.pagination?.totalPages>1&&(
                 <div className="flex justify-center items-center mt-4 pagination_sec">
                 <Pagination
                   layout="pagination"

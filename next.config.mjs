@@ -9,9 +9,9 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'nodeapi.cryptointuit.org',
+        hostname: 'showmecustomheadwearuserapi.bestworks.cloud',
         port: '',
-        pathname: '/uploads/images/**',
+        pathname: '/uploads/hats/**',
       },
     ],
   },

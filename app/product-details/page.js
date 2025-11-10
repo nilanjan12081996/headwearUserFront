@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Avatar, AvatarGroup, AvatarGroupCounter, Label, Select, FileInput, Checkbox, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 
@@ -79,7 +79,9 @@ import { getSingleProduct } from '../reducers/ProductSlice';
 
 
 const page = () => {
-
+const [activeImage, setActiveImage] = useState(null);
+const[initialImage,setInitialImage]=useState(null)
+//let initialImage = null;
   const{singleProList}=useSelector((state)=>state?.prod)
   const dispatch=useDispatch()
 const searchParams = useSearchParams();
@@ -89,10 +91,32 @@ const id=atob(searchParams.get("id"))
   console.log("singleProList",singleProList);
   
   useEffect(()=>{
-    dispatch(getSingleProduct({id:id}))
+    dispatch(getSingleProduct({id:id})).then((res)=>{
+      console.log("res",res);
+      if(res?.payload?.status_code===200)
+      {
+        setActiveImage(res?.payload?.data?.images)
+        setInitialImage(res?.payload?.data?.images)
+      }
+      
+    })
   },[id])
   const handleOrderNowClick = () => {
     router.push('/upload-artwork');
+  };
+
+    const smallImages = [
+    product_details_small_img01,
+    product_details_small_img02,
+    product_details_small_img03,
+    product_details_small_img04
+  ];
+
+   const handleImageHover = (imageSrc) => {
+    setActiveImage(imageSrc);
+  };
+   const handleMouseLeave = () => {
+    setActiveImage(initialImage);
   };
   return (
     <div>
@@ -132,8 +156,10 @@ const id=atob(searchParams.get("id"))
 
            <div className='lg:flex gap-8 mb-10'>
               <div className='lg:w-6/12 flex gap-3'>
-                 <div className='w-2/12'>
-                   <div className='mb-2'>
+                 <div className='w-2/12'
+                 onMouseLeave={handleMouseLeave}
+                 >
+                   {/* <div className='mb-2'>
                       <Image src={product_details_small_img01} alt='product_details_small_img01' className="" />
                    </div>
                    <div className='mb-2'>
@@ -144,10 +170,33 @@ const id=atob(searchParams.get("id"))
                    </div>
                    <div className='mb-2'>
                       <Image src={product_details_small_img04} alt='product_details_small_img04' className="" />
-                   </div>
+                   </div> */}
+                    {smallImages.map((imgSrc, index) => (
+          <div 
+            key={index}
+            className='mb-2 cursor-pointer transition-all duration-200 hover:opacity-80 hover:scale-105'
+            onMouseEnter={() => handleImageHover(imgSrc)}
+          >
+            <Image 
+              src={imgSrc} 
+              alt={`product_details_small_img0${index + 1}`}
+              className="w-full h-auto rounded-md shadow-sm hover:shadow-md"
+              width={80} // Adjust based on your design
+              height={80}
+            />
+          </div>
+        ))}
                  </div>
                  <div className='w-10/12'>
-                    <Image src={product_details_big_img} alt='product_details_big_img' className="" />
+                    {/* <Image src={product_details_big_img} alt='product_details_big_img' className="" /> */}
+                    <Image 
+          src={activeImage} 
+          alt='product_details_big_img' 
+          className="w-full h-auto rounded-lg shadow-lg transition-all duration-300"
+          width={400} // Adjust based on your design
+          height={400}
+          priority // For better performance on initial load
+        />
                  </div>
               </div>
               <div className='lg:w-6/12'>

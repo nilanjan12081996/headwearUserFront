@@ -58,6 +58,7 @@ import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 const page = () => {
   const [selectedSupplier, setSelectedSupplier] = useState('Supplier')
   const{suppliersList}=useSelector((state)=>state?.suppliers)
+  const{productList,allProList}=useSelector((state)=>state?.prod)
 
 const dispatch=useDispatch()
   useEffect(()=>{
@@ -191,7 +192,7 @@ dispatch(getSuppliers({
               <p className='text-sm text-[#808080] font-medium'>Active Filters: <span className='text-black'>Min $300 - Max 500</span></p>
             </div>
             <div>
-               <p className='text-sm text-[#808080] font-medium'><span className='text-black'>2,547</span> Results found.</p>
+               <p className='text-sm text-[#808080] font-medium'><span className='text-black'>{selectedSupplier!=="Supplier"?productList?.data?.pagination?.totalRecords: allProList?.pagination?.totalRecords}</span> Results found.</p>
             </div>
           </div>
         </div>

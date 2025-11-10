@@ -66,11 +66,33 @@ const Footer = () => {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+   const [sessionId, setSessionId] = useState(null);
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const dispatch = useDispatch();
   const { loading, chatsData, error } = useSelector((state) => state.cht);
+
+
+    useEffect(() => {
+    const getOrCreateSessionId = () => {
+      // Check if session ID exists in sessionStorage
+      let existingSessionId = sessionStorage.getItem('chat_session_id');
+      
+      if (!existingSessionId) {
+        // Generate new UUID using browser's crypto API
+        existingSessionId = crypto.randomUUID();
+        // Store in sessionStorage
+        sessionStorage.setItem('chat_session_id', existingSessionId);
+      }
+      
+      return existingSessionId;
+    };
+
+    const id = getOrCreateSessionId();
+    setSessionId(id);
+    console.log('Current Session ID:', id);
+  }, []);
 
   // Listen for bot response
   useEffect(() => {
@@ -137,7 +159,8 @@ useEffect(() => {
     const payload = {
       query: input,
       use_agent: true,
-      user_id: "user123", // can make this dynamic
+     // user_id: "user123", // can make this dynamic
+     user_id:sessionId
     };
 
     dispatch(chats(payload));
