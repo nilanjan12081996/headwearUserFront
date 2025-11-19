@@ -75,6 +75,7 @@ import Image from 'next/image';
 import { FaPlus } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { getSingleProduct } from '../reducers/ProductSlice';
+import { getValidImageUrl } from '../utils/imageHelper';
 
 
 
@@ -118,6 +119,62 @@ const id=atob(searchParams.get("id"))
    const handleMouseLeave = () => {
     setActiveImage(initialImage);
   };
+
+//   const getAllUniquePricingTiers = (decorationMethods) => {
+//   if (!decorationMethods?.length) return [];
+  
+//   const allTiers = decorationMethods.flatMap(method => 
+//     method.pricingTiers || []
+//   );
+  
+//   // Remove duplicates based on minQty-maxQty combination
+//   const uniqueTiers = allTiers.reduce((acc, tier) => {
+//     const key = `${tier.minQty}-${tier.maxQty}`;
+//     if (!acc.some(t => `${t.minQty}-${t.maxQty}` === key)) {
+//       acc.push(tier);
+//     }
+//     return acc;
+//   }, []);
+  
+//   // Sort by minQty
+//   return uniqueTiers.sort((a, b) => a.minQty - b.minQty);
+// };
+
+
+// const uniquePricingTiers = getAllUniquePricingTiers(
+//   singleProList?.data?.decorationMethods
+// );
+
+
+
+const getAllPricingTiers = (decorationMethods) => {
+  if (!decorationMethods?.length) return [];
+  
+  // Flatten all tiers from all methods
+  const allTiers = decorationMethods.flatMap(method => 
+    method.pricingTiers || []
+  );
+  
+  // Use Map to ensure unique IDs
+  const uniqueMap = new Map();
+  allTiers.forEach(tier => {
+    uniqueMap.set(tier.id, tier);
+  });
+  
+  // Convert back to array and sort
+  return Array.from(uniqueMap.values())
+    .sort((a, b) => a.minQty - b.minQty);
+};
+
+const uniquePricingTiers = getAllPricingTiers(
+  singleProList?.data?.decorationMethods
+);
+
+
+
+
+
+
   return (
     <div>
       <div className='banner_area py-0 lg:p-0'>
@@ -172,31 +229,31 @@ const id=atob(searchParams.get("id"))
                       <Image src={product_details_small_img04} alt='product_details_small_img04' className="" />
                    </div> */}
                     {smallImages.map((imgSrc, index) => (
-          <div 
-            key={index}
-            className='mb-2 cursor-pointer transition-all duration-200 hover:opacity-80 hover:scale-105'
-            onMouseEnter={() => handleImageHover(imgSrc)}
-          >
-            <Image 
-              src={imgSrc} 
-              alt={`product_details_small_img0${index + 1}`}
-              className="w-full h-auto rounded-md shadow-sm hover:shadow-md"
-              width={80} // Adjust based on your design
-              height={80}
-            />
-          </div>
+                  <div 
+                    key={index}
+                    className='mb-2 cursor-pointer transition-all duration-200 hover:opacity-80 hover:scale-105'
+                    onMouseEnter={() => handleImageHover(imgSrc)}
+                  >
+                    <Image 
+                      src={imgSrc} 
+                      alt={`product_details_small_img0${index + 1}`}
+                      className="w-full h-auto rounded-md shadow-sm hover:shadow-md"
+                      width={80} // Adjust based on your design
+                      height={80}
+                    />
+                  </div>
         ))}
                  </div>
                  <div className='w-10/12'>
                     {/* <Image src={product_details_big_img} alt='product_details_big_img' className="" /> */}
                     <Image 
-          src={activeImage} 
-          alt='product_details_big_img' 
-          className="w-full h-auto rounded-lg shadow-lg transition-all duration-300"
-          width={400} // Adjust based on your design
-          height={400}
-          priority // For better performance on initial load
-        />
+                    src={activeImage} 
+                    alt='product_details_big_img' 
+                    className="w-full h-auto rounded-lg shadow-lg transition-all duration-300"
+                    width={400} // Adjust based on your design
+                    height={400}
+                    priority // For better performance on initial load
+                    />
                  </div>
               </div>
               <div className='lg:w-6/12'>
@@ -205,13 +262,17 @@ const id=atob(searchParams.get("id"))
                     <p className='text-xl text-black font-medium'>{singleProList?.data?.basePrice}</p>
                  </div>
                  <div className="overflow-x-auto mt-4 wooly_area mb-5">
-                    <Table>
+                    {/* <Table>
                       <TableHead>
                         <TableRow>
                           <TableHeadCell>QUANTITY</TableHeadCell>
-                          <TableHeadCell>24-47</TableHeadCell>
-                          <TableHeadCell>48-99</TableHeadCell>
-                          <TableHeadCell>100+</TableHeadCell>
+                          {singleProList?.data?.decorationMethods?.map((quan)=>(
+                            quan?.pricingTiers?.map((qty)=>(
+                               <TableHeadCell>{qty?.minQty}-{qty?.maxQty}</TableHeadCell>
+                            ))
+                           
+                          ))}
+                          
                         </TableRow>
                       </TableHead>
                       <TableBody className="divide-y">
@@ -244,7 +305,47 @@ const id=atob(searchParams.get("id"))
                           <TableCell className='bg-white text-black'>$52.00</TableCell>
                         </TableRow>
                       </TableBody>
-                    </Table>
+                    </Table> */}
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableHeadCell>QUANTITY</TableHeadCell>
+                        {uniquePricingTiers.map((tier, index) => (
+                          <TableHeadCell key={tier.id || index}>
+                            {tier.minQty}-{tier.maxQty}
+                          </TableHeadCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody className="divide-y">
+                      {singleProList?.data?.decorationMethods?.map((method, methodIndex) => (
+                        <TableRow key={method.id || methodIndex} className="bg-white border-white">
+                          <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">
+                            {method.decorationMethod}
+                          </TableCell>
+                          {uniquePricingTiers.map((tier, tierIndex) => {
+                            // Find matching price for this tier in current decoration method
+                            const matchingTier = method.pricingTiers?.find(
+                              pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
+                            );
+                            
+                            return (
+                              <TableCell key={tierIndex} className='bg-white text-black'>
+                                {matchingTier 
+                                  ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
+                                  : '-'}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  
+                  
+                  
+                  
                   </div>
 
                   <div>
@@ -258,20 +359,39 @@ const id=atob(searchParams.get("id"))
 
            <h3 className='text-[#1A1A1A] text-2xl font-bold pb-4'>Color & Sizing</h3>
            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10'>
-
-              <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
+              {
+                singleProList?.data?.productVariants?.map((vari)=>(
+                   <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
                  <div className='text-center mb-5'>
-                    <Image src={yellow_cap} alt='yellow_cap' className="inline-block" />
-                    <p className='text-black text-[18px] font-medium'>Yellow</p>
+                    {/* <Image src={yellow_cap} alt='yellow_cap' className="inline-block" /> */}
+                    {
+                      vari?.images?(
+                        <Image src={getValidImageUrl(vari?.images)} height={50} width={50} alt='yellow_cap' className="inline-block" />
+                      ):(
+                        <div className="w-full h-[100px] bg-gray-200 flex items-center justify-center">
+                              <span className="text-gray-400">No Image</span>
+                            </div>
+                      )
+                    }
+                    
+                    
+                    <p className='text-black text-[18px] font-medium'>{vari?.color}</p>
                  </div>
                  <div className='grid grid-cols-5 gap-2'>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
+                  {
+                    vari?.variantSizes?.map((sizes)=>(
+
+                         <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
                       <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
                       <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>S</p>
+                        <p className='text-white text-base font-semibold uppercase'>{sizes?.size}</p>
                       </div>
                     </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
+
+                    ))
+                  }
+                 
+                    {/* <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
                       <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
                       <div className='bg-[#FF7C7C] py-2 text-center'>
                         <p className='text-white text-base font-semibold uppercase'>M</p>
@@ -282,11 +402,15 @@ const id=atob(searchParams.get("id"))
                       <div className='bg-[#FF7C7C] py-2 text-center'>
                         <p className='text-white text-base font-semibold uppercase'>L</p>
                       </div>
-                    </div>
+                    </div> */}
                  </div>
               </div>
 
-              <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
+                ))
+              }
+             
+
+              {/* <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
                  <div className='text-center mb-5'>
                     <Image src={orange_cap} alt='yellow_cap' className="inline-block" />
                     <p className='text-black text-[18px] font-medium'>Orange</p>
@@ -461,7 +585,7 @@ const id=atob(searchParams.get("id"))
                       </div>
                     </div>
                  </div>
-              </div>
+              </div> */}
 
            </div>
 

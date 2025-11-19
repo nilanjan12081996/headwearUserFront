@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllProduct, getProduct } from "../reducers/ProductSlice";
 import { Pagination } from "flowbite-react";
+import { getValidImageUrl } from "../utils/imageHelper";
 
 const CapList=({ selectedSupplierId })=>{
 
@@ -49,7 +50,7 @@ useEffect(()=>{
   const displayProducts = selectedSupplierId=="Supplier" ? allProList?.data:productList?.data?.data
   
     console.log("productList",productList);
-      console.log("allProList",allProList);
+      console.log("allProList",displayProducts);
     
     return(
         <>
@@ -60,15 +61,31 @@ useEffect(()=>{
                        <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
                     <div>
                       <Link href={`/product-details?id=${btoa(allPro?.id)}`} passHref>
-                         {/* <Image src={product_01} alt='product_01' className="w-full" /> */}
-                          <Image src={allPro?.images} height={100} width={100} alt='product_01' className="w-full" />
+                         
+                          {/* <Image src={allPro?.images} height={100} width={100} alt='product_01' className="w-full" /> */}
+                      
+                      {allPro?.images ? (
+                            <Image 
+                              src={getValidImageUrl(allPro?.images)}
+                              height={100} 
+                              width={100} 
+                              alt={allPro?.hatName || 'product'} 
+                              className="w-full" 
+                            />
+                          ) : (
+                            <div className="w-full h-[100px] bg-gray-200 flex items-center justify-center">
+                              <span className="text-gray-400">No Image</span>
+                            </div>
+                          )}
+                      
+                      
                       </Link>
                     </div>
                     <div className='p-4 flex justify-between items-center'>
                         <div>
                           <p className='text-[#1A1A1A] text-xl font-medium mb-1'>{allPro?.supplierStyleCode}</p>
                           <p className='text-[#4D4D4D] text-sm'>{allPro?.hatName}</p>
-                          <p className='text-[#1A1A1A] text-base font-medium mb-1'>{allPro?.basePrice}</p>
+                          <p className='text-[#1A1A1A] text-base font-medium mb-1'>{allPro?.basePrice?.includes('undefined') ? 'Price TBD' : allPro?.basePrice}</p>
                           <Image src={rating_icon} alt='rating_icon' className="" />
                         </div>
                         <div>
