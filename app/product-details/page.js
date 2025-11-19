@@ -382,27 +382,18 @@ const uniquePricingTiers = getAllPricingTiers(
                     vari?.variantSizes?.map((sizes)=>(
 
                          <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
+                      <input type="number"
+                      min={0}
+                       max={sizes?.inventory?.[0]?.qtyAvailable}
+                      className='w-full h-[60px] text-center'
+                       placeholder='0' />
                       <div className='bg-[#FF7C7C] py-2 text-center'>
                         <p className='text-white text-base font-semibold uppercase'>{sizes?.size}</p>
                       </div>
                     </div>
-
                     ))
                   }
-                 
-                    {/* <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>M</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>L</p>
-                      </div>
-                    </div> */}
+           
                  </div>
               </div>
 
