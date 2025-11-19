@@ -383,9 +383,10 @@ const uniquePricingTiers = getAllPricingTiers(
 
                          <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
                       <input type="number"
+                      disabled={sizes?.inventory?.[0]?.qtyAvailable===0 || sizes?.inventory?.length<=0}
                       min={0}
                        max={sizes?.inventory?.[0]?.qtyAvailable}
-                      className='w-full h-[60px] text-center'
+                        className='w-full h-[60px] text-center disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed'
                        placeholder='0' />
                       <div className='bg-[#FF7C7C] py-2 text-center'>
                         <p className='text-white text-base font-semibold uppercase'>{sizes?.size}</p>
