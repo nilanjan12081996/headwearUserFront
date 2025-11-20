@@ -59,11 +59,12 @@ useEffect(()=>{
                 {
                   displayProducts?.map((allPro)=>(
                        <div className='product_list_box border border-[#E2E2E2] rounded-[8px]'>
-                    <div>
-                      <Link href={`/product-details?id=${btoa(allPro?.id)}`} passHref>
+                   
+                      {
+                        allPro?.productVariants?.length>0?(
+                          <div>
+                      <Link  href={`/product-details?id=${btoa(allPro?.id)}`} passHref>
                          
-                          {/* <Image src={allPro?.images} height={100} width={100} alt='product_01' className="w-full" /> */}
-                      
                       {allPro?.images ? (
                             <Image 
                               src={getValidImageUrl(allPro?.images)}
@@ -80,7 +81,28 @@ useEffect(()=>{
                       
                       
                       </Link>
-                    </div>
+                      </div>
+
+                        ):(
+                           <div className="cursor-not-allowed opacity-50">
+                              {allPro?.images ? (
+                                <Image 
+                                  src={getValidImageUrl(allPro?.images)}
+                                  height={100} 
+                                  width={100} 
+                                  alt={allPro?.hatName || 'product'} 
+                                  className="w-full" 
+                                />
+                              ) : (
+                                <div className="w-full h-[100px] bg-gray-200 flex items-center justify-center">
+                                  <span className="text-gray-400">No Image</span>
+                                </div>
+                              )}
+                            </div>
+                        )
+                      }
+                 
+                    
                     <div className='p-4 flex justify-between items-center'>
                         <div>
                           <p className='text-[#1A1A1A] text-xl font-medium mb-1'>{allPro?.supplierStyleCode}</p>

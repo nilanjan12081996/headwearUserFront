@@ -120,26 +120,53 @@ const id=atob(searchParams.get("id"))
     setActiveImage(initialImage);
   };
 
-//   const getAllUniquePricingTiers = (decorationMethods) => {
+// const getAllPricingTiers = (decorationMethods) => {
 //   if (!decorationMethods?.length) return [];
   
+//   // Flatten all tiers from all methods
 //   const allTiers = decorationMethods.flatMap(method => 
 //     method.pricingTiers || []
 //   );
   
-//   // Remove duplicates based on minQty-maxQty combination
-//   const uniqueTiers = allTiers.reduce((acc, tier) => {
-//     const key = `${tier.minQty}-${tier.maxQty}`;
-//     if (!acc.some(t => `${t.minQty}-${t.maxQty}` === key)) {
-//       acc.push(tier);
-//     }
-//     return acc;
-//   }, []);
+//   // Use Map to ensure unique IDs
+//   const uniqueMap = new Map();
+//   allTiers.forEach(tier => {
+//     uniqueMap.set(tier.id, tier);
+//   });
   
-//   // Sort by minQty
-//   return uniqueTiers.sort((a, b) => a.minQty - b.minQty);
+//   // Convert back to array and sort
+//   return Array.from(uniqueMap.values())
+//     .sort((a, b) => a.minQty - b.minQty);
 // };
 
+// const uniquePricingTiers = getAllPricingTiers(
+//   singleProList?.data?.decorationMethods
+// );
+
+
+// Helper function to get all unique pricing tiers across all decoration methods
+// const getAllUniquePricingTiers = (decorationMethods) => {
+//   if (!decorationMethods?.length) return [];
+  
+//   // Collect all unique quantity ranges
+//   const tierMap = new Map();
+  
+//   decorationMethods.forEach(method => {
+//     method.pricingTiers?.forEach(tier => {
+//       const key = `${tier.minQty}-${tier.maxQty}`;
+//       if (!tierMap.has(key)) {
+//         tierMap.set(key, {
+//           minQty: tier.minQty,
+//           maxQty: tier.maxQty,
+//           key: key
+//         });
+//       }
+//     });
+//   });
+  
+//   // Sort by minQty
+//   return Array.from(tierMap.values()).sort((a, b) => a.minQty - b.minQty);
+// };
 
 // const uniquePricingTiers = getAllUniquePricingTiers(
 //   singleProList?.data?.decorationMethods
@@ -147,28 +174,34 @@ const id=atob(searchParams.get("id"))
 
 
 
-const getAllPricingTiers = (decorationMethods) => {
+
+// Helper function to get all unique pricing tiers
+const getAllUniquePricingTiers = (decorationMethods) => {
   if (!decorationMethods?.length) return [];
   
-  // Flatten all tiers from all methods
-  const allTiers = decorationMethods.flatMap(method => 
-    method.pricingTiers || []
-  );
+  const tierMap = new Map();
   
-  // Use Map to ensure unique IDs
-  const uniqueMap = new Map();
-  allTiers.forEach(tier => {
-    uniqueMap.set(tier.id, tier);
+  decorationMethods.forEach(method => {
+    method.pricingTiers?.forEach(tier => {
+      const key = `${tier.minQty}-${tier.maxQty}`;
+      if (!tierMap.has(key)) {
+        tierMap.set(key, {
+          minQty: tier.minQty,
+          maxQty: tier.maxQty,
+          key: key
+        });
+      }
+    });
   });
   
-  // Convert back to array and sort
-  return Array.from(uniqueMap.values())
-    .sort((a, b) => a.minQty - b.minQty);
+  return Array.from(tierMap.values()).sort((a, b) => a.minQty - b.minQty);
 };
 
-const uniquePricingTiers = getAllPricingTiers(
+const uniquePricingTiers = getAllUniquePricingTiers(
   singleProList?.data?.decorationMethods
 );
+
+
 
 
 
@@ -262,50 +295,7 @@ const uniquePricingTiers = getAllPricingTiers(
                     <p className='text-xl text-black font-medium'>{singleProList?.data?.basePrice}</p>
                  </div>
                  <div className="overflow-x-auto mt-4 wooly_area mb-5">
-                    {/* <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableHeadCell>QUANTITY</TableHeadCell>
-                          {singleProList?.data?.decorationMethods?.map((quan)=>(
-                            quan?.pricingTiers?.map((qty)=>(
-                               <TableHeadCell>{qty?.minQty}-{qty?.maxQty}</TableHeadCell>
-                            ))
-                           
-                          ))}
-                          
-                        </TableRow>
-                      </TableHead>
-                      <TableBody className="divide-y">
-                        <TableRow className="bg-white border-white">
-                          <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">
-                            Standard Print
-                          </TableCell>
-                          <TableCell className='bg-white text-black'>$24.00</TableCell>
-                          <TableCell className='bg-white text-black'>$30.00</TableCell>
-                          <TableCell className='bg-white text-black'>$45.00</TableCell>
-                        </TableRow>
-                        <TableRow className="bg-white border-white">
-                          <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">
-                            Leather Patch
-                          </TableCell>
-                          <TableCell className='bg-white text-black'>$40.00</TableCell>
-                          <TableCell className='bg-white text-black'>$55.00</TableCell>
-                          <TableCell className='bg-white text-black'>$60.00</TableCell>
-                        </TableRow>
-                        <TableRow className="bg-white border-white">
-                          <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">3d Emboidary</TableCell>
-                          <TableCell className='bg-white text-black'>$37.00</TableCell>
-                          <TableCell className='bg-white text-black'>$60.00</TableCell>
-                          <TableCell className='bg-white text-black'>$70.00</TableCell>
-                        </TableRow>
-                        <TableRow className="bg-white border-white">
-                          <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">Flat Emboidary</TableCell>
-                          <TableCell className='bg-white text-black'>$35.00</TableCell>
-                          <TableCell className='bg-white text-black'>$46.00</TableCell>
-                          <TableCell className='bg-white text-black'>$52.00</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table> */}
+{/*                  
                   <Table>
                     <TableHead>
                       <TableRow>
@@ -340,7 +330,123 @@ const uniquePricingTiers = getAllPricingTiers(
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table> */}
+
+{/* 
+                  <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeadCell className="bg-[#FF7379] text-white">QUANTITY</TableHeadCell>
+                      {singleProList?.data?.decorationMethods?.map((method, index) => (
+                        <TableHeadCell key={method.id || index} className="bg-[#FF7379] text-white">
+                          {method.decorationMethod}
+                        </TableHeadCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody className="divide-y">
+                    {uniquePricingTiers.map((tier, tierIndex) => (
+                      <TableRow key={tierIndex} className="bg-white border-white">
+                        <TableCell className="whitespace-nowrap font-medium bg-gray-100 text-black">
+                          {tier.minQty}-{tier.maxQty}
+                        </TableCell>
+                        {singleProList?.data?.decorationMethods?.map((method, methodIndex) => {
+                          // Find matching price tier for this quantity range
+                          const matchingTier = method.pricingTiers?.find(
+                            pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
+                          );
+                          
+                          return (
+                            <TableCell key={methodIndex} className="bg-white text-black text-center">
+                              {matchingTier 
+                                ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
+                                : '-'}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table> */}
+
+
+{/* 
+                <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeadCell className="bg-[#FF7379] text-white">QUANTITY</TableHeadCell>
+                    {singleProList?.data?.decorationMethods?.map((method, index) => (
+                      <TableHeadCell key={method.id || index} className="bg-[#FF7379] text-white">
+                        {method.decorationMethod}
+                      </TableHeadCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {uniquePricingTiers.map((tier, tierIndex) => (
+                    <TableRow key={tierIndex} className="bg-white border-white">
+                      <TableCell className="whitespace-nowrap font-medium bg-gray-100 text-black">
+                        {tier.minQty}-{tier.maxQty}
+                      </TableCell>
+                      {singleProList?.data?.decorationMethods?.map((method, methodIndex) => {
+                        const matchingTier = method.pricingTiers?.find(
+                          pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
+                        );
+                        
+                        return (
+                          <TableCell key={methodIndex} className="bg-white text-black text-center">
+                            {matchingTier 
+                              ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
+                              : '-'}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table> */}
+
+
+
+
+
+              <Table>
+  <TableHead>
+    <TableRow>
+      <TableHeadCell>Quantity</TableHeadCell>
+      {uniquePricingTiers.map((tier, index) => (
+        <TableHeadCell key={tier.key}>
+          {tier.minQty}-{tier.maxQty === 999999 ? '+' : tier.maxQty}
+        </TableHeadCell>
+      ))}
+    </TableRow>
+  </TableHead>
+  <TableBody className="divide-y">
+    {singleProList?.data?.decorationMethods?.map((method, methodIndex) => (
+      <TableRow key={method.id || methodIndex} className="bg-white border-white">
+        <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">
+          {method.decorationMethod}
+        </TableCell>
+        {uniquePricingTiers.map((tier) => {
+          const matchingTier = method.pricingTiers?.find(
+            pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
+          );
+          
+          return (
+            <TableCell key={tier.key} className="bg-white text-black">
+              {matchingTier 
+                ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
+                : '-'}
+            </TableCell>
+          );
+        })}
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
+
+
+
                   
                   
                   
@@ -348,11 +454,11 @@ const uniquePricingTiers = getAllPricingTiers(
                   
                   </div>
 
-                  <div>
+                  {/* <div>
                      <p className='text-sm text-[#808080] mb-1'><span className='text-black font-medium'>Category:</span> Flex Fit</p>
                      <p className='text-sm text-[#808080] mb-1'><span className='text-black font-medium'>Article Number:</span> 187400-1</p>
                      <p className='text-sm text-[#808080] mb-1'><span className='text-black font-medium'>Material:</span> 63% Polyester, 34% Cotton, 3% Elastane</p>
-                  </div>
+                  </div> */}
 
               </div>
            </div>
