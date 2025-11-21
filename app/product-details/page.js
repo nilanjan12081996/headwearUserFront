@@ -76,12 +76,19 @@ import { FaPlus } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { getSingleProduct } from '../reducers/ProductSlice';
 import { getValidImageUrl } from '../utils/imageHelper';
+import { addCart } from '../reducers/CartSlice';
+import { toast, ToastContainer } from 'react-toastify';
+
+
+
 
 
 
 const page = () => {
 const [activeImage, setActiveImage] = useState(null);
 const[initialImage,setInitialImage]=useState(null)
+const [inputQty, setInputQty] = useState({});
+const router=useRouter()
 //let initialImage = null;
   const{singleProList}=useSelector((state)=>state?.prod)
   const dispatch=useDispatch()
@@ -102,16 +109,79 @@ const id=atob(searchParams.get("id"))
       
     })
   },[id])
+
+
+   const buildCartPayload = () => {
+  const items = [];
+
+  singleProList?.data?.productVariants?.forEach(variant => {
+    variant?.variantSizes?.forEach(sizes => {
+      const sizeKey = `${variant?.color}-${sizes?.size}`;
+      const qty = Number(inputQty[sizeKey]);
+      if (qty > 0) {
+        items.push({
+          variant_size: sizes?.id,
+          qty: qty,
+          inventory: sizes?.inventory?.[0]?.inventoryId || null,
+        });
+      }
+    });
+  });
+
+  return { items };
+};
+
   const handleOrderNowClick = () => {
-    router.push('/upload-artwork');
+    const cartPayload = buildCartPayload();
+      if (cartPayload.items.length === 0) {
+    // Optionally show warning: "Select quantity before ordering."
+    return;
+  }
+
+     dispatch(addCart(cartPayload)).then((res)=>{
+      console.log("res",res);
+      if(res?.payload?.status_code===201){
+        router.push(`/upload-artwork?name=${btoa(singleProList?.data?.supplierStyleCode)}`);
+      }
+      else{
+        toast.error("Something Went Wrong!")
+      }
+
+      
+     })
+    
+    
+ 
+    //  
+   
+
+ 
   };
 
-    const smallImages = [
-    product_details_small_img01,
-    product_details_small_img02,
-    product_details_small_img03,
-    product_details_small_img04
-  ];
+
+ 
+
+  const handleQtyChange = (sizeKey, max, event) => {
+  let value = event.target.value;
+
+  // Only allow blank or integers
+  if (value === '') {
+    setInputQty(prev => ({ ...prev, [sizeKey]: '' }));
+    return;
+  }
+
+  // Clamp between 0 and max
+  value = Math.max(0, Math.min(Number(value), max));
+  setInputQty(prev => ({ ...prev, [sizeKey]: value }));
+};
+
+
+  //   const smallImages = [
+  //   product_details_small_img01,
+  //   product_details_small_img02,
+  //   product_details_small_img03,
+  //   product_details_small_img04
+  // ];
 
    const handleImageHover = (imageSrc) => {
     setActiveImage(imageSrc);
@@ -210,6 +280,7 @@ const uniquePricingTiers = getAllUniquePricingTiers(
 
   return (
     <div>
+      <ToastContainer/>
       <div className='banner_area py-0 lg:p-0'>
         {/* home banner section start here */}
         <div className="relative">
@@ -249,26 +320,15 @@ const uniquePricingTiers = getAllUniquePricingTiers(
                  <div className='w-2/12'
                  onMouseLeave={handleMouseLeave}
                  >
-                   {/* <div className='mb-2'>
-                      <Image src={product_details_small_img01} alt='product_details_small_img01' className="" />
-                   </div>
-                   <div className='mb-2'>
-                      <Image src={product_details_small_img02} alt='product_details_small_img02' className="" />
-                   </div>
-                   <div className='mb-2'>
-                      <Image src={product_details_small_img03} alt='product_details_small_img03' className="" />
-                   </div>
-                   <div className='mb-2'>
-                      <Image src={product_details_small_img04} alt='product_details_small_img04' className="" />
-                   </div> */}
-                    {smallImages.map((imgSrc, index) => (
+              
+                    {singleProList?.data?.hatImages?.map((imgSrc, index) => (
                   <div 
                     key={index}
                     className='mb-2 cursor-pointer transition-all duration-200 hover:opacity-80 hover:scale-105'
-                    onMouseEnter={() => handleImageHover(imgSrc)}
+                    onMouseEnter={() => handleImageHover(imgSrc?.imageUrls)}
                   >
                     <Image 
-                      src={imgSrc} 
+                      src={imgSrc?.imageUrls} 
                       alt={`product_details_small_img0${index + 1}`}
                       className="w-full h-auto rounded-md shadow-sm hover:shadow-md"
                       width={80} // Adjust based on your design
@@ -295,163 +355,40 @@ const uniquePricingTiers = getAllUniquePricingTiers(
                     <p className='text-xl text-black font-medium'>{singleProList?.data?.basePrice}</p>
                  </div>
                  <div className="overflow-x-auto mt-4 wooly_area mb-5">
-{/*                  
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableHeadCell>QUANTITY</TableHeadCell>
-                        {uniquePricingTiers.map((tier, index) => (
-                          <TableHeadCell key={tier.id || index}>
-                            {tier.minQty}-{tier.maxQty}
-                          </TableHeadCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody className="divide-y">
-                      {singleProList?.data?.decorationMethods?.map((method, methodIndex) => (
-                        <TableRow key={method.id || methodIndex} className="bg-white border-white">
-                          <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">
-                            {method.decorationMethod}
-                          </TableCell>
-                          {uniquePricingTiers.map((tier, tierIndex) => {
-                            // Find matching price for this tier in current decoration method
-                            const matchingTier = method.pricingTiers?.find(
-                              pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
-                            );
-                            
-                            return (
-                              <TableCell key={tierIndex} className='bg-white text-black'>
-                                {matchingTier 
-                                  ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
-                                  : '-'}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table> */}
-
-{/* 
-                  <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeadCell className="bg-[#FF7379] text-white">QUANTITY</TableHeadCell>
-                      {singleProList?.data?.decorationMethods?.map((method, index) => (
-                        <TableHeadCell key={method.id || index} className="bg-[#FF7379] text-white">
-                          {method.decorationMethod}
-                        </TableHeadCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody className="divide-y">
-                    {uniquePricingTiers.map((tier, tierIndex) => (
-                      <TableRow key={tierIndex} className="bg-white border-white">
-                        <TableCell className="whitespace-nowrap font-medium bg-gray-100 text-black">
-                          {tier.minQty}-{tier.maxQty}
-                        </TableCell>
-                        {singleProList?.data?.decorationMethods?.map((method, methodIndex) => {
-                          // Find matching price tier for this quantity range
-                          const matchingTier = method.pricingTiers?.find(
-                            pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
-                          );
-                          
-                          return (
-                            <TableCell key={methodIndex} className="bg-white text-black text-center">
-                              {matchingTier 
-                                ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
-                                : '-'}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table> */}
-
-
-{/* 
-                <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeadCell className="bg-[#FF7379] text-white">QUANTITY</TableHeadCell>
-                    {singleProList?.data?.decorationMethods?.map((method, index) => (
-                      <TableHeadCell key={method.id || index} className="bg-[#FF7379] text-white">
-                        {method.decorationMethod}
-                      </TableHeadCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody className="divide-y">
-                  {uniquePricingTiers.map((tier, tierIndex) => (
-                    <TableRow key={tierIndex} className="bg-white border-white">
-                      <TableCell className="whitespace-nowrap font-medium bg-gray-100 text-black">
-                        {tier.minQty}-{tier.maxQty}
-                      </TableCell>
-                      {singleProList?.data?.decorationMethods?.map((method, methodIndex) => {
-                        const matchingTier = method.pricingTiers?.find(
-                          pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
-                        );
-                        
-                        return (
-                          <TableCell key={methodIndex} className="bg-white text-black text-center">
-                            {matchingTier 
-                              ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
-                              : '-'}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table> */}
-
-
-
-
-
               <Table>
-  <TableHead>
-    <TableRow>
-      <TableHeadCell>Quantity</TableHeadCell>
-      {uniquePricingTiers.map((tier, index) => (
-        <TableHeadCell key={tier.key}>
-          {tier.minQty}-{tier.maxQty === 999999 ? '+' : tier.maxQty}
-        </TableHeadCell>
-      ))}
-    </TableRow>
-  </TableHead>
-  <TableBody className="divide-y">
-    {singleProList?.data?.decorationMethods?.map((method, methodIndex) => (
-      <TableRow key={method.id || methodIndex} className="bg-white border-white">
-        <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">
-          {method.decorationMethod}
-        </TableCell>
-        {uniquePricingTiers.map((tier) => {
-          const matchingTier = method.pricingTiers?.find(
-            pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
-          );
-          
-          return (
-            <TableCell key={tier.key} className="bg-white text-black">
-              {matchingTier 
-                ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
-                : '-'}
-            </TableCell>
-          );
-        })}
-      </TableRow>
-    ))}
-  </TableBody>
-</Table>
-
-
-
-                  
-                  
-                  
-                  
-                  
+              <TableHead>
+                <TableRow>
+                  <TableHeadCell>Quantity</TableHeadCell>
+                  {uniquePricingTiers.map((tier, index) => (
+                    <TableHeadCell key={tier.key}>
+                      {tier.minQty}-{tier.maxQty === 999999 ? '+' : tier.maxQty}
+                    </TableHeadCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody className="divide-y">
+                {singleProList?.data?.decorationMethods?.map((method, methodIndex) => (
+                  <TableRow key={method.id || methodIndex} className="bg-white border-white">
+                    <TableCell className="whitespace-nowrap font-medium bg-[#FF7379] text-white">
+                      {method.decorationMethod}
+                    </TableCell>
+                    {uniquePricingTiers.map((tier) => {
+                      const matchingTier = method.pricingTiers?.find(
+                        pt => pt.minQty === tier.minQty && pt.maxQty === tier.maxQty
+                      );
+                      
+                      return (
+                        <TableCell key={tier.key} className="bg-white text-black">
+                          {matchingTier 
+                            ? `$${matchingTier.perUnitPrice.toFixed(2)}` 
+                            : '-'}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
                   </div>
 
                   {/* <div>
@@ -485,20 +422,28 @@ const uniquePricingTiers = getAllUniquePricingTiers(
                  </div>
                  <div className='grid grid-cols-5 gap-2'>
                   {
-                    vari?.variantSizes?.map((sizes)=>(
+                    vari?.variantSizes?.map((sizes)=>{
 
+                        const maxQty = sizes?.inventory?.[0]?.qtyAvailable || 0;
+                        const disabled = maxQty === 0 || sizes?.inventory?.length <= 0;
+                        const sizeKey = `${vari?.color}-${sizes?.size}`;
+                        return(
                          <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
                       <input type="number"
-                      disabled={sizes?.inventory?.[0]?.qtyAvailable===0 || sizes?.inventory?.length<=0}
+                     // disabled={sizes?.inventory?.[0]?.qtyAvailable===0 || sizes?.inventory?.length<=0}
+                     disabled={disabled}
                       min={0}
                        max={sizes?.inventory?.[0]?.qtyAvailable}
+                       value={inputQty[sizeKey] ?? ''}
+                      onChange={event => handleQtyChange(sizeKey, maxQty, event)}
                         className='w-full h-[60px] text-center disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed'
                        placeholder='0' />
                       <div className='bg-[#FF7C7C] py-2 text-center'>
                         <p className='text-white text-base font-semibold uppercase'>{sizes?.size}</p>
                       </div>
                     </div>
-                    ))
+                        )
+                    })
                   }
            
                  </div>
@@ -508,182 +453,7 @@ const uniquePricingTiers = getAllUniquePricingTiers(
               }
              
 
-              {/* <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
-                 <div className='text-center mb-5'>
-                    <Image src={orange_cap} alt='yellow_cap' className="inline-block" />
-                    <p className='text-black text-[18px] font-medium'>Orange</p>
-                 </div>
-                 <div className='grid grid-cols-5 gap-2'>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>S</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>M</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>L</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XL</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XXL</p>
-                      </div>
-                    </div>
-                 </div>
-              </div>
-
-              <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
-                 <div className='text-center mb-5'>
-                    <Image src={purple_cap} alt='yellow_cap' className="inline-block" />
-                    <p className='text-black text-[18px] font-medium'>Purple</p>
-                 </div>
-                 <div className='grid grid-cols-5 gap-2'>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>S</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>M</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>L</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XL</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XXL</p>
-                      </div>
-                    </div>
-                 </div>
-              </div>
-
-              <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
-                 <div className='text-center mb-5'>
-                    <Image src={cream_cap} alt='cream_cap' className="inline-block" />
-                    <p className='text-black text-[18px] font-medium'>Cream</p>
-                 </div>
-                 <div className='grid grid-cols-5 gap-2'>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>S</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>L</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XL</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XXL</p>
-                      </div>
-                    </div>
-                 </div>
-              </div>
-
-              <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
-                 <div className='text-center mb-5'>
-                    <Image src={brown_cap} alt='brown_cap' className="inline-block" />
-                    <p className='text-black text-[18px] font-medium'>Brown</p>
-                 </div>
-                 <div className='grid grid-cols-5 gap-2'>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>S</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>M</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>L</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XL</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>XXL</p>
-                      </div>
-                    </div>
-                 </div>
-              </div>
-
-              <div className='border border-[#A3A3A3] rounded-[15px] bg-white p-5'>
-                 <div className='text-center mb-5'>
-                    <Image src={black_cap} alt='black_cap' className="inline-block" />
-                    <p className='text-black text-[18px] font-medium'>Black</p>
-                 </div>
-                 <div className='grid grid-cols-5 gap-2'>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>S</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>M</p>
-                      </div>
-                    </div>
-                    <div className='border border-[#A2A2A2] rounded-[4px] number_box'>
-                      <input type="number" className='w-full h-[60px] text-center' placeholder='0' />
-                      <div className='bg-[#FF7C7C] py-2 text-center'>
-                        <p className='text-white text-base font-semibold uppercase'>L</p>
-                      </div>
-                    </div>
-                 </div>
-              </div> */}
+       
 
            </div>
 
