@@ -83,6 +83,7 @@ const page = () => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const dispatch=useDispatch()
     const [isUploading, setIsUploading] = useState(false);
+    const [decorationMethod, setDecorationMethod] = useState("Embroidery");
 
   const handleCheckoutClick = () => {
     router.push('/checkout');
@@ -283,15 +284,18 @@ getDeviceId()
                 </div>
                 <div className='mt-5'>
                   <Label className='text-[#615E5E] text-base'>Decoration Method</Label>
-                  <Select>
-                    <option>Embroidery</option>
-                     <option>Leather Patch</option>
+                  <Select value={decorationMethod}
+                onChange={(e) => setDecorationMethod(e.target.value)}>
+                    <option value="Embroidery">Embroidery</option>
+                     <option value="Leather Patch">Leather Patch</option>
                   </Select>
                 </div>
               </div>
 
            </div>
-           <div>
+           {
+            decorationMethod === "Embroidery"&&(
+                <div>
             <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
             <div className='flex justify-between gap-3'>
             <div className='h-[300px] w-[700px] border-2 border-blue-500'>
@@ -308,9 +312,13 @@ getDeviceId()
             </div>
             </div>
            </div>
+            )
+           }
+           
 
-
-               <div>
+           {
+            decorationMethod === "Leather Patch" &&(
+                  <div>
             <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
             <div className='h-[100px] w-full bg-[#eeeeee] rounded-[10px]'>
               <h2 className='py-2 ml-3 text-[#1A1A1A] text-[18px] font-semibold'>Select a Patch Shape & Color</h2>
@@ -357,6 +365,9 @@ getDeviceId()
        
             </div>
            </div>
+            )
+           }
+          
           
            <div className='team_wrap mb-16'>
 
