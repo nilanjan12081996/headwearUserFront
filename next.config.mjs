@@ -1,5 +1,5 @@
 import withFlowbiteReact from "flowbite-react/plugin/nextjs";
-
+ 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -13,7 +13,7 @@ const nextConfig = {
         port: '',
         pathname: '/uploads/hats/**',
       },
-
+ 
       {
         protocol: 'https',
         hostname: 'showmecustomheadwearuserapi.bestworks.cloud',
@@ -24,5 +24,5 @@ const nextConfig = {
     ],
   },
 };
-
+ 
 export default withFlowbiteReact(nextConfig);

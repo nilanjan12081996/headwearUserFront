@@ -1215,6 +1215,17 @@ body {
   z-index: 1;
 }
 
+.decoration_type_area select {
+  border: #ed1c24 1px solid;
+  background-color: #ffffff;
+  color: #6b7280;
+  font-size: 15px;
+}
+.decoration_type_area select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 @media only screen and (max-width: 767px) {
   .therapies_box_cont {
     bottom: 10px;

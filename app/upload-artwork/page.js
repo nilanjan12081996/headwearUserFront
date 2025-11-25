@@ -154,6 +154,9 @@ getDeviceId()
   }
 };
 
+
+  const [selected, setSelected] = useState("flat");
+
   return (
     <div>
       <div className='banner_area py-0 lg:p-0'>
@@ -191,7 +194,7 @@ getDeviceId()
 
         <div className='max-w-6xl mx-auto px-5 lg:px-0'>
 
-            <div className='team_wrap mb-16'>
+            <div className='team_wrap mb-8'>
 
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Upload Artwork</h3>
               <div className="w-full">
@@ -282,11 +285,11 @@ getDeviceId()
                   <Checkbox id="promotion" className='' />
                   <Label className='text-[#615E5E] text-base' htmlFor="promotion">I own the rights to this artwork being used or have permission from the owner to use it.</Label>
                 </div>
-                <div className='mt-5'>
+                <div className='mt-5 decoration_type_area'>
                   <Label className='text-[#615E5E] text-base'>Decoration Method</Label>
                   <Select value={decorationMethod}
-                onChange={(e) => setDecorationMethod(e.target.value)}>
-                    <option value="Embroidery">Embroidery</option>
+                     onChange={(e) => setDecorationMethod(e.target.value)}>
+                     <option value="Embroidery">Embroidery</option>
                      <option value="Leather Patch">Leather Patch</option>
                   </Select>
                 </div>
@@ -296,80 +299,149 @@ getDeviceId()
            {
             decorationMethod === "Embroidery"&&(
                 <div>
-            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
-            <div className='flex justify-between gap-3'>
-            <div className='h-[300px] w-[700px] border-2 border-blue-500'>
-                <h2 className='mt-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Standard Flat Embroidery</h2>
-                <p className='mt-2 ml-3 text-[15px]'>This method is the most common embroidery type. It is what most customers choose and works well for smaller details and intricate designs.</p>
-              <div className='bg-blue-600 ml-9 mr-9 rounded-xl mt-3'>  <p className='text-center mt-2 text-white '>Flat Embroidery</p></div> 
-                <p className='text-[#4c4b4b] mt-5 ml-3 text-[12px]'>*This is the default pricing option and included in the prices shown on the item select step.</p>
-            </div>
-              <div className='h-[300px] w-[700px] border-2 border-blue-500'>
-             <h2 className='mt-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>3D Puff Embroidery</h2>
-                <p className='mt-2 ml-3 text-[15px]'>This method creates a raised look that makes the design pop off the panel of the hat. Only certain designs or larger blocky elements inside a design are able to be puffed.</p>
-              <div className='bg-blue-600 ml-9 mr-9 rounded-xl mt-3'>  <p className='text-center mt-2 text-white '>3D Puff Embroidery</p></div> 
-                {/* <p className='text-[#4c4b4b] mt-5 ml-3 text-[12px]'>*This is the default pricing option and included in the prices shown on the item select step.</p> */}
-            </div>
-            </div>
-           </div>
+
+                  {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
+                  <div className='flex justify-between gap-3'>
+                    <div className='h-[300px] w-[700px] border-2 border-[#ff0000]'>
+                        <h2 className='mt-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Standard Flat Embroidery</h2>
+                        <p className='mt-2 ml-3 text-[15px]'>This method is the most common embroidery type. It is what most customers choose and works well for smaller details and intricate designs.</p>
+                        <div className='bg-blue-600 ml-9 mr-9 rounded-xl mt-3'>
+                          <p className='text-center mt-2 text-white '>Flat Embroidery</p>
+                        </div> 
+                        <p className='text-[#4c4b4b] mt-5 ml-3 text-[12px]'>*This is the default pricing option and included in the prices shown on the item select step.</p>
+                    </div>
+                    <div className='h-[300px] w-[700px] border-2 border-blue-500'>
+                        <h2 className='mt-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>3D Puff Embroidery</h2>
+                        <p className='mt-2 ml-3 text-[15px]'>This method creates a raised look that makes the design pop off the panel of the hat. Only certain designs or larger blocky elements inside a design are able to be puffed.</p>
+                        <div className='bg-blue-600 ml-9 mr-9 rounded-xl mt-3'>
+                          <p className='text-center mt-2 text-white '>3D Puff Embroidery</p>
+                        </div> 
+                      </div>
+                  </div> */}
+
+
+                  <div className="my-8">
+                    <h2 className="text-2xl font-semibold mb-4">Embroidery Option</h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                      {/* Flat Embroidery */}
+                      <label
+                        className={`border rounded-xl p-5 cursor-pointer transition ${
+                          selected === "flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="embroidery"
+                          value="flat"
+                          checked={selected === "flat"}
+                          onChange={() => setSelected("flat")}
+                          className="hidden"
+                        />
+
+                        <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          This method is the most common embroidery type. Works well for smaller details and intricate designs.
+                        </p>
+
+                        <button
+                          type="button"
+                          className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
+                        >
+                          Flat Embroidery
+                        </button>
+                        <p className='text-[#4c4b4b] mt-5 ml-3 text-[11px]'>*This is the default pricing option and included in the prices shown on the item select step.</p>
+                      </label>
+
+                      {/* 3D Puff Embroidery */}
+                      <label
+                        className={`border rounded-xl p-5 cursor-pointer transition ${
+                          selected === "puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="embroidery"
+                          value="puff"
+                          checked={selected === "puff"}
+                          onChange={() => setSelected("puff")}
+                          className="hidden"
+                        />
+
+                        <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Creates a raised 3D look. Only certain designs or blocky elements can be puffed.
+                        </p>
+
+                        <button
+                          type="button"
+                          className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
+                        >
+                          3D Puff Embroidery
+                        </button>
+                      </label>
+                    </div>
+                  </div>
+
+
+                </div>
             )
            }
            
 
            {
             decorationMethod === "Leather Patch" &&(
-                  <div>
-            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
-            <div className='h-[100px] w-full bg-[#eeeeee] rounded-[10px]'>
-              <h2 className='py-2 ml-3 text-[#1A1A1A] text-[18px] font-semibold'>Select a Patch Shape & Color</h2>
-              <p className='ml-3 text-[15px]'>We will convert your artwork and send you mockups of what the patch will look like for approval and feedback before we begin production of your order.</p>
-            </div>
-            <div className='flex justify-between gap-3'>
-            <div className='mt-3 h-[300px] w-[700px] border-2 border-blue-500'>
-                <h2 className='mt-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Leather Patch</h2>
-               <ul className='ml-3 mt-2'>
-                <li className='flex gap-1'>
-                <FaCheck/>  Synthetic Leather
-                </li>
-                  <li className='flex gap-1'>
-                 <FaCheck/>  Very Classy Look
-                </li>
-                  <li className='flex gap-1'>
-                 <FaCheck/>   Best For Simple Designs
-                </li>
-               </ul>
-             <div className='mt-3'>
-                <Select >
-                  <option>Select Patch Option</option>
-                  <option>Circle</option>
-                  <option>Square</option>
-                  <option>Oval</option>
-                  <option>Diamond</option>
-                  <option>Hexagon</option>
-                  <option>Custom</option>
-                </Select>
-                </div>
-                <div className='mt-3'>
-                   <Select>
-                  <option>Select Patch Color</option>
-                  <option>Brown</option>
-                  <option>Black</option>
-                  <option>Red</option>
-                  <option>Blue</option>
-                
-                </Select>
-             </div>
-                
-                
-            </div>
-       
-            </div>
-           </div>
+              <div>
+                  <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
+                  <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px]'>
+                    <h2 className='py-0 ml-3 text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
+                    <p className='ml-3 text-[15px]'>We will convert your artwork and send you mockups of what the patch will look like for approval and feedback before we begin production of your order.</p>
+                  </div>
+                  <div className='flex justify-between gap-3 decoration_type_area'>
+                    <div className='mt-3 w-[700px] border-1 border-[#ed1c24] px-5 py-7 rounded-xl mb-4'>
+                        <h2 className='mb-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Leather Patch</h2>
+                        <ul className='ml-3 mt-2 flex items-center gap-4'>
+                            <li className='flex items-center gap-1'>
+                            <FaCheck/>  Synthetic Leather
+                            </li>
+                              <li className='flex items-center gap-1'>
+                            <FaCheck/>  Very Classy Look
+                            </li>
+                              <li className='flex items-center gap-1'>
+                            <FaCheck/>   Best For Simple Designs
+                            </li>
+                        </ul>
+                        <div className='mt-3'>
+                            <Select >
+                              <option>Select Patch Option</option>
+                              <option>Circle</option>
+                              <option>Square</option>
+                              <option>Oval</option>
+                              <option>Diamond</option>
+                              <option>Hexagon</option>
+                              <option>Custom</option>
+                            </Select>
+                        </div>
+                        <div className='mt-3'>
+                          <Select>
+                            <option>Select Patch Color</option>
+                            <option>Brown</option>
+                            <option>Black</option>
+                            <option>Red</option>
+                            <option>Blue</option>
+                          </Select>
+                        </div>
+                        
+                    </div>
+            
+                  </div>
+              </div>
             )
            }
           
           
-           <div className='team_wrap mb-16'>
+           <div className='team_wrap mb-8'>
 
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Print Style</h3>
 
@@ -407,7 +479,7 @@ getDeviceId()
               </div>
            </div>
 
-           <div className='team_wrap mb-16'>
+           <div className='team_wrap mb-8'>
 
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3>
 
