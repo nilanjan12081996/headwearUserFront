@@ -247,7 +247,7 @@ dispatch(getSuppliers({
                   <AccordionTitle>
                      <div className='flex items-center gap-3'>
                         <Image src={preview_01} alt='preview_01' className="w-[80px]" />
-                        <p className='text-xl text-[#ed1c24] font-semibold'>The 636 Performance Rope Snapback</p>
+                        <p className='text-xl text-[#ff7379] font-semibold'>The 636 Performance Rope Snapback</p>
                      </div>
                   </AccordionTitle>
                   <AccordionContent>
@@ -528,7 +528,7 @@ dispatch(getSuppliers({
                   <AccordionTitle>
                      <div className='flex items-center gap-3'>
                         <Image src={preview_02} alt='preview_02' className="w-[80px]" />
-                        <p className='text-xl text-[#ed1c24] font-semibold'>The 618 Performance Trucker Snapback</p>
+                        <p className='text-xl text-[#ff7379] font-semibold'>The 618 Performance Trucker Snapback</p>
                      </div>
                   </AccordionTitle>
                   <AccordionContent>
@@ -809,7 +809,7 @@ dispatch(getSuppliers({
                   <AccordionTitle>
                     <div className='flex items-center gap-3'>
                         <Image src={preview_03} alt='preview_03' className="w-[80px]" />
-                        <p className='text-xl text-[#ed1c24] font-semibold'>The 314 Snapback</p>
+                        <p className='text-xl text-[#ff7379] font-semibold'>The 314 Snapback</p>
                      </div>
                   </AccordionTitle>
                   <AccordionContent>
