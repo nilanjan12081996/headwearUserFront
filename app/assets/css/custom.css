@@ -1226,6 +1226,30 @@ body {
   box-shadow: none;
 }
 
+.product_details_area_box > div {
+  border: none;
+  border-radius: 0;
+}
+
+.product_details_area_box button {
+  padding: 10px 10px;
+}
+.product_details_area_box button:first-child {
+  border-radius: 0;
+}
+.product_details_area_box button:focus {
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+.product_details_area_box .number_section button {
+  border-radius: 5px;
+}
+
+.product_details_area_box [data-testid="flowbite-accordion-content"] {
+  background: #ffffff;
+}
+
 @media only screen and (max-width: 767px) {
   .therapies_box_cont {
     bottom: 10px;
