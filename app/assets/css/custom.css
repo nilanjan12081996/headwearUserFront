@@ -1233,6 +1233,7 @@ body {
 
 .product_details_area_box button {
   padding: 10px 10px;
+  cursor: pointer;
 }
 .product_details_area_box button:first-child {
   border-radius: 0;
