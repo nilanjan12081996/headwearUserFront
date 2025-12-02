@@ -118,16 +118,13 @@ dispatch(getSuppliers({
   return (
     <div>
       <div className='banner_area py-0 lg:p-0'>
-        {/* home banner section start here */}
+        
         <div className="relative">
           <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
           <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
         </div>
       </div>
 
-
-
-      {/* Who We Are section start here */}
       <div className="py-10 lg:pb-20 lg:pt-10">
 
         <div className='mb-10'>
@@ -224,10 +221,10 @@ dispatch(getSuppliers({
           </div>
         </div>
 
-        <div className='max-w-6xl mx-auto px-5 lg:px-0'>
+        {/* <div className='max-w-6xl mx-auto px-5 lg:px-0'>
           
           <CapList selectedSupplierId={selectedSupplier}/>
-        </div>
+        </div> */}
       </div>
       {/* Who We Are section ends here */}
 
@@ -365,7 +362,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                               
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -374,7 +371,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                           
                                 <input
                                   type="number"
                                   value={value}
@@ -382,7 +379,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                              
                                 <button
                                   type="button"
                                   onClick={increase}
@@ -407,7 +404,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                               
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -416,7 +413,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                            
                                 <input
                                   type="number"
                                   value={value}
@@ -424,7 +421,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                              
                                 <button
                                   type="button"
                                   onClick={increase}
@@ -449,7 +446,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                               
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -458,7 +455,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                                
                                 <input
                                   type="number"
                                   value={value}
@@ -466,7 +463,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                               
                                 <button
                                   type="button"
                                   onClick={increase}
@@ -491,7 +488,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                              
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -500,7 +497,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                              
                                 <input
                                   type="number"
                                   value={value}
@@ -508,7 +505,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                                
                                 <button
                                   type="button"
                                   onClick={increase}
@@ -646,7 +643,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                               
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -655,7 +652,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                             
                                 <input
                                   type="number"
                                   value={value}
@@ -663,7 +660,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                    
                                 <button
                                   type="button"
                                   onClick={increase}
@@ -688,7 +685,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                               
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -697,7 +694,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                              
                                 <input
                                   type="number"
                                   value={value}
@@ -705,7 +702,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                           
                                 <button
                                   type="button"
                                   onClick={increase}
@@ -730,7 +727,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                                
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -739,7 +736,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                              
                                 <input
                                   type="number"
                                   value={value}
@@ -747,7 +744,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                              
                                 <button
                                   type="button"
                                   onClick={increase}
@@ -772,7 +769,7 @@ dispatch(getSuppliers({
                           <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                              <p className='text-base text-black font-normal pb-4'>OSFA</p>
                              <div className="flex items-center gap-2 number_section">
-                                {/* Minus Button */}
+                                
                                 <button
                                   type="button"
                                   onClick={decrease}
@@ -781,7 +778,7 @@ dispatch(getSuppliers({
                                   –
                                 </button>
 
-                                {/* Input Field */}
+                              
                                 <input
                                   type="number"
                                   value={value}
@@ -789,7 +786,7 @@ dispatch(getSuppliers({
                                   className="w-20 text-center border border-gray-300 rounded-md p-2"
                                 />
 
-                                {/* Plus Button */}
+                             
                                 <button
                                   type="button"
                                   onClick={increase}
