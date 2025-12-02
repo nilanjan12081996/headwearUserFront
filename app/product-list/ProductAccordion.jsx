@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { getHatBrandList, getHatListDetail } from '../reducers/HatBrandSlice';
 import HatColorSelector from './HatColorSelector';
+import { addCartGroup, addCartItem } from '../reducers/CartSlice';
 
 
 const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) => {
@@ -36,14 +37,10 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
 
     }, [brandList]);
 
-    const colors = [
-        { name: 'Black', image: Black },
-        { name: 'White', image: White },
-        { name: 'Moss', image: Moss },
-        { name: 'Buck', image: Buck },
-    ];
 
-    const increase = (hatId, colorName) => {
+    const savedSeeesonId = sessionStorage.getItem("id")
+    const increase = (hatId, colorName, recordId,varientId) => {
+         const newQty = (hatQuantities[hatId]?.[colorName] || 0) + 1;
         setHatQuantities(prev => ({
             ...prev,
             [hatId]: {
@@ -51,9 +48,23 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
                 [colorName]: (prev[hatId]?.[colorName] || 0) + 1
             }
         }));
+        dispatch(addCartGroup({
+            cart_id: savedSeeesonId,
+            hat_id: recordId
+        })).then((res) => {
+            console.log('res',res)
+            if (res?.payload?.status_code === 201) {
+                dispatch(addCartItem({
+                    group_id: res?.payload?.data?.id,
+                    varient_size_id: varientId,
+                    quantity: newQty,
+                    inventry_id: res?.payload?.data?.fields?.Inventory?.[0]
+                }))
+            }
+        });
     };
 
-    const decrease = (hatId, colorName) => {
+    const decrease = (hatId, colorName, recordId) => {
         setHatQuantities(prev => ({
             ...prev,
             [hatId]: {
@@ -221,14 +232,14 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
 
                                                         <div className='grid grid-cols-4 gap-4'>
 
-                                                            {colors.map((color) => (
+                                                            {/* {colors.map((color) => (
                                                                 <HatColorSelector
                                                                     key={color.name}
                                                                     colorName={color.name}
                                                                     colorImage={color.image}
                                                                     value={hatQuantities[hat.id]?.[color.name] || 0}
-                                                                    onIncrease={() => increase(hat.id, color.name)}
-                                                                    onDecrease={() => decrease(hat.id, color.name)}
+                                                                    onIncrease={() => increase(hat.id, color.name, hat?.recordId)}
+                                                                    onDecrease={() => decrease(hat.id, color.name, hat?.recordId)}
                                                                     onChange={(val) => setHatQuantities(prev => ({
                                                                         ...prev,
                                                                         [hat.id]: {
@@ -237,7 +248,33 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
                                                                         }
                                                                     }))}
                                                                 />
-                                                            ))}
+                                                            ))} */}
+                                                          
+                                                                {hat.colors?.map((color,index) => (
+                                                                    <HatColorSelector
+                                                                        key={color.id}
+                                                                        colorName={color.colorName}
+                                                                        colorImage={color?.imageUrl}   // API IMAGE
+                                                                        value={hatQuantities[hat.id]?.[color.colorName] || 0}
+                                                                        onIncrease={() =>
+                                                                            increase(hat.id, color.colorName, hat.recordId, hat?.colors[index]?.sizeVariants?.[0]?.recordId)
+                                                                        }
+                                                                        onDecrease={() =>
+                                                                            decrease(hat.id, color.colorName, hat.recordId)
+                                                                        }
+                                                                        onChange={(val) =>
+                                                                            setHatQuantities((prev) => ({
+                                                                                ...prev,
+                                                                                [hat.id]: {
+                                                                                    ...prev[hat.id],
+                                                                                    [color.colorName]: val,
+                                                                                },
+                                                                            }))
+                                                                        }
+                                                                    />
+                                                                ))}
+                                                          
+
 
                                                         </div>
                                                     </div>

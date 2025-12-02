@@ -2,13 +2,13 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from './api';
 
 
-export const addCart=createAsyncThunk(
+export const addCart = createAsyncThunk(
     'addCart',
-     async (userInput, { rejectWithValue }) => {
+    async (userInput, { rejectWithValue }) => {
         try {
-            const response = await api.post(`user/cart/add-cart`,userInput);
-            console.log("response",response);
-            
+            const response = await api.post(`user/cart/add-cart`, userInput);
+            console.log("response", response);
+
             if (response?.data?.status_code === 201) {
                 return response.data;
             } else {
@@ -24,15 +24,13 @@ export const addCart=createAsyncThunk(
     }
 )
 
-
-
-export const uploadLogo=createAsyncThunk(
+export const uploadLogo = createAsyncThunk(
     'uploadLogo',
-     async (userInput, { rejectWithValue }) => {
+    async (userInput, { rejectWithValue }) => {
         try {
-            const response = await api.post(`user/logo/upload-logo`,userInput);
-            console.log("response",response);
-            
+            const response = await api.post(`user/logo/upload-logo`, userInput);
+            console.log("response", response);
+
             if (response?.data?.status_code === 200) {
                 return response.data;
             } else {
@@ -47,43 +45,145 @@ export const uploadLogo=createAsyncThunk(
         }
     }
 )
-const initialState={
-    loading:false,
-    error:false,
-    cartData:[],
-    uploadLogoData:""
+
+export const addCartUUID = createAsyncThunk(
+    'addCartUUID',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`user/cart/add`, userInput);
+            console.log("response", response);
+
+            if (response?.data?.status_code === 201) {
+                return response.data;
+            } else {
+                if (response?.data?.errors) {
+                    return rejectWithValue(response.data.errors);
+                } else {
+                    return rejectWithValue('Something went wrong.');
+                }
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+)
+
+export const addCartGroup = createAsyncThunk(
+    'addCartGroup',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`user/cart/group/save`, userInput);
+            console.log("Cart Group Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+);
+
+export const addCartItem = createAsyncThunk(
+    'addCartItem',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`user/cart/item/save`, userInput);
+            console.log("Cart Item Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+);
+
+
+const initialState = {
+    loading: false,
+    error: false,
+    cartData: [],
+    uploadLogoData: "",
+    uuidData: "",
+    groupData: "",
+    itemData: ""
 }
 
-const CartSlice=createSlice(
+const CartSlice = createSlice(
     {
-        name:"cart",
+        name: "cart",
         initialState,
-        reducers:{},
-        extraReducers:(builder)=>{
-            builder.addCase(addCart.pending,(state)=>{
-                state.loading=true
+        reducers: {},
+        extraReducers: (builder) => {
+            builder.addCase(addCart.pending, (state) => {
+                state.loading = true
             })
-            .addCase(addCart.fulfilled,(state,{payload})=>{
-                state.loading=false
-                state.cartData=payload
-                state.error=false
-            })
-            .addCase(addCart.rejected,(state,{payload})=>{
-                state.loading=false
-                state.error=payload
-            })
-            .addCase(uploadLogo.pending,(state)=>{
-                state.loading=true
-            })
-            .addCase(uploadLogo.fulfilled,(state,{payload})=>{
-                state.loading=false
-                state.uploadLogoData=payload
-                state.error=false
-            })
-            .addCase(uploadLogo.rejected,(state,{payload})=>{
-                state.loading=false
-                state.error=payload
-            })
+                .addCase(addCart.fulfilled, (state, { payload }) => {
+                    state.loading = false
+                    state.cartData = payload
+                    state.error = false
+                })
+                .addCase(addCart.rejected, (state, { payload }) => {
+                    state.loading = false
+                    state.error = payload
+                })
+                .addCase(uploadLogo.pending, (state) => {
+                    state.loading = true
+                })
+                .addCase(uploadLogo.fulfilled, (state, { payload }) => {
+                    state.loading = false
+                    state.uploadLogoData = payload
+                    state.error = false
+                })
+                .addCase(uploadLogo.rejected, (state, { payload }) => {
+                    state.loading = false
+                    state.error = payload
+                })
+                .addCase(addCartUUID.pending, (state) => {
+                    state.loading = true
+                })
+                .addCase(addCartUUID.fulfilled, (state, { payload }) => {
+                    state.loading = false
+                    state.uuidData = payload
+                    state.error = false
+                })
+                .addCase(addCartUUID.rejected, (state, { payload }) => {
+                    state.loading = false
+                    state.error = payload
+                })
+
+                .addCase(addCartGroup.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(addCartGroup.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.groupData = payload;
+                    state.error = false;
+                })
+                .addCase(addCartGroup.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+
+                .addCase(addCartItem.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(addCartItem.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.itemData = payload;
+                    state.error = false;
+                })
+                .addCase(addCartItem.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+
         }
     }
 )

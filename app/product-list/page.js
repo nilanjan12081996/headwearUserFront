@@ -63,6 +63,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getSuppliers } from '../reducers/SupplierSlice';
 import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 import ProductAccordion from './ProductAccordion';
+import { addCartUUID } from '../reducers/CartSlice';
+import { v4 as uuidv4 } from "uuid";
+
 
 
 
@@ -72,6 +75,29 @@ const page = () => {
   const { suppliersList } = useSelector((state) => state?.suppliers)
   const { productList, allProList } = useSelector((state) => state?.prod)
   const [hatQuantities, setHatQuantities] = useState({});
+
+ useEffect(() => {
+  const savedId = sessionStorage.getItem("id");
+  const savedUUID = sessionStorage.getItem("uuid");
+
+  // If already present, DO NOT call API
+  if (savedId && savedUUID) {
+    console.log("UUID already exists, API not called");
+    return;
+  }
+
+  // Otherwise generate new UUID and call API
+  const cartUUID = uuidv4();
+
+  dispatch(addCartUUID({ uuid: cartUUID })).then((res) => {
+    console.log("res", res);
+
+    if (res?.payload?.status_code === 201) {
+      sessionStorage.setItem("id", res?.payload?.data?.id);
+      sessionStorage.setItem("uuid", res?.payload?.data?.fields?.uuid);
+    }
+  });
+}, []);
 
   const dispatch = useDispatch()
   useEffect(() => {
