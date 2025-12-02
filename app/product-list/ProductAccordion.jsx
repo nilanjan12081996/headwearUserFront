@@ -108,75 +108,32 @@ const ProductAccordion = ({ min = 0, max = 100, step = 1 }) => {
                                                                     <div className='flex gap-2 mb-1'>
                                                                         <div className='w-3/12 bg-[#ff7379] flex items-center justify-center text-black font-medium text-base'>EMBROIDERY</div>
                                                                         <div className='w-9/12 grid grid-cols-8 gap-1'>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>1</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$28</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>12</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$24</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>24</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$22</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>48</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$20</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>96</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$19</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>144</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$18</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>288</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$16</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>432</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$14</div>
-                                                                            </div>
+                                                                            {hat.pricing?.embroidery?.tiers?.length > 0 ? (
+                                                                                hat.pricing.embroidery.tiers.map((tier, index) => (
+                                                                                    <div key={index} className="text-center">
+                                                                                        <p className='bg-[#eeeeee] p-1 text-sm'>{tier.minQty}</p>
+                                                                                        <div className='bg-[#ffffff] p-1 text-sm'>${tier.unitPrice}</div>
+                                                                                    </div>
+                                                                                ))
+                                                                            ) : (
+                                                                                <p className='text-gray-400'>No embroidery pricing available</p>
+                                                                            )}
+
                                                                         </div>
                                                                     </div>
                                                                     <div className='flex gap-2'>
                                                                         <div className='w-3/12 bg-[#eeeeee] flex items-center justify-center text-black font-medium text-base'>PATCH</div>
                                                                         <div className='w-9/12 grid grid-cols-8 gap-1'>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>1</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$28</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>12</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$24</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>24</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$22</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>48</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$20</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>96</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$19</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>144</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$18</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>288</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$16</div>
-                                                                            </div>
-                                                                            <div className='text-center'>
-                                                                                <p className='bg-[#eeeeee] p-1 text-sm'>432</p>
-                                                                                <div className='bg-[#ffffff] p-1 text-sm'>$14</div>
-                                                                            </div>
+                                                                            {hat.pricing?.embroidery?.tiers?.length > 0 ? (
+                                                                                hat.pricing.leatherPatch.tiers.map((tier, index) => (
+                                                                                    <div key={index} className="text-center">
+                                                                                        <p className='bg-[#eeeeee] p-1 text-sm'>{tier.minQty}</p>
+                                                                                        <div className='bg-[#ffffff] p-1 text-sm'>${tier.unitPrice}</div>
+                                                                                    </div>
+                                                                                ))
+                                                                            ) : (
+                                                                                <p className='text-gray-400'>No patch pricing available</p>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                 </div>
