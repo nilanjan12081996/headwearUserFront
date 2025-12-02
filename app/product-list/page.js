@@ -66,10 +66,12 @@ import ProductAccordion from './ProductAccordion';
 
 
 
-const page = ({ min = 0, max = 100, step = 1 }) => {
+
+const page = () => {
   const [selectedSupplier, setSelectedSupplier] = useState('Supplier')
   const { suppliersList } = useSelector((state) => state?.suppliers)
   const { productList, allProList } = useSelector((state) => state?.prod)
+  const [hatQuantities, setHatQuantities] = useState({});
 
   const dispatch = useDispatch()
   useEffect(() => {
@@ -105,28 +107,24 @@ const page = ({ min = 0, max = 100, step = 1 }) => {
     }
   }
 
+  const [selectedOption, setSelectedOption] = useState("Emboidary");
 
-  // const [value, setValue] = useState(min);
+  const totalItems = Object.values(hatQuantities).flatMap(h => Object.values(h)).reduce((a, b) => a + b, 0);
+  const maxItems = 40; 
+  const progressPercent = Math.min((totalItems / maxItems) * 100, 100); // 0-100%
 
-  // const decrease = () => {
-  //   setValue(prev => Math.max(prev - step, min));
-  // };
-
-  // const increase = () => {
-  //   setValue(prev => Math.min(prev + step, max));
-  // };
 
   return (
     <div>
       <div className='banner_area py-0 lg:p-0'>
-        
+
         <div className="relative">
           <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
           <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
         </div>
       </div>
 
-      {/* <div className="py-10 lg:pb-20 lg:pt-10">
+      <div className="py-10 lg:pb-20 lg:pt-10">
 
         <div className='mb-10'>
 
@@ -142,14 +140,18 @@ const page = ({ min = 0, max = 100, step = 1 }) => {
               </ul>
             </div>
             <div className='w-full lg:w-2/12 mb-3 lg:mb-0 form_area'>
-              <Select required>
-                <option>Emboidary</option>
-                <option>Patch</option>
+              <Select
+                required
+                value={selectedOption}
+                onChange={(e) => setSelectedOption(e.target.value)}
+              >
+                <option value="Emboidary">Emboidary</option>
+                <option value="Patch">Patch</option>
               </Select>
             </div>
           </div>
 
-          <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 lg:flex justify-between items-center'>
+          {/* <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 lg:flex justify-between items-center'>
             <div className='form_area lg:w-8/12 lg:flex items-center gap-4 mb-3 lg:mb-0'>
               <div className='w-full lg:w-3/12 mb-3 lg:mb-0'>
                 <Select
@@ -208,10 +210,10 @@ const page = ({ min = 0, max = 100, step = 1 }) => {
                 </Select>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
-        <div className='border-t border-[#ebebeb] border-b mb-10'>
+        {/* <div className='border-t border-[#ebebeb] border-b mb-10'>
           <div className='max-w-6xl mx-auto px-5 lg:px-0 py-4 lg:flex justify-between items-center'>
             <div className='pb-2 lg:pb-0'>
               <p className='text-sm text-[#808080] font-medium'>Active Filters: <span className='text-black'>Min $300 - Max 500</span></p>
@@ -220,65 +222,74 @@ const page = ({ min = 0, max = 100, step = 1 }) => {
               <p className='text-sm text-[#808080] font-medium'><span className='text-black'>{selectedSupplier !== "Supplier" ? productList?.data?.pagination?.totalRecords : allProList?.pagination?.totalRecords}</span> Results found.</p>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        <div className='max-w-6xl mx-auto px-5 lg:px-0'>
+        {/* <div className='max-w-6xl mx-auto px-5 lg:px-0'>
 
           <CapList selectedSupplierId={selectedSupplier} />
-        </div>
-      </div> */}
+        </div> */}
+      </div>
       {/* Who We Are section ends here */}
 
 
       {/* Start:: Product Accordion section  */}
       <div className='product_list_section mb-20 mt-10'>
         <div className='max-w-6xl mx-auto'>
-          <ProductAccordion />
+          <ProductAccordion
+            selectedOption={selectedOption}
+            hatQuantities={hatQuantities}
+            setHatQuantities={setHatQuantities}
+          />
         </div>
       </div>
       {/* End:: Product Accordion section  */}
 
 
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-0'>
-        <div className='bg-[#9f9f9f] py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area'>
-          <div className='flex items-center gap-2 relative z-20'>
-            <div>
-              <IoIosColorPalette className='text-white text-5xl' />
+      <div className='fixed bottom-0 w-full'>
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-0 bg-[#9f9f9f] relative'>
+          <div
+            className='absolute top-0 left-0 h-full bg-[#ff7379] z-0'
+            style={{ width: `${progressPercent}%`, transition: 'width 0.3s' }}
+          />
+          <div className='py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area relative'>
+            <div className='flex items-center gap-2 relative z-20'>
+              <div>
+                <IoIosColorPalette className='text-white text-5xl' />
+              </div>
+              <div>
+                <p className='text-white text-base font-medium'>12+ Items</p>
+                <p className='text-white text-base font-medium'>Free Artwork Setup</p>
+              </div>
             </div>
-            <div>
-              <p className='text-white text-base font-medium'>12+ Items</p>
-              <p className='text-white text-base font-medium'>Free Artwork Setup</p>
+          </div>
+          <div className='py-6 flex justify-center items-center lg:border-r-2 border-[#000000]'>
+            <div className='flex items-center gap-2 relative z-20'>
+              <div>
+                <TbTruckDelivery className='text-white text-5xl' />
+              </div>
+              <div>
+                <p className='text-white text-base font-medium'>24+ Items</p>
+                <p className='text-white text-base font-medium'>Free Shipping</p>
+              </div>
+            </div>
+          </div>
+          <div className='py-6 flex justify-center items-center'>
+            <div className='flex items-center gap-2 relative z-20'>
+              <div>
+                <IoMdTrophy className='text-white text-5xl' />
+              </div>
+              <div>
+                <p className='text-white text-base font-medium'>48+ Items</p>
+                <p className='text-white text-base font-medium'>Free Premium Setup</p>
+              </div>
             </div>
           </div>
         </div>
-        <div className='bg-[#9f9f9f] py-6 flex justify-center items-center lg:border-r-2 border-[#000000]'>
-          <div className='flex items-center gap-2'>
-            <div>
-              <TbTruckDelivery className='text-white text-5xl' />
-            </div>
-            <div>
-              <p className='text-white text-base font-medium'>24+ Items</p>
-              <p className='text-white text-base font-medium'>Free Shipping</p>
-            </div>
-          </div>
+        <div className='bg-[#ed1c24] py-4 text-center'>
+          <p className='text-xl text-white font-bold pb-0'>Current Total: $0</p>
+          <p className='text-[18px] text-white font-medium pb-0'>0 items</p>
         </div>
-        <div className='bg-[#9f9f9f] py-6 flex justify-center items-center'>
-          <div className='flex items-center gap-2'>
-            <div>
-              <IoMdTrophy className='text-white text-5xl' />
-            </div>
-            <div>
-              <p className='text-white text-base font-medium'>48+ Items</p>
-              <p className='text-white text-base font-medium'>Free Premium Setup</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className='bg-[#ed1c24] py-4 text-center'>
-        <p className='text-xl text-white font-bold pb-0'>Current Total: $0</p>
-        <p className='text-[18px] text-white font-medium pb-0'>0 items</p>
       </div>
 
 

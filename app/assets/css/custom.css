@@ -1206,14 +1206,14 @@ body {
 .item_area {
   position: relative;
 }
-.item_area:before {
+/* .item_area:before {
   content: "";
   background: #ff7379;
   width: 100%;
   height: 100%;
   position: absolute;
   z-index: 1;
-}
+} */
 
 .decoration_type_area select {
   border: #ed1c24 1px solid;

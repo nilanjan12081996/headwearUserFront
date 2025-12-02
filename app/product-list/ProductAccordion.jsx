@@ -17,11 +17,11 @@ import { getHatBrandList, getHatListDetail } from '../reducers/HatBrandSlice';
 import HatColorSelector from './HatColorSelector';
 
 
-const ProductAccordion = () => {
+const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) => {
+    // console.log('selectedOption',selectedOption)
 
     const dispatch = useDispatch();
     const { brandList, brandWiseHatList } = useSelector((state) => state.hatBrand);
-    const [hatQuantities, setHatQuantities] = useState({});
 
     useEffect(() => {
         dispatch(getHatBrandList());
@@ -85,7 +85,7 @@ const ProductAccordion = () => {
 
                         </div>
                         <div className='product_details_area_box'>
-                            <Accordion>
+                            <Accordion collapseAll>
                                 {hats.length === 0 ? (
                                     <p className='text-center text-gray-500 py-5'>
                                         No records
@@ -128,38 +128,72 @@ const ProductAccordion = () => {
                                                                     Total Items Price Break
                                                                 </div>
                                                                 <div className="mb-1">
+                                                                    {/* EMBROIDERY Row */}
                                                                     <div className='flex gap-2 mb-1'>
-                                                                        <div className='w-3/12 bg-[#ff7379] flex items-center justify-center text-black font-medium text-base'>EMBROIDERY</div>
+                                                                        <div className={`w-3/12 flex items-center justify-center text-black font-medium text-base ${selectedOption === "Emboidary" ? "bg-[#ff7379]" : "bg-[#eeeeee]"
+                                                                            }`}>
+                                                                            EMBROIDERY
+                                                                        </div>
                                                                         <div className='w-9/12 grid grid-cols-8 gap-1'>
                                                                             {hat.pricing?.embroidery?.tiers?.length > 0 ? (
-                                                                                hat.pricing.embroidery.tiers.map((tier, index) => (
-                                                                                    <div key={index} className="text-center">
-                                                                                        <p className='bg-[#eeeeee] p-1 text-sm'>{tier.minQty}</p>
-                                                                                        <div className='bg-[#ffffff] p-1 text-sm'>${tier.unitPrice}</div>
-                                                                                    </div>
-                                                                                ))
+                                                                                hat.pricing.embroidery.tiers.map((tier, index) => {
+                                                                                    // only calculate isSelected if EMBROIDERY is selected
+                                                                                    const totalQty = selectedOption === "Emboidary"
+                                                                                        ? Object.values(hatQuantities[hat.id] || {}).reduce((a, b) => a + b, 0)
+                                                                                        : 0;
+
+                                                                                    const isSelected = totalQty >= tier.minQty;
+
+                                                                                    return (
+                                                                                        <div key={index} className="text-center">
+                                                                                            <p className={`p-1 text-sm ${isSelected ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                                {tier.minQty}
+                                                                                            </p>
+                                                                                            <div className={`p-1 text-sm ${isSelected ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                                ${tier.unitPrice}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    );
+                                                                                })
                                                                             ) : (
                                                                                 <p className='text-gray-400'>No embroidery pricing available</p>
                                                                             )}
-
                                                                         </div>
                                                                     </div>
+
+                                                                    {/* PATCH Row */}
                                                                     <div className='flex gap-2'>
-                                                                        <div className='w-3/12 bg-[#eeeeee] flex items-center justify-center text-black font-medium text-base'>PATCH</div>
+                                                                        <div className={`w-3/12 flex items-center justify-center text-black font-medium text-base ${selectedOption === "Patch" ? "bg-[#ff7379]" : "bg-[#eeeeee]"
+                                                                            }`}>
+                                                                            PATCH
+                                                                        </div>
                                                                         <div className='w-9/12 grid grid-cols-8 gap-1'>
-                                                                            {hat.pricing?.embroidery?.tiers?.length > 0 ? (
-                                                                                hat.pricing.leatherPatch.tiers.map((tier, index) => (
-                                                                                    <div key={index} className="text-center">
-                                                                                        <p className='bg-[#eeeeee] p-1 text-sm'>{tier.minQty}</p>
-                                                                                        <div className='bg-[#ffffff] p-1 text-sm'>${tier.unitPrice}</div>
-                                                                                    </div>
-                                                                                ))
+                                                                            {hat.pricing?.leatherPatch?.tiers?.length > 0 ? (
+                                                                                hat.pricing.leatherPatch.tiers.map((tier, index) => {
+                                                                                    const totalQty = selectedOption === "Patch"
+                                                                                        ? Object.values(hatQuantities[hat.id] || {}).reduce((a, b) => a + b, 0)
+                                                                                        : 0;
+                                                                                    const isSelected = totalQty >= tier.minQty;
+                                                                                    console.log('isSelected', isSelected)
+                                                                                    return (
+                                                                                        <div key={index} className="text-center">
+                                                                                            <p className={`p-1 text-sm ${isSelected ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                                {tier.minQty}
+                                                                                            </p>
+                                                                                            <div className={`p-1 text-sm ${isSelected ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                                ${tier.unitPrice}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    );
+                                                                                })
                                                                             ) : (
                                                                                 <p className='text-gray-400'>No patch pricing available</p>
                                                                             )}
                                                                         </div>
+
                                                                     </div>
                                                                 </div>
+
                                                                 <div className='bg-[#eeeeee] mb-4 font-medium text-sm py-2 pr-2 text-black text-right'>Price includes item & decoration.</div>
                                                             </div>
                                                         </div>
@@ -174,6 +208,13 @@ const ProductAccordion = () => {
                                                                     value={hatQuantities[hat.id]?.[color.name] || 0}
                                                                     onIncrease={() => increase(hat.id, color.name)}
                                                                     onDecrease={() => decrease(hat.id, color.name)}
+                                                                    onChange={(val) => setHatQuantities(prev => ({
+                                                                        ...prev,
+                                                                        [hat.id]: {
+                                                                            ...prev[hat.id],
+                                                                            [color.name]: val
+                                                                        }
+                                                                    }))}
                                                                 />
                                                             ))}
 

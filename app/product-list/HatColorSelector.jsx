@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { FiPlusCircle } from "react-icons/fi";
 
-const HatColorSelector = ({ colorName, colorImage, value, onIncrease, onDecrease }) => {
+const HatColorSelector = ({ colorName, colorImage, value, onIncrease, onDecrease, onChange }) => {
     return (
         <div className='border-2 border-[#dddddd] rounded-[15px] text-center p-4'>
             <div className='flex items-center justify-center mb-2 relative w-[110px] mx-auto'>
@@ -28,7 +28,7 @@ const HatColorSelector = ({ colorName, colorImage, value, onIncrease, onDecrease
                     <input
                         type="number"
                         value={value}
-                        readOnly
+                        onChange={(e) => onChange(Number(e.target.value))}
                         className="w-20 text-center border border-gray-300 rounded-md p-2"
                     />
                     <button
