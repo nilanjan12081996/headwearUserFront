@@ -14,21 +14,15 @@ import Buck from "../assets/imagesource/Buck.png";
 import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { getHatBrandList, getHatListDetail } from '../reducers/HatBrandSlice';
+import HatColorSelector from './HatColorSelector';
 
 
-const ProductAccordion = ({ min = 0, max = 100, step = 1 }) => {
-
-    const [value, setValue] = useState(min);
-
-    const decrease = () => {
-        setValue(prev => Math.max(prev - step, min));
-    };
-    const increase = () => {
-        setValue(prev => Math.min(prev + step, max));
-    };
+const ProductAccordion = () => {
 
     const dispatch = useDispatch();
     const { brandList, brandWiseHatList } = useSelector((state) => state.hatBrand);
+    const [hatQuantities, setHatQuantities] = useState({});
+
     useEffect(() => {
         dispatch(getHatBrandList());
     }, []);
@@ -42,6 +36,34 @@ const ProductAccordion = ({ min = 0, max = 100, step = 1 }) => {
 
     }, [brandList]);
 
+    const colors = [
+        { name: 'Black', image: Black },
+        { name: 'White', image: White },
+        { name: 'Moss', image: Moss },
+        { name: 'Buck', image: Buck },
+    ];
+
+    const increase = (hatId, colorName) => {
+        setHatQuantities(prev => ({
+            ...prev,
+            [hatId]: {
+                ...prev[hatId],
+                [colorName]: (prev[hatId]?.[colorName] || 0) + 1
+            }
+        }));
+    };
+
+    const decrease = (hatId, colorName) => {
+        setHatQuantities(prev => ({
+            ...prev,
+            [hatId]: {
+                ...prev[hatId],
+                [colorName]: Math.max((prev[hatId]?.[colorName] || 0) - 1, 0)
+            }
+        }));
+    };
+
+
     return (
         <div className='product_details_area'>
             {brandList?.data?.map((brand) => {
@@ -50,7 +72,7 @@ const ProductAccordion = ({ min = 0, max = 100, step = 1 }) => {
                 return (
                     <div key={brand.id}>
                         <div className='bg-[#efefef] p-4 my-2'>
-                            <Image
+                            {/* <Image
                                 // src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${brand.brandImage}`}
                                 src={logoBlack}
                                 width={200}
@@ -58,7 +80,8 @@ const ProductAccordion = ({ min = 0, max = 100, step = 1 }) => {
                                 alt='brand-img'
                                 className='object-contain'
                                 unoptimized
-                            />
+                            /> */}
+                            <h2 className='text-[35px] font-bold'>{brand.brandName}</h2>
 
                         </div>
                         <div className='product_details_area_box'>
@@ -143,173 +166,16 @@ const ProductAccordion = ({ min = 0, max = 100, step = 1 }) => {
 
                                                         <div className='grid grid-cols-4 gap-4'>
 
-                                                            <div className='border-2 border-[#dddddd] rounded-[15px] text-center p-4'>
-                                                                <div className='flex items-center justify-center mb-2 relative w-[110px] mx-auto'>
-                                                                    <Image src={Black} alt='Black' className="" />
-                                                                    <div className='absolute left-[5px] bottom-[-7px]'>
-                                                                        <button className='text-[#ed1c24] hover:text-[#ff7379] cursor-pointer'>
-                                                                            <FiPlusCircle className='text-xl' />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                                <p className='text-base text-black font-medium pb-4'>Black</p>
-                                                                <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
-                                                                    <p className='text-base text-black font-normal pb-4'>OSFA</p>
-                                                                    <div className="flex items-center gap-2 number_section">
-                                                                        {/* Minus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={decrease}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            –
-                                                                        </button>
-
-                                                                        {/* Input Field */}
-                                                                        <input
-                                                                            type="number"
-                                                                            value={value}
-                                                                            onChange={(e) => setValue(Number(e.target.value))}
-                                                                            className="w-20 text-center border border-gray-300 rounded-md p-2"
-                                                                        />
-
-                                                                        {/* Plus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={increase}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            +
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className='border-2 border-[#dddddd] rounded-[15px] text-center p-4'>
-                                                                <div className='flex items-center justify-center mb-2 relative w-[110px] mx-auto'>
-                                                                    <Image src={White} alt='White' className="" />
-                                                                    <div className='absolute left-[5px] bottom-[-7px]'>
-                                                                        <button className='text-[#ed1c24] hover:text-[#ff7379] cursor-pointer'>
-                                                                            <FiPlusCircle className='text-xl' />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                                <p className='text-base text-black font-medium pb-4'>White</p>
-                                                                <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
-                                                                    <p className='text-base text-black font-normal pb-4'>OSFA</p>
-                                                                    <div className="flex items-center gap-2 number_section">
-                                                                        {/* Minus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={decrease}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            –
-                                                                        </button>
-
-                                                                        {/* Input Field */}
-                                                                        <input
-                                                                            type="number"
-                                                                            value={value}
-                                                                            onChange={(e) => setValue(Number(e.target.value))}
-                                                                            className="w-20 text-center border border-gray-300 rounded-md p-2"
-                                                                        />
-
-                                                                        {/* Plus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={increase}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            +
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className='border-2 border-[#dddddd] rounded-[15px] text-center p-4'>
-                                                                <div className='flex items-center justify-center mb-2 relative w-[110px] mx-auto'>
-                                                                    <Image src={Moss} alt='Moss' className="" />
-                                                                    <div className='absolute left-[5px] bottom-[-7px]'>
-                                                                        <button className='text-[#ed1c24] hover:text-[#ff7379] cursor-pointer'>
-                                                                            <FiPlusCircle className='text-xl' />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                                <p className='text-base text-black font-medium pb-4'>Moss</p>
-                                                                <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
-                                                                    <p className='text-base text-black font-normal pb-4'>OSFA</p>
-                                                                    <div className="flex items-center gap-2 number_section">
-                                                                        {/* Minus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={decrease}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            –
-                                                                        </button>
-
-                                                                        {/* Input Field */}
-                                                                        <input
-                                                                            type="number"
-                                                                            value={value}
-                                                                            onChange={(e) => setValue(Number(e.target.value))}
-                                                                            className="w-20 text-center border border-gray-300 rounded-md p-2"
-                                                                        />
-
-                                                                        {/* Plus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={increase}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            +
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className='border-2 border-[#dddddd] rounded-[15px] text-center p-4'>
-                                                                <div className='flex items-center justify-center mb-2 relative w-[110px] mx-auto'>
-                                                                    <Image src={Buck} alt='Buck' className="" />
-                                                                    <div className='absolute left-[5px] bottom-[-7px]'>
-                                                                        <button className='text-[#ed1c24] hover:text-[#ff7379] cursor-pointer'>
-                                                                            <FiPlusCircle className='text-xl' />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                                <p className='text-base text-black font-medium pb-4'>Buck</p>
-                                                                <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
-                                                                    <p className='text-base text-black font-normal pb-4'>OSFA</p>
-                                                                    <div className="flex items-center gap-2 number_section">
-                                                                        {/* Minus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={decrease}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            –
-                                                                        </button>
-
-                                                                        {/* Input Field */}
-                                                                        <input
-                                                                            type="number"
-                                                                            value={value}
-                                                                            onChange={(e) => setValue(Number(e.target.value))}
-                                                                            className="w-20 text-center border border-gray-300 rounded-md p-2"
-                                                                        />
-
-                                                                        {/* Plus Button */}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={increase}
-                                                                            className="w-10 h-10 flex items-center justify-center bg-[#ed1c24] hover:bg-black text-white text-xl rounded-md cursor-pointer"
-                                                                        >
-                                                                            +
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                                            {colors.map((color) => (
+                                                                <HatColorSelector
+                                                                    key={color.name}
+                                                                    colorName={color.name}
+                                                                    colorImage={color.image}
+                                                                    value={hatQuantities[hat.id]?.[color.name] || 0}
+                                                                    onIncrease={() => increase(hat.id, color.name)}
+                                                                    onDecrease={() => decrease(hat.id, color.name)}
+                                                                />
+                                                            ))}
 
                                                         </div>
                                                     </div>

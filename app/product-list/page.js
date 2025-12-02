@@ -126,7 +126,7 @@ const page = ({ min = 0, max = 100, step = 1 }) => {
         </div>
       </div>
 
-      <div className="py-10 lg:pb-20 lg:pt-10">
+      {/* <div className="py-10 lg:pb-20 lg:pt-10">
 
         <div className='mb-10'>
 
@@ -226,12 +226,12 @@ const page = ({ min = 0, max = 100, step = 1 }) => {
 
           <CapList selectedSupplierId={selectedSupplier} />
         </div>
-      </div>
+      </div> */}
       {/* Who We Are section ends here */}
 
 
       {/* Start:: Product Accordion section  */}
-      <div className='product_list_section mb-20'>
+      <div className='product_list_section mb-20 mt-10'>
         <div className='max-w-6xl mx-auto'>
           <ProductAccordion />
         </div>
