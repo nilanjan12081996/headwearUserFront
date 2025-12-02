@@ -187,6 +187,12 @@ const ProductAccordion = () => {
                     </div>
                 )
             })}
+            <div className='flex justify-center'>
+                <button className='text-xl cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300'>
+                    Next Step
+                </button>
+            </div>
+
         </div>
     )
 }
