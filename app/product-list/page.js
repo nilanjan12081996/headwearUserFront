@@ -63,7 +63,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getSuppliers } from '../reducers/SupplierSlice';
 import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 import ProductAccordion from './ProductAccordion';
-import { addCartUUID } from '../reducers/CartSlice';
+import { addCartUUID, getDecorationType } from '../reducers/CartSlice';
 import { v4 as uuidv4 } from "uuid";
 
 
@@ -73,6 +73,7 @@ import { v4 as uuidv4 } from "uuid";
 const page = () => {
   const [selectedSupplier, setSelectedSupplier] = useState('Supplier')
   const { suppliersList } = useSelector((state) => state?.suppliers)
+  const{decorationList}=useSelector((state)=>state?.cart)
   const { productList, allProList } = useSelector((state) => state?.prod)
   const [hatQuantities, setHatQuantities] = useState({});
 
@@ -133,13 +134,21 @@ const page = () => {
     }
   }
 
-  const [selectedOption, setSelectedOption] = useState("Emboidary");
+  const [selectedOption, setSelectedOption] = useState("");
 
   const totalItems = Object.values(hatQuantities).flatMap(h => Object.values(h)).reduce((a, b) => a + b, 0);
   const maxItems = 40; 
   const progressPercent = Math.min((totalItems / maxItems) * 100, 100); // 0-100%
 
-
+  useEffect(()=>{
+    dispatch(getDecorationType())
+  },[])
+    useEffect(() => {
+    if (decorationList?.data?.length > 0) {
+      setSelectedOption(decorationList.data[0].recordId); // AUTO SELECT FIRST
+    }
+  }, [decorationList]);
+  
   return (
     <div>
       <div className='banner_area py-0 lg:p-0'>
@@ -171,8 +180,16 @@ const page = () => {
                 value={selectedOption}
                 onChange={(e) => setSelectedOption(e.target.value)}
               >
-                <option value="Emboidary">Emboidary</option>
-                <option value="Patch">Patch</option>
+                {/* <option value="Emboidary">Emboidary</option>
+                <option value="Patch">Patch</option> */}
+                {decorationList?.data?.map((deco)=>{
+                  return(
+                    <>
+                      <option value={deco?.recordId}>{deco?.name}</option>
+                    </>
+                  )
+                
+                })}
               </Select>
             </div>
           </div>

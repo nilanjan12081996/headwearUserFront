@@ -12,6 +12,7 @@ import chatSlice from '../reducers/chatSlice'
 import SupplierSlice from '../reducers/SupplierSlice'
 import ProductSlice  from '../reducers/ProductSlice'
 import HatBrandSlice  from '../reducers/HatBrandSlice'
+import CartSlice from '../reducers/CartSlice'
 
 const store = configureStore({
     reducer: {
@@ -26,6 +27,7 @@ const store = configureStore({
         suppliers:SupplierSlice,
         prod:ProductSlice,
         hatBrand:HatBrandSlice,
+        cart:CartSlice
     },
     devTools: process.env.NODE_ENV,
 });

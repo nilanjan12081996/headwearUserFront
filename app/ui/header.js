@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from "react";
-import { Navbar, NavbarCollapse, NavbarToggle } from "flowbite-react";
+import { Button, Navbar, NavbarCollapse, NavbarToggle } from "flowbite-react";
 import Link from 'next/link';
 import logo from '../assets/imagesource/logo.png';
 import Image from 'next/image';
@@ -10,12 +10,17 @@ import VerifyOtpModal from '../modal/verifyOtpModal';
 import LoginModal from '../modal/LoginModal';
 import RegistrationModal from '../modal/RegistrationModal';
 import PriceListModal from '../modal/PriceListModal';
+import { useDispatch } from "react-redux";
+import { cartList } from "../reducers/CartSlice";
+import { FaShoppingCart } from "react-icons/fa";
+import CartDropdown from "./CartDropdown";
 
 const Header = () => {
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
   const [openVerifyOtpModal, setOpenVerifyOtpModal] = useState(false);
   const [openPricModal, setOpenPriceModal] = useState(false);
+  const [openCartPopup, setOpenCartPopup] = useState(false);
 
   // Navbar toggle state
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
@@ -50,12 +55,21 @@ const Header = () => {
     };
   }, [isNavbarOpen]);
 
+  // const savedUUid = sessionStorage.getItem("uuid")
+  const dispatch = useDispatch()
+
+  // useEffect(() => {
+  //   dispatch(cartList({
+  //     id: savedUUid
+  //   }))
+  // }, [])
+
   return (
     <div>
       <ToastContainer />
       <div className="header_section w-full lg:pb-0 left-0 lg:top-0">
         <div className="pt-0 lg:pt-0 lg:py-0 px-4 lg:px-0 rounded-0 relative z-10 bg-white">
-          <div className="w-full bg-white px-0 py-5 rounded-b-2xl max-w-6xl mx-auto ">
+          <div className="w-full bg-white px-0 py-5 rounded-b-2xl max-w-7xl mx-auto ">
             <div className="header_top flex justify-between items-center">
               {/* Logo */}
               <div className="mr-2 hidden lg:block">
@@ -105,7 +119,7 @@ const Header = () => {
 
               {/* Contact Us Button */}
               <div className="mr-10 lg:mr-0 flex items-center mt-0 lg:mt-0">
-                <div className="flex gap-2">
+                <div className="flex gap-2 relative">
                   <Link
                     className="text-white bg-[#ed1c24] flex items-center cursor-pointer uppercase font-medium text-xs lg:text-[15px] rounded-[35px] px-2 py-1.5 lg:px-8 lg:py-4 hover:bg-black"
                     href="/product-list"
@@ -113,6 +127,19 @@ const Header = () => {
                   >
                     Get Quote
                   </Link>
+                  <button
+                    onClick={() => setOpenCartPopup(true)}
+                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full 
+             hover:bg-[#ed1c24] transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
+                  >
+                    <FaShoppingCart size={18} />
+                    View Cart
+                  </button>
+                  <CartDropdown
+                    open={openCartPopup}
+                    onClose={() => setOpenCartPopup(false)}
+
+                  />
                 </div>
               </div>
             </div>

@@ -14,14 +14,16 @@ import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { getHatBrandList, getHatListDetail } from '../reducers/HatBrandSlice';
 import HatColorSelector from './HatColorSelector';
-import { addCartGroup, addCartItem } from '../reducers/CartSlice';
+import { addCartGroup, addCartItem, cartList, updateCartItem } from '../reducers/CartSlice';
 
 
 const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) => {
 
     const dispatch = useDispatch();
     const { brandList, brandWiseHatList } = useSelector((state) => state.hatBrand);
-
+    const [cartItemMap, setCartItemMap] = useState({});
+    const [cartItemId, setCartItemId] = useState()
+    const [isProcessing, setIsProcessing] = useState({});
     useEffect(() => {
         dispatch(getHatBrandList());
     }, []);
@@ -37,11 +39,33 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
 
 
     const savedSeeesonId = sessionStorage.getItem("id");
+    const savedUUid = sessionStorage.getItem("uuid")
 
-    // FIXED increase()
-    const increase = (uniqueHatId, colorName, recordId, varientId) => {
+    const lock = (uniqueHatId, colorName) => {
+        setIsProcessing(prev => ({
+            ...prev,
+            [uniqueHatId]: {
+                ...prev[uniqueHatId],
+                [colorName]: true
+            }
+        }));
+    };
+
+    const unlock = (uniqueHatId, colorName) => {
+        setIsProcessing(prev => ({
+            ...prev,
+            [uniqueHatId]: {
+                ...prev[uniqueHatId],
+                [colorName]: false
+            }
+        }));
+    };
+
+
+    const increase = async (uniqueHatId, colorName, recordId, varientId, inventoryRecordId) => {
+        if (isProcessing?.[uniqueHatId]?.[colorName]) return;
+        lock(uniqueHatId, colorName);
         const newQty = (hatQuantities[uniqueHatId]?.[colorName] || 0) + 1;
-
         setHatQuantities(prev => ({
             ...prev,
             [uniqueHatId]: {
@@ -50,50 +74,159 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
             }
         }));
 
-        dispatch(addCartGroup({
-            cart_id: savedSeeesonId,
-            hat_id: recordId
-        })).then((res) => {
-            if (res?.payload?.status_code === 201) {
-                dispatch(addCartItem({
-                    group_id: res?.payload?.data?.id,
-                    varient_size_id: varientId,
-                    quantity: newQty,
-                    inventry_id: res?.payload?.data?.fields?.Inventory?.[0]
-                }))
+        const cartItemId = cartItemMap?.[uniqueHatId]?.[colorName];
+
+        try {
+            if (!cartItemId) {
+                const resGroup = await dispatch(addCartGroup({
+                    cart_id: savedSeeesonId,
+                    hat_id: recordId,
+                    decoration_id:selectedOption
+                }));
+
+                if (resGroup?.payload?.status_code === 201) {
+                    const resItem = await dispatch(addCartItem({
+                        group_id: resGroup?.payload?.data?.id,
+                        varient_size_id: varientId,
+                        quantity: newQty,
+                        inventry_id: inventoryRecordId
+                    }));
+
+                    const newId = resItem?.payload?.data?.id;
+
+                    if (newId) {
+                        setCartItemMap(prev => ({
+                            ...prev,
+                            [uniqueHatId]: {
+                                ...prev[uniqueHatId],
+                                [colorName]: newId
+                            }
+                        }));
+                    }
+                    await dispatch(cartList({
+                        id: savedUUid
+                    })); 
+                }
+            } else {
+                await dispatch(updateCartItem({
+                    cart_item_id: cartItemId,
+                    quantity: newQty
+                }));
+                await dispatch(cartList({
+                    id: savedUUid
+                }));
             }
-        });
+        } catch (err) {
+            console.error("increase error:", err);
+        } finally {
+            unlock(uniqueHatId, colorName);
+        }
     };
 
-    // FIXED decrease()
-   const decrease = (uniqueHatId, colorName, recordId, varientId) => {
-    
-    const currentQty = hatQuantities?.[uniqueHatId]?.[colorName] || 0;
-    const newQty = Math.max(currentQty - 1, 0);
 
-    setHatQuantities(prev => ({
-        ...prev,
-        [uniqueHatId]: {
-            ...prev[uniqueHatId],
-            [colorName]: newQty
+
+    const decrease = (uniqueHatId, colorName, recordId, varientId, inventoryRecordId) => {
+
+        const currentQty = hatQuantities?.[uniqueHatId]?.[colorName] || 0;
+        const newQty = Math.max(currentQty - 1, 0);
+
+        const cartItemId = cartItemMap?.[uniqueHatId]?.[colorName];
+        if (!cartItemId) {
+            return;
         }
-    }));
+        if (newQty > 0) {
+            dispatch(updateCartItem({
+                cart_item_id: cartItemId,
+                quantity: newQty
+            }))
+                .then((res) => {
+                    console.log(res, "rsss")
+                    if (res?.payload?.status_code === 200) {
+                        dispatch(cartList({
+                            id: savedUUid
+                        }))
+                    }
+                })
+        }
+        if (currentQty === 1 && newQty === 0) {
+            dispatch(updateCartItem({
+                cart_item_id: cartItemId,
+                quantity: 0
+            }))
+                .then((res) => {
+                    console.log(res, "rsss")
+                    if (res?.payload?.status_code === 200) {
+                        dispatch(cartList({
+                            id: savedUUid
+                        }))
+                    }
+                })
+        }
+        setHatQuantities(prev => ({
+            ...prev,
+            [uniqueHatId]: {
+                ...prev[uniqueHatId],
+                [colorName]: newQty
+            }
+        }));
+    };
 
-    if (newQty === 0) return;
-    dispatch(addCartGroup({
-        cart_id: savedSeeesonId,
-        hat_id: recordId
-    })).then((res) => {
-        if (res?.payload?.status_code === 201) {
-            dispatch(addCartItem({
-                group_id: res.payload.data.id,
-                varient_size_id: varientId,
-                quantity: newQty,
-                inventry_id: res.payload.data.fields?.Inventory?.[0]
+
+    const handleManualChange = async (uniqueHatId, colorName, newQty, recordId, varientId, inventoryRecordId) => {
+        if (newQty < 0) return;
+        setHatQuantities(prev => ({
+            ...prev,
+            [uniqueHatId]: {
+                ...prev[uniqueHatId],
+                [colorName]: newQty
+            }
+        }));
+
+        const cartItemId = cartItemMap?.[uniqueHatId]?.[colorName];
+
+        if (!cartItemId && newQty > 0) {
+
+            const resGroup = await dispatch(addCartGroup({
+                cart_id: savedSeeesonId,
+                hat_id: recordId,
+                decoration_id: selectedOption
             }));
+
+            if (resGroup?.payload?.status_code === 201) {
+                const resItem = await dispatch(addCartItem({
+                    group_id: resGroup?.payload?.data?.id,
+                    varient_size_id: varientId,
+                    quantity: newQty,
+                    inventry_id: inventoryRecordId
+                }));
+
+                const newId = resItem?.payload?.data?.id;
+
+                if (newId) {
+                    setCartItemMap(prev => ({
+                        ...prev,
+                        [uniqueHatId]: {
+                            ...prev[uniqueHatId],
+                            [colorName]: newId
+                        }
+                    }));
+                }
+
+                await dispatch(cartList({ id: savedUUid }));
+            }
+
+            return;
         }
-    });
-};
+        if (cartItemId) {
+            await dispatch(updateCartItem({
+                cart_item_id: cartItemId,
+                quantity: newQty
+            }));
+
+            await dispatch(cartList({ id: savedUUid }));
+        }
+    };
+
 
 
 
@@ -124,6 +257,7 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
                                         const sizeParts = hat?.sizeChart ? hat.sizeChart.split(",").map(s => s.trim()) : [];
                                         const mainSize = sizeParts[0] || "";
                                         const otherSizes = sizeParts.slice(1).join(", ");
+
 
                                         return (
                                             <AccordionPanel key={hat.id}>
@@ -230,33 +364,39 @@ const ProductAccordion = ({ selectedOption, hatQuantities, setHatQuantities }) =
 
                                                     {/* COLOR SELECTOR FIXED */}
                                                     <div className='grid grid-cols-4 gap-4'>
-                                                        {hat.colors?.map((color, index) => (
-                                                            <HatColorSelector
-                                                                key={color.id}
-                                                                colorName={color.colorName}
-                                                                colorImage={color?.imageUrl}
-                                                                sizeVariants={color?.sizeVariants}
-                                                                value={hatQuantities[uniqueHatId]?.[color.colorName] || 0}
+                                                        {hat.colors?.map((color, index) => {
+                                                            const variant = color.sizeVariants?.[0];
+                                                            const inventoryRecordId = variant?.inventory?.recordId;
+                                                            return (
+                                                                <HatColorSelector
+                                                                    key={color.id}
+                                                                    colorName={color.colorName}
+                                                                    colorImage={color?.imageUrl}
+                                                                    sizeVariants={color?.sizeVariants}
+                                                                    value={hatQuantities[uniqueHatId]?.[color.colorName] || 0}
 
-                                                                onIncrease={() =>
-                                                                    increase(uniqueHatId, color.colorName, hat.recordId, hat.colors[index]?.sizeVariants?.[0]?.recordId)
-                                                                }
+                                                                    onIncrease={() =>
+                                                                        increase(uniqueHatId, color.colorName, hat.recordId, hat.colors[index]?.sizeVariants?.[0]?.recordId, inventoryRecordId)
+                                                                    }
 
-                                                                onDecrease={() =>
-                                                                    decrease(uniqueHatId, color.colorName, hat.recordId)
-                                                                }
+                                                                    onDecrease={() =>
+                                                                        decrease(uniqueHatId, color.colorName, hat.recordId, hat.colors[index]?.sizeVariants?.[0]?.recordId, inventoryRecordId)
+                                                                    }
 
-                                                                onChange={(val) =>
-                                                                    setHatQuantities((prev) => ({
-                                                                        ...prev,
-                                                                        [uniqueHatId]: {
-                                                                            ...prev[uniqueHatId],
-                                                                            [color.colorName]: val,
-                                                                        },
-                                                                    }))
-                                                                }
-                                                            />
-                                                        ))}
+                                                                    onChange={(val) =>
+                                                                        handleManualChange(
+                                                                            uniqueHatId,
+                                                                            color.colorName,
+                                                                            val,
+                                                                            hat.recordId,
+                                                                            hat.colors[index]?.sizeVariants?.[0]?.recordId,
+                                                                            inventoryRecordId
+                                                                        )
+                                                                    }
+
+                                                                />
+                                                            )
+                                                        })}
                                                     </div>
 
                                                 </AccordionContent>

@@ -51,6 +51,8 @@ import cap_back from "../assets/imagesource/cap_back.png";
 
 import on_progress from "../assets/imagesource/on_progress.png";
 
+import right_icon from "../assets/imagesource/smallCheck.png";
+
 import { useRouter, useSearchParams } from 'next/navigation';
 
 
@@ -78,45 +80,47 @@ const page = () => {
   const router = useRouter();
 
   const searchParams = useSearchParams();
-  const supName=atob(searchParams.get('name'))
-    const [deviceId, setDeviceId] = useState("");
-    const [uploadedFile, setUploadedFile] = useState(null);
-    const dispatch=useDispatch()
-    const [isUploading, setIsUploading] = useState(false);
-    const [decorationMethod, setDecorationMethod] = useState("Embroidery");
+  const supName = atob(searchParams.get('name'))
+  const [deviceId, setDeviceId] = useState("");
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const dispatch = useDispatch()
+  const [isUploading, setIsUploading] = useState(false);
+  const [decorationMethod, setDecorationMethod] = useState("Embroidery");
+  const [selectedStyle, setSelectedStyle] = useState("flat");  // default selected
+
 
   const handleCheckoutClick = () => {
     router.push('/checkout');
   };
-    const getDeviceId = async () => {
+  const getDeviceId = async () => {
     const fp = await FingerprintJS.load();
     const result = await fp.get();
     setDeviceId(result.visitorId); // Store device ID in state
     console.log("Device ID:", result.visitorId);
   };
-  useEffect(()=>{
-getDeviceId()
-  },[])
+  useEffect(() => {
+    getDeviceId()
+  }, [])
 
 
   const handleFileUpload = async (event) => {
-  const file = event.target.files[0];
-  
-  if (!file) return;
-  
-  // Validate file size (10MB limit as per your UI)
-  if (file.size > 10 * 1024 * 1024) {
-    toast.error('File size exceeds 10MB limit');
-    return;
-  }
+    const file = event.target.files[0];
 
-   if (!file.type.startsWith('image/')) {
+    if (!file) return;
+
+    // Validate file size (10MB limit as per your UI)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file');
       return;
     }
 
 
-        const previewUrl = URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(file);
 
     // Set file with preview
     setUploadedFile({
@@ -129,30 +133,30 @@ getDeviceId()
 
     setIsUploading(true);
 
-  // Create FormData
-  const formData = new FormData();
-  formData.append('uuid', deviceId); // Your device/session ID
-  formData.append('image', file);
+    // Create FormData
+    const formData = new FormData();
+    formData.append('uuid', deviceId); // Your device/session ID
+    formData.append('image', file);
 
-  try {
-    const result = await dispatch(uploadLogo(formData)).unwrap();
-    
-    if (result.status_code === 200) {
-      // Handle success - store the imagePath
-         setUploadedFile(prev => ({
+    try {
+      const result = await dispatch(uploadLogo(formData)).unwrap();
+
+      if (result.status_code === 200) {
+        // Handle success - store the imagePath
+        setUploadedFile(prev => ({
           ...prev,
           serverPath: result.imagePaths[0],
           sessionUUID: result.Session_UUID
         }));
-      const uploadedImagePath = result.imagePaths[0];
-      console.log('Uploaded:', uploadedImagePath);
-      // Update your UI state here
-    //  setIsUploading(false)
+        const uploadedImagePath = result.imagePaths[0];
+        console.log('Uploaded:', uploadedImagePath);
+        // Update your UI state here
+        //  setIsUploading(false)
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
     }
-  } catch (error) {
-    console.error('Upload failed:', error);
-  }
-};
+  };
 
 
   const [selected, setSelected] = useState("flat");
@@ -175,17 +179,17 @@ getDeviceId()
         <div className='mb-10'>
           <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 mb-10 flex justify-between items-center'>
             <div>
-               <ul className='flex items-center gap-2'>
-                  <li>
-                    <Link href="/" passHref><GoHome className='text-[#666666] text-2xl' /></Link>
-                  </li>
-                  <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                  <li className='text-[#666666] text-base'>Caps</li>
-                  <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                  <li className='text-[#666666] text-base'>{supName}</li>
-                  <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                  <li className='text-[#ED1C24] text-base'>Artwork</li>
-               </ul>
+              <ul className='flex items-center gap-2'>
+                <li>
+                  <Link href="/" passHref><GoHome className='text-[#666666] text-2xl' /></Link>
+                </li>
+                <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+                <li className='text-[#666666] text-base'>Caps</li>
+                <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+                <li className='text-[#666666] text-base'>{supName}</li>
+                <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+                <li className='text-[#ED1C24] text-base'>Artwork</li>
+              </ul>
             </div>
           </div>
 
@@ -194,39 +198,39 @@ getDeviceId()
 
         <div className='max-w-6xl mx-auto px-5 lg:px-0'>
 
-            <div className='team_wrap mb-8'>
+          <div className='team_wrap mb-8'>
 
-              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Upload Artwork</h3>
-              <div className="w-full">
-                <p className='text-[#1A1A1A] text-sm mb-4'>Optional , But Encouraged</p>
-                {
-                  !uploadedFile&&(
+            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Upload Artwork</h3>
+            <div className="w-full">
+              <p className='text-[#1A1A1A] text-sm mb-4'>Optional , But Encouraged</p>
+              {
+                !uploadedFile && (
 
-                      <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
-                  <Label
-                    htmlFor="dropzone-file"
-                    className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-1 border-dashed border-[#FF0000] bg-white hover:bg-gray-100"
-                  >
-                    <div className="flex flex-col items-center justify-center pb-6 pt-5">
-                      <div className='mb-4'>
-                        <HiMiniPlusCircle className='text-[#FF0000] text-5xl' />
+                  <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
+                    <Label
+                      htmlFor="dropzone-file"
+                      className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-1 border-dashed border-[#FF0000] bg-white hover:bg-gray-100"
+                    >
+                      <div className="flex flex-col items-center justify-center pb-6 pt-5">
+                        <div className='mb-4'>
+                          <HiMiniPlusCircle className='text-[#FF0000] text-5xl' />
+                        </div>
+                        <p className="mb-2 text-xl text-black dark:text-gray-400">
+                          <span className="font-semibold">Upload Artwork</span>
+                        </p>
+                        <p className="text-base text-black dark:text-gray-400">10MB file size limit</p>
                       </div>
-                      <p className="mb-2 text-xl text-black dark:text-gray-400">
-                        <span className="font-semibold">Upload Artwork</span>
-                      </p>
-                      <p className="text-base text-black dark:text-gray-400">10MB file size limit</p>
-                    </div>
-                    <FileInput id="dropzone-file" className="hidden" 
-                     onChange={handleFileUpload}
-                      accept="image/*"
+                      <FileInput id="dropzone-file" className="hidden"
+                        onChange={handleFileUpload}
+                        accept="image/*"
                       />
-                  </Label>
-                </div>
+                    </Label>
+                  </div>
 
-                  )
-                }
-              
-                {/* <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
+                )
+              }
+
+              {/* <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
                   <div className='bg-[#eeeeee] p-4 flex items-center gap-3'>
                      <div>
                         <Image src={on_progress} alt='on_progress' className="" />
@@ -238,14 +242,14 @@ getDeviceId()
                   </div>
                 </div> */}
 
-                   {uploadedFile && (
+              {uploadedFile && (
                 <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
                   <div className='bg-[#eeeeee] p-4 flex items-center gap-3 justify-between'>
                     <div className='flex items-center gap-3'>
                       {/* Show uploaded image preview */}
                       <div className='w-12 h-12'>
-                        <img 
-                          src={uploadedFile.previewUrl} 
+                        <img
+                          src={uploadedFile.previewUrl}
                           alt={uploadedFile.name}
                           className="w-full h-full object-cover rounded"
                         />
@@ -261,7 +265,7 @@ getDeviceId()
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Remove button */}
                     {!isUploading && (
                       <button
@@ -281,252 +285,352 @@ getDeviceId()
                 </div>
               )}
 
-                <div className="lg:flex items-center gap-2 check_area">
-                  <Checkbox id="promotion" className='' />
-                  <Label className='text-[#615E5E] text-base' htmlFor="promotion">I own the rights to this artwork being used or have permission from the owner to use it.</Label>
-                </div>
-                <div className='mt-5 decoration_type_area'>
-                  <Label className='text-[#615E5E] text-base'>Decoration Method</Label>
-                  <Select value={decorationMethod}
-                     onChange={(e) => setDecorationMethod(e.target.value)}>
-                     <option value="Embroidery">Embroidery</option>
-                     <option value="Leather Patch">Leather Patch</option>
-                  </Select>
-                </div>
+              <div className="lg:flex items-center gap-2 check_area">
+                <Checkbox id="promotion" className='' />
+                <Label className='text-[#615E5E] text-base' htmlFor="promotion">I own the rights to this artwork being used or have permission from the owner to use it.</Label>
               </div>
 
-           </div>
-           {
-            decorationMethod === "Embroidery"&&(
-                <div>
+              {/* Hat selector Section  */}
+              <div className="my-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[300px]">
 
-                  {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
-                  <div className='flex justify-between gap-3'>
-                    <div className='h-[300px] w-[700px] border-2 border-[#ff0000]'>
-                        <h2 className='mt-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Standard Flat Embroidery</h2>
-                        <p className='mt-2 ml-3 text-[15px]'>This method is the most common embroidery type. It is what most customers choose and works well for smaller details and intricate designs.</p>
-                        <div className='bg-blue-600 ml-9 mr-9 rounded-xl mt-3'>
-                          <p className='text-center mt-2 text-white '>Flat Embroidery</p>
-                        </div> 
-                        <p className='text-[#4c4b4b] mt-5 ml-3 text-[12px]'>*This is the default pricing option and included in the prices shown on the item select step.</p>
+                  {/* Embroidery */}
+                  <label
+                    className={`relative border rounded-xl cursor-pointer transition overflow-hidden
+        ${selectedStyle === "flat" ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
+      `}
+                  >
+                    {/* Top heading */}
+                    <div className={`absolute top-0 left-0 w-full px-4 py-2 text-white font-semibold text-2xl
+        ${selectedStyle === "flat" ? "bg-[#ff0000]" : "bg-black/70"}
+      `}>
+                      Embroidery
                     </div>
-                    <div className='h-[300px] w-[700px] border-2 border-blue-500'>
-                        <h2 className='mt-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>3D Puff Embroidery</h2>
-                        <p className='mt-2 ml-3 text-[15px]'>This method creates a raised look that makes the design pop off the panel of the hat. Only certain designs or larger blocky elements inside a design are able to be puffed.</p>
-                        <div className='bg-blue-600 ml-9 mr-9 rounded-xl mt-3'>
-                          <p className='text-center mt-2 text-white '>3D Puff Embroidery</p>
-                        </div> 
+
+                    <input
+                      type="radio"
+                      name="embroideryType"
+                      value="flat"
+                      checked={selectedStyle === "flat"}
+                      onChange={() => setSelectedStyle("flat")}
+                      className="hidden"
+                    />
+
+                    <ul className="mt-10 space-y-1 p-4 bg-[#f1e3e3]">
+                      <li className="flex gap-2 items-center">
+                        <Image src={right_icon} width={20} height={20}
+                          className={`${selectedStyle === "flat" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        No Minimum Order
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image src={right_icon} width={20} height={20}
+                          className={`${selectedStyle === "flat" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        Vibrant Colors
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image src={right_icon} width={20} height={20}
+                          className={`${selectedStyle === "flat" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        Most Popular
+                      </li>
+                    </ul>
+
+                    {/* SELECTED badge */}
+                    {selectedStyle === "flat" && (
+                      <div className="absolute bottom-0 left-0 w-full bg-[#ff0000] text-white text-center py-1 text-sm font-semibold">
+                        SELECTED
                       </div>
-                  </div> */}
+                    )}
+                  </label>
 
 
-                  <div className="my-8">
-                    <h2 className="text-2xl font-semibold mb-4">Embroidery Option</h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                      {/* Flat Embroidery */}
-                      <label
-                        className={`border rounded-xl p-5 cursor-pointer transition ${
-                          selected === "flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="embroidery"
-                          value="flat"
-                          checked={selected === "flat"}
-                          onChange={() => setSelected("flat")}
-                          className="hidden"
-                        />
-
-                        <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
-                        <p className="text-sm text-gray-600 mb-4">
-                          This method is the most common embroidery type. Works well for smaller details and intricate designs.
-                        </p>
-
-                        <button
-                          type="button"
-                          className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
-                        >
-                          Flat Embroidery
-                        </button>
-                        <p className='text-[#4c4b4b] mt-5 ml-3 text-[11px]'>*This is the default pricing option and included in the prices shown on the item select step.</p>
-                      </label>
-
-                      {/* 3D Puff Embroidery */}
-                      <label
-                        className={`border rounded-xl p-5 cursor-pointer transition ${
-                          selected === "puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="embroidery"
-                          value="puff"
-                          checked={selected === "puff"}
-                          onChange={() => setSelected("puff")}
-                          className="hidden"
-                        />
-
-                        <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
-                        <p className="text-sm text-gray-600 mb-4">
-                          Creates a raised 3D look. Only certain designs or blocky elements can be puffed.
-                        </p>
-
-                        <button
-                          type="button"
-                          className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
-                        >
-                          3D Puff Embroidery
-                        </button>
-                      </label>
+                  {/* Leather Patch */}
+                  <label
+                    className={`relative border rounded-xl cursor-pointer transition overflow-hidden
+        ${selectedStyle === "puff" ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
+      `}
+                  >
+                    <div className={`absolute top-0 left-0 w-full px-4 py-2 text-white font-semibold  text-2xl
+        ${selectedStyle === "puff" ? "bg-[#ff0000]" : "bg-black/70"}
+      `}>
+                      Leather Patch
                     </div>
-                  </div>
 
+                    <input
+                      type="radio"
+                      name="embroideryType"
+                      value="puff"
+                      checked={selectedStyle === "puff"}
+                      onChange={() => setSelectedStyle("puff")}
+                      className="hidden"
+                    />
+
+                    <ul className="mt-10 space-y-1 p-4 bg-[#f1e3e3]">
+                      <li className="flex gap-2 items-center">
+                        <Image src={right_icon} width={20} height={20}
+                          className={`${selectedStyle === "puff" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        No Minimum Order
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image src={right_icon} width={20} height={20}
+                          className={`${selectedStyle === "puff" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        Synthetic Water Resistant Leather
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image src={right_icon} width={20} height={20}
+                          className={`${selectedStyle === "puff" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        Great For Small Details
+                      </li>
+                    </ul>
+
+                    {/* SELECTED badge */}
+                    {selectedStyle === "puff" && (
+                      <div className="absolute bottom-0 left-0 w-full bg-[#ff0000] text-white text-center py-1 text-sm font-semibold">
+                        SELECTED
+                      </div>
+                    )}
+                  </label>
 
                 </div>
-            )
-           }
-           
+              </div>
 
-           {
-            decorationMethod === "Leather Patch" &&(
+              {/* Artwork Setup section  */}
+
+              <div className="my-8">
+                <div>
+                  <h2>Artwork Setup</h2>
+                </div>
+                <div>
+                  <p>Every logo must be hand converted by one of our designers into a new file that works for our machines. We test and tweak every logo until the output meets or exceeds our very high quality standards.
+                    You will receive a digital stitch preview for feedback and approval before your order goes into production. We keep your artwork on file for all future orders.</p>
+                </div>
+              </div>
+
+              <div className='mt-5 decoration_type_area'>
+                <Label className='text-[#615E5E] text-base'>Decoration Method</Label>
+                <Select value={decorationMethod}
+                  onChange={(e) => setDecorationMethod(e.target.value)}>
+                  <option value="Embroidery">Embroidery</option>
+                  <option value="Leather Patch">Leather Patch</option>
+                </Select>
+              </div>
+            </div>
+
+          </div>
+          {
+            decorationMethod === "Embroidery" && (
               <div>
-                  <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
-                  <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px]'>
-                    <h2 className='py-0 ml-3 text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
-                    <p className='ml-3 text-[15px]'>We will convert your artwork and send you mockups of what the patch will look like for approval and feedback before we begin production of your order.</p>
+
+                <div className="my-8">
+                  <h2 className="text-2xl font-semibold mb-4">Embroidery Option</h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {/* Flat Embroidery */}
+                    <label
+                      className={`border rounded-xl p-5 cursor-pointer transition ${selected === "flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"
+                        }`}
+                    >
+                      <input
+                        type="radio"
+                        name="embroidery"
+                        value="flat"
+                        checked={selected === "flat"}
+                        onChange={() => setSelected("flat")}
+                        className="hidden"
+                      />
+
+                      <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        This method is the most common embroidery type. Works well for smaller details and intricate designs.
+                      </p>
+
+                      <button
+                        type="button"
+                        className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
+                      >
+                        Flat Embroidery
+                      </button>
+                      <p className='text-[#4c4b4b] mt-5 ml-3 text-[11px]'>*This is the default pricing option and included in the prices shown on the item select step.</p>
+                    </label>
+
+                    {/* 3D Puff Embroidery */}
+                    <label
+                      className={`border rounded-xl p-5 cursor-pointer transition ${selected === "puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"
+                        }`}
+                    >
+                      <input
+                        type="radio"
+                        name="embroidery"
+                        value="puff"
+                        checked={selected === "puff"}
+                        onChange={() => setSelected("puff")}
+                        className="hidden"
+                      />
+
+                      <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Creates a raised 3D look. Only certain designs or blocky elements can be puffed.
+                      </p>
+
+                      <button
+                        type="button"
+                        className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
+                      >
+                        3D Puff Embroidery
+                      </button>
+                    </label>
                   </div>
-                  <div className='flex justify-between gap-3 decoration_type_area'>
-                    <div className='mt-3 w-[700px] border-1 border-[#ed1c24] px-5 py-7 rounded-xl mb-4'>
-                        <h2 className='mb-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Leather Patch</h2>
-                        <ul className='ml-3 mt-2 flex items-center gap-4'>
-                            <li className='flex items-center gap-1'>
-                            <FaCheck/>  Synthetic Leather
-                            </li>
-                              <li className='flex items-center gap-1'>
-                            <FaCheck/>  Very Classy Look
-                            </li>
-                              <li className='flex items-center gap-1'>
-                            <FaCheck/>   Best For Simple Designs
-                            </li>
-                        </ul>
-                        <div className='mt-3'>
-                            <Select >
-                              <option>Select Patch Option</option>
-                              <option>Circle</option>
-                              <option>Square</option>
-                              <option>Oval</option>
-                              <option>Diamond</option>
-                              <option>Hexagon</option>
-                              <option>Custom</option>
-                            </Select>
-                        </div>
-                        <div className='mt-3'>
-                          <Select>
-                            <option>Select Patch Color</option>
-                            <option>Brown</option>
-                            <option>Black</option>
-                            <option>Red</option>
-                            <option>Blue</option>
-                          </Select>
-                        </div>
-                        
-                    </div>
-            
-                  </div>
+                </div>
+
+
               </div>
             )
-           }
-          
-          
-           <div className='team_wrap mb-8'>
+          }
 
-              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Print Style</h3>
 
-              <div className='grid grid-cols-1 lg:grid-cols-4 gap-5'>
-
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={print_01} alt='print_01' className="" />
+          {
+            decorationMethod === "Leather Patch" && (
+              <div>
+                <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
+                <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px]'>
+                  <h2 className='py-0 ml-3 text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
+                  <p className='ml-3 text-[15px]'>We will convert your artwork and send you mockups of what the patch will look like for approval and feedback before we begin production of your order.</p>
+                </div>
+                <div className='flex justify-between gap-3 decoration_type_area'>
+                  <div className='mt-3 w-[700px] border-1 border-[#ed1c24] px-5 py-7 rounded-xl mb-4'>
+                    <h2 className='mb-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Leather Patch</h2>
+                    <ul className='ml-3 mt-2 flex items-center gap-4'>
+                      <li className='flex items-center gap-1'>
+                        <FaCheck />  Synthetic Leather
+                      </li>
+                      <li className='flex items-center gap-1'>
+                        <FaCheck />  Very Classy Look
+                      </li>
+                      <li className='flex items-center gap-1'>
+                        <FaCheck />   Best For Simple Designs
+                      </li>
+                    </ul>
+                    <div className='mt-3'>
+                      <Select >
+                        <option>Select Patch Option</option>
+                        <option>Circle</option>
+                        <option>Square</option>
+                        <option>Oval</option>
+                        <option>Diamond</option>
+                        <option>Hexagon</option>
+                        <option>Custom</option>
+                      </Select>
                     </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>Standard Print</p>
-                 </div>
-
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={print_02} alt='print_02' className="" />
+                    <div className='mt-3'>
+                      <Select>
+                        <option>Select Patch Color</option>
+                        <option>Brown</option>
+                        <option>Black</option>
+                        <option>Red</option>
+                        <option>Blue</option>
+                      </Select>
                     </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>Leather Patch Print</p>
-                 </div>
 
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={print_03} alt='print_03' className="" />
-                    </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>3d Embroidery Print</p>
-                 </div>
+                  </div>
 
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={print_04} alt='print_04' className="" />
-                    </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>Flat Embroidery Print</p>
-                 </div>
-
-
+                </div>
               </div>
-           </div>
+            )
+          }
 
-           <div className='team_wrap mb-8'>
 
-              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3>
+          <div className='team_wrap mb-8'>
 
-              <div className='grid grid-cols-1 lg:grid-cols-4 gap-5'>
+            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Print Style</h3>
 
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={cap_left} alt='cap_left' className="" />
-                    </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>Left Side</p>
-                 </div>
+            <div className='grid grid-cols-1 lg:grid-cols-4 gap-5'>
 
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={cap_front} alt='cap_front' className="" />
-                    </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>Front Side</p>
-                 </div>
-
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={cap_right} alt='cap_right' className="" />
-                    </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>Right Side</p>
-                 </div>
-
-                 <div className='product_list_box text-center'>
-                    <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                      <Image src={cap_back} alt='cap_back' className="" />
-                    </div>
-                    <p className='text-[18px] text-[#353535] font-medium'>Back Side</p>
-                 </div>
-
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={print_01} alt='print_01' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>Standard Print</p>
               </div>
 
-           </div>
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={print_02} alt='print_02' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>Leather Patch Print</p>
+              </div>
+
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={print_03} alt='print_03' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>3d Embroidery Print</p>
+              </div>
+
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={print_04} alt='print_04' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>Flat Embroidery Print</p>
+              </div>
 
 
-           <div className='mb-10 form_area'>
-              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>General Notes</h3>
-              <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Please use this space to let us know any other special details about this order that you think we should know.</p>
-              <Textarea id="comment" placeholder="Order Notes" required rows={4} />
-           </div>
+            </div>
+          </div>
 
-           <button onClick={handleCheckoutClick} className='bg-[#ED1C24] hover:bg-black text-white text-base rounded-full w-full py-3 cursor-pointer'>
-              Checkout
-            </button>
+          <div className='team_wrap mb-8'>
+
+            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3>
+
+            <div className='grid grid-cols-1 lg:grid-cols-4 gap-5'>
+
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={cap_left} alt='cap_left' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>Left Side</p>
+              </div>
+
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={cap_front} alt='cap_front' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>Front Side</p>
+              </div>
+
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={cap_right} alt='cap_right' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>Right Side</p>
+              </div>
+
+              <div className='product_list_box text-center'>
+                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
+                  <Image src={cap_back} alt='cap_back' className="" />
+                </div>
+                <p className='text-[18px] text-[#353535] font-medium'>Back Side</p>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div className='mb-10 form_area'>
+            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>General Notes</h3>
+            <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Please use this space to let us know any other special details about this order that you think we should know.</p>
+            <Textarea id="comment" placeholder="Order Notes" required rows={4} />
+          </div>
+
+          <button onClick={handleCheckoutClick} className='bg-[#ED1C24] hover:bg-black text-white text-base rounded-full w-full py-3 cursor-pointer'>
+            Checkout
+          </button>
 
         </div>
       </div>

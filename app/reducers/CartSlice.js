@@ -104,6 +104,68 @@ export const addCartItem = createAsyncThunk(
     }
 );
 
+export const updateCartItem = createAsyncThunk(
+    'cart/updateCartItem',
+    async ({ cart_item_id, quantity }, { rejectWithValue }) => {
+        try {
+            const response = await api.patch(`user/cart/item/update/${cart_item_id}`, { quantity });
+
+            console.log("Cart Item Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            const errorMessage = err?.response?.data?.message || err?.message || "Failed to update cart item";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+export const cartList = createAsyncThunk(
+    'cart/cartList',
+    async ({ id }, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`user/cart/list?id=${id}&type=sessionUUID`);
+
+            console.log("Cart Item Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            const errorMessage = err?.response?.data?.message || err?.message || "Failed to update cart item";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+
+export const getDecorationType = createAsyncThunk(
+    'getDecorationType',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`user/hats/decoration-types`);
+
+            console.log("Cart Item Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            const errorMessage = err?.response?.data?.message || err?.message || "Failed to update cart item";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+
 
 const initialState = {
     loading: false,
@@ -112,7 +174,10 @@ const initialState = {
     uploadLogoData: "",
     uuidData: "",
     groupData: "",
-    itemData: ""
+    itemData: "",
+    updateData: '',
+    cartListItem: '',
+    decorationList:[]
 }
 
 const CartSlice = createSlice(
@@ -183,6 +248,45 @@ const CartSlice = createSlice(
                     state.loading = false;
                     state.error = payload;
                 })
+
+                .addCase(updateCartItem.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(updateCartItem.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.updateData = payload;
+                    state.error = false;
+                })
+                .addCase(updateCartItem.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+
+                .addCase(cartList.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(cartList.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.cartListItem = payload;
+                    state.error = false;
+                })
+                .addCase(cartList.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+                    .addCase(getDecorationType.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(getDecorationType.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.decorationList = payload;
+                    state.error = false;
+                })
+                .addCase(getDecorationType.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+
 
         }
     }
