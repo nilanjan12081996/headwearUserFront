@@ -52,6 +52,8 @@ import cap_back from "../assets/imagesource/cap_back.png";
 import on_progress from "../assets/imagesource/on_progress.png";
 
 import right_icon from "../assets/imagesource/smallCheck.png";
+import blue_icon from "../assets/imagesource/smallCheckBlue.png";
+
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -71,27 +73,107 @@ import Image from 'next/image';
 
 import { FaCheck, FaPlus } from "react-icons/fa";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
-import { uploadLogo } from '../reducers/CartSlice';
-import { useDispatch } from 'react-redux';
+import { getDecorationType, uploadLogo } from '../reducers/CartSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { addArtWork } from '../reducers/ArtWorkSlice';
+import { useRef } from "react";
+
+
 
 
 
 const page = () => {
   const router = useRouter();
-
+  const { decorationList } = useSelector((state) => state?.cart)
+  const { loading } = useSelector((state) => state?.art)
   const searchParams = useSearchParams();
   const supName = atob(searchParams.get('name'))
+  const [logoId, setLogoId] = useState()
   const [deviceId, setDeviceId] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null);
   const dispatch = useDispatch()
   const [isUploading, setIsUploading] = useState(false);
   const [decorationMethod, setDecorationMethod] = useState("Embroidery");
-  const [selectedStyle, setSelectedStyle] = useState("flat");  // default selected
+  const [selectedStyle, setSelectedStyle] = useState("Embroidery");  // default selected
+  const [selectedPrice, setSelectedPrice] = useState("flat");
+
+  const [selectedStitch, setSelectedStitch] = useState([]);
+  const [backFile, setBackFile] = useState(null);
+  const [leftFile, setLeftFile] = useState(null);
+  const [rightFile, setRightFile] = useState(null);
 
 
-  const handleCheckoutClick = () => {
-    router.push('/checkout');
+  const toggleStitch = (id) => {
+    setSelectedStitch((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
+  console.log('decorationList', decorationList)
+
+  // Decoration states
+  const [selectedDecorationId, setSelectedDecorationId] = useState("");
+  const [embroideryType, setEmbroideryType] = useState("flat");
+  const [patchShape, setPatchShape] = useState("");
+  const [patchColor, setPatchColor] = useState("");
+  const [logoPlacement, setLogoPlacement] = useState("Front Center");
+
+  // Additional options
+  const [placementSizeNotes, setPlacementSizeNotes] = useState("");
+  const [orderNotes, setOrderNotes] = useState("");
+
+  // Back stitching states
+  const [backStitching, setBackStitching] = useState(false);
+  const [backStitchDetails, setBackStitchDetails] = useState("");
+  const [backStitchingFile, setBackStitchingFile] = useState(null);
+
+  // Left stitching states
+  const [leftStitching, setLeftStitching] = useState(false);
+  const [leftSideDetails, setLeftSideDetails] = useState("");
+  const [leftStitchingFile, setLeftStitchingFile] = useState(null);
+
+  // Right stitching states
+  const [rightStitching, setRightStitching] = useState(false);
+  const [rightSideDetails, setRightSideDetails] = useState("");
+  const [rightStitchingFile, setRightStitchingFile] = useState(null);
+
+  const cartId = sessionStorage.getItem("id");
+  const sessionUUid = sessionStorage.getItem('uuid');
+  const [agree, setAgree] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const checkboxRef = useRef(null);
+
+  const stitchingOptions = [
+    {
+      id: "back",
+      label: "Back Stitching",
+      img: "/images/back-stitching.jpg",
+      color: "#0046ff",
+    },
+    {
+      id: "left",
+      label: "Left Side Stitching",
+      img: "/images/left-stitching.jpg",
+      color: "#0046ff",
+    },
+    {
+      id: "right",
+      label: "Right Side Stitching",
+      img: "/images/right-stitching.jpg",
+      color: "gray",
+    },
+  ];
+
+  const placements = [
+    { id: "left", label: "Left Side", img: cap_left },
+    { id: "front", label: "Front Center", img: cap_front },
+    { id: "right", label: "Right Side", img: cap_right },
+
+  ];
+
+  const [selectedPlacement, setSelectedPlacement] = useState("");
+
+
+
   const getDeviceId = async () => {
     const fp = await FingerprintJS.load();
     const result = await fp.get();
@@ -140,16 +222,18 @@ const page = () => {
 
     try {
       const result = await dispatch(uploadLogo(formData)).unwrap();
-
-      if (result.status_code === 200) {
+      console.log('result', result)
+      if (result.status_code === 201) {
         // Handle success - store the imagePath
+        setLogoId(result?.data?.id)
+
         setUploadedFile(prev => ({
           ...prev,
-          serverPath: result.imagePaths[0],
-          sessionUUID: result.Session_UUID
+          serverPath: result.data?.imagePaths[0],
+          sessionUUID: result.data?.Session_UUID
         }));
-        const uploadedImagePath = result.imagePaths[0];
-        console.log('Uploaded:', uploadedImagePath);
+        // const uploadedImagePath = result.imagePaths[0];
+        // console.log('Uploaded:', uploadedImagePath);
         // Update your UI state here
         //  setIsUploading(false)
       }
@@ -158,492 +242,677 @@ const page = () => {
     }
   };
 
+  // const cartId = sessionStorage.getItem("id")
+
+  // const sessionUUid = sessionStorage.getItem('uuid')
+  // console.log('cartId', sessionUUid)
+
 
   const [selected, setSelected] = useState("flat");
 
+  const [selectedOption, setSelectedOption] = useState({
+    id: "",
+    name: ""
+  });
+
+  useEffect(() => {
+    dispatch(getDecorationType())
+  }, [])
+
+  useEffect(() => {
+    if (decorationList?.data?.length > 0) {
+      const first = decorationList.data[0];
+
+      setSelectedOption({
+        id: first.recordId,
+        name: first.name
+      });
+    }
+  }, [decorationList]);
+
+
+  const handleStitchingFileUpload = async (event, type) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Here you would upload the file similar to main logo
+    // For now, just storing the file object
+    if (type === 'back') setBackStitchingFile(file);
+    if (type === 'left') setLeftStitchingFile(file);
+    if (type === 'right') setRightStitchingFile(file);
+  };
+
+  const toggleStitching = (id) => {
+    if (id === "back") setBackStitching(!backStitching);
+    if (id === "left") setLeftStitching(!leftStitching);
+    if (id === "right") setRightStitching(!rightStitching);
+  };
+
+  // Prepare final payload
+  const preparePayload = () => {
+    const selectedDecoration = decorationList?.data?.find(
+      item => item.recordId === selectedDecorationId
+    );
+
+    const payload = {
+      sessionUuid: sessionUUid || deviceId,
+      cart_id: cartId,
+      logo_id: logoId,
+      primary_decoration_type_id: selectedOption.id,
+      embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
+      patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
+      patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
+      logo_placement: logoPlacement,
+      placement_size_notes: placementSizeNotes,
+      order_notes: orderNotes,
+      back_stitching: backStitching,
+      back_stitch_details: backStitching ? backStitchDetails : "",
+      back_stitching_file: backStitching && backStitchingFile ? backStitchingFile : null,
+      left_stitching: leftStitching,
+      left_side_details: leftStitching ? leftSideDetails : "",
+      left_stitching_file: leftStitching && leftStitchingFile ? leftStitchingFile : null,
+      right_stitching: rightStitching,
+      right_side_details: rightStitching ? rightSideDetails : "",
+      right_stitching_file: rightStitching && rightStitchingFile ? rightStitchingFile : null,
+    };
+
+    return payload;
+  };
+  const handleCheckoutClick = async () => {
+    if (!agree) {
+      setErrorMsg("You must agree to copyright/ownership permission.");
+       checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    const payload = preparePayload();
+    console.log('Checkout Payload:', payload);
+
+    // Create FormData for file uploads
+    const formData = new FormData();
+    Object.keys(payload).forEach(key => {
+      if (payload[key] !== null && payload[key] !== "") {
+        if (key.includes('_file') && payload[key] instanceof File) {
+          formData.append(key, payload[key]);
+        } else if (typeof payload[key] === 'boolean') {
+          formData.append(key, payload[key].toString());
+        } else {
+          formData.append(key, payload[key]);
+        }
+      }
+    });
+
+    // Here you would dispatch your API call
+    await dispatch(addArtWork(formData)).then((res) => {
+      console.log("addartwork", res);
+      if (res?.payload?.status_code === 201) {
+        router.push("/checkout")
+      }
+
+    });
+
+
+  };
+
+
+
   return (
+
     <div>
       <div className='banner_area py-0 lg:p-0'>
-        {/* home banner section start here */}
         <div className="relative">
-          <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
-          <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
+          <Image src={list_banner} alt='list_banner' className="w-full" />
         </div>
       </div>
 
-
-
-      {/* Who We Are section start here */}
       <div className="py-10 lg:pb-20 lg:pt-10">
-
         <div className='mb-10'>
           <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 mb-10 flex justify-between items-center'>
-            <div>
-              <ul className='flex items-center gap-2'>
-                <li>
-                  <Link href="/" passHref><GoHome className='text-[#666666] text-2xl' /></Link>
-                </li>
-                <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                <li className='text-[#666666] text-base'>Caps</li>
-                <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                <li className='text-[#666666] text-base'>{supName}</li>
-                <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                <li className='text-[#ED1C24] text-base'>Artwork</li>
-              </ul>
-            </div>
+            <ul className='flex items-center gap-2'>
+              <li><Link href="/"><GoHome className='text-[#666666] text-2xl' /></Link></li>
+              <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+              <li className='text-[#666666] text-base'>Caps</li>
+              <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+              <li className='text-[#666666] text-base'>{supName}</li>
+              <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+              <li className='text-[#ED1C24] text-base'>Artwork</li>
+            </ul>
           </div>
-
         </div>
 
-
         <div className='max-w-6xl mx-auto px-5 lg:px-0'>
-
+          {/* Upload Artwork Section */}
           <div className='team_wrap mb-8'>
-
             <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Upload Artwork</h3>
-            <div className="w-full">
-              <p className='text-[#1A1A1A] text-sm mb-4'>Optional , But Encouraged</p>
-              {
-                !uploadedFile && (
+            <p className='text-[#1A1A1A] text-sm mb-4'>Optional, But Encouraged</p>
 
-                  <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
-                    <Label
-                      htmlFor="dropzone-file"
-                      className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-1 border-dashed border-[#FF0000] bg-white hover:bg-gray-100"
-                    >
-                      <div className="flex flex-col items-center justify-center pb-6 pt-5">
-                        <div className='mb-4'>
-                          <HiMiniPlusCircle className='text-[#FF0000] text-5xl' />
-                        </div>
-                        <p className="mb-2 text-xl text-black dark:text-gray-400">
-                          <span className="font-semibold">Upload Artwork</span>
-                        </p>
-                        <p className="text-base text-black dark:text-gray-400">10MB file size limit</p>
-                      </div>
-                      <FileInput id="dropzone-file" className="hidden"
-                        onChange={handleFileUpload}
-                        accept="image/*"
-                      />
-                    </Label>
+            {!uploadedFile && (
+              <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
+                <Label htmlFor="dropzone-file" className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-1 border-dashed border-[#FF0000] bg-white hover:bg-gray-100">
+                  <div className="flex flex-col items-center justify-center pb-6 pt-5">
+                    <HiMiniPlusCircle className='text-[#FF0000] text-5xl mb-4' />
+                    <p className="mb-2 text-xl text-black"><span className="font-semibold">Upload Artwork</span></p>
+                    <p className="text-base text-black">10MB file size limit</p>
                   </div>
-
-                )
-              }
-
-              {/* <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
-                  <div className='bg-[#eeeeee] p-4 flex items-center gap-3'>
-                     <div>
-                        <Image src={on_progress} alt='on_progress' className="" />
-                     </div>
-                     <div>
-                        <p className='text-[#000000] text-base pb-1'>SandTime.png</p>
-                        <p className='text-sm text-[#868686]'>15.7 Kb</p>
-                     </div>
-                  </div>
-                </div> */}
-
-              {uploadedFile && (
-                <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
-                  <div className='bg-[#eeeeee] p-4 flex items-center gap-3 justify-between'>
-                    <div className='flex items-center gap-3'>
-                      {/* Show uploaded image preview */}
-                      <div className='w-12 h-12'>
-                        <img
-                          src={uploadedFile.previewUrl}
-                          alt={uploadedFile.name}
-                          className="w-full h-full object-cover rounded"
-                        />
-                      </div>
-                      <div>
-                        <p className='text-[#000000] text-base pb-1'>{uploadedFile.name}</p>
-                        {/* <p className='text-sm text-[#868686]'>{formatFileSize(uploadedFile.size)}</p> */}
-                        {/* {isUploading && (
-                          <p className='text-xs text-blue-600 mt-1'>Uploading...</p>
-                        )} */}
-                        {!isUploading && uploadedFile.serverPath && (
-                          <p className='text-xs text-green-600 mt-1'>✓ Upload complete</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Remove button */}
-                    {!isUploading && (
-                      <button
-                        onClick={removeFile}
-                        className='text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition'
-                        type='button'
-                      >
-                        Remove
-                      </button>
-                    )}
-
-                    {/* Loading spinner */}
-                    {/* {isUploading && (
-                      <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF0000]'></div>
-                    )} */}
-                  </div>
-                </div>
-              )}
-
-              <div className="lg:flex items-center gap-2 check_area">
-                <Checkbox id="promotion" className='' />
-                <Label className='text-[#615E5E] text-base' htmlFor="promotion">I own the rights to this artwork being used or have permission from the owner to use it.</Label>
+                  <FileInput id="dropzone-file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                </Label>
               </div>
+            )}
 
-              {/* Hat selector Section  */}
-              <div className="my-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[300px]">
+            {uploadedFile && (
+              <div className='border border-[#E6E6E6] rounded-[10px] p-3 mb-5'>
+                <div className='bg-[#eeeeee] p-4 flex items-center gap-3 justify-between'>
+                  <div className='flex items-center gap-3'>
+                    <div className='w-12 h-12'>
+                      <img src={uploadedFile.previewUrl} alt={uploadedFile.name} className="w-full h-full object-cover rounded" />
+                    </div>
+                    <div>
+                      <p className='text-[#000000] text-base pb-1'>{uploadedFile.name}</p>
+                      {!isUploading && uploadedFile.serverPath && (
+                        <p className='text-xs text-green-600 mt-1'>✓ Upload complete</p>
+                      )}
+                    </div>
+                  </div>
+                  {!isUploading && (
+                    <button onClick={removeFile} className='text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition' type='button'>
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
-                  {/* Embroidery */}
-                  <label
-                    className={`relative border rounded-xl cursor-pointer transition overflow-hidden
-        ${selectedStyle === "flat" ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
+            <div ref={checkboxRef} className="flex items-center gap-2 check_area">
+              <Checkbox id="promotion"
+                checked={agree}
+                onChange={() => {
+                  setAgree(!agree);
+                  setErrorMsg("");
+                }}
+              />
+              <Label className='text-[#615E5E] text-base' htmlFor="promotion">
+                I own the rights to this artwork being used or have permission from the owner to use it.
+              </Label>
+            </div>
+            {errorMsg && <p className="text-red-600 text-sm mt-1">{errorMsg}</p>}
+          </div>
+
+          {/* Decoration Method Dropdown */}
+          <div className='mt-5 mb-8 decoration_type_area'>
+            <Label className='text-[#615E5E] text-base mb-2 block'>Decoration Method</Label>
+            <Select
+              required
+              value={selectedOption.id}
+              onChange={(e) => {
+                const selected = decorationList?.data?.find(d => d.recordId === e.target.value);
+                if (selected) {
+                  setSelectedOption({ id: selected.recordId, name: selected.name });
+                  setSelectedDecorationId(selected.recordId);
+
+                  if (selected.name === "Embroidery") {
+                    setSelectedStyle("Embroidery");
+                  } else if (selected.name === "Leather Patch") {
+                    setSelectedStyle("Leather Patch");
+                  }
+                }
+              }}
+            >
+              <option value="">Select Decoration Type</option>
+              {decorationList?.data?.map((deco) => (
+                <option key={deco.recordId} value={deco.recordId}>{deco.name}</option>
+              ))}
+            </Select>
+
+          </div>
+
+          {/* Hat selector Section */}
+          <div className="my-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[300px]">
+
+              {/* BOX 1 — decorationList.data[0] */}
+              <label
+                className={`relative border rounded-xl cursor-pointer transition overflow-hidden
+        ${selectedStyle === decorationList?.data?.[0]?.name ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
       `}
-                  >
-                    {/* Top heading */}
-                    <div className={`absolute top-0 left-0 w-full px-4 py-2 text-white font-semibold text-2xl
-        ${selectedStyle === "flat" ? "bg-[#ff0000]" : "bg-black/70"}
-      `}>
-                      Embroidery
-                    </div>
+              >
+                {/* Dynamic Title */}
+                <div
+                  className={`absolute top-0 left-0 w-full px-4 py-2 text-white font-semibold text-2xl
+          ${selectedStyle === decorationList?.data?.[0]?.name ? "bg-[#ff0000]" : "bg-black/70"}
+        `}
+                >
+                  {decorationList?.data?.[0]?.name}
+                </div>
 
-                    <input
-                      type="radio"
-                      name="embroideryType"
-                      value="flat"
-                      checked={selectedStyle === "flat"}
-                      onChange={() => setSelectedStyle("flat")}
-                      className="hidden"
+                <input
+                  type="radio"
+                  name="embroideryType"
+                  value={decorationList?.data?.[0]?.name}
+                  checked={selectedStyle === decorationList?.data?.[0]?.name}
+                  onChange={() => {
+                    const selected = decorationList?.data?.[0];
+                    setSelectedStyle(selected?.name);
+                    setSelectedOption({ id: selected?.recordId, name: selected?.name });
+                    setSelectedDecorationId(selected?.recordId);
+                  }}
+                  className="hidden"
+                />
+
+
+                <ul className="mt-10 space-y-1 p-4 bg-[#f1e3e3]">
+                  <li className="flex gap-2 items-center">
+                    <Image src={right_icon} width={20} height={20}
+                      className={`${selectedStyle === decorationList?.data?.[0]?.name ? "opacity-100" : "opacity-40"}`}
                     />
+                    No Minimum Order
+                  </li>
 
-                    <ul className="mt-10 space-y-1 p-4 bg-[#f1e3e3]">
-                      <li className="flex gap-2 items-center">
-                        <Image src={right_icon} width={20} height={20}
-                          className={`${selectedStyle === "flat" ? "opacity-100" : "opacity-40"}`}
-                        />
-                        No Minimum Order
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <Image src={right_icon} width={20} height={20}
-                          className={`${selectedStyle === "flat" ? "opacity-100" : "opacity-40"}`}
-                        />
-                        Vibrant Colors
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <Image src={right_icon} width={20} height={20}
-                          className={`${selectedStyle === "flat" ? "opacity-100" : "opacity-40"}`}
-                        />
-                        Most Popular
-                      </li>
-                    </ul>
+                  <li className="flex gap-2 items-center">
+                    <Image src={right_icon} width={20} height={20}
+                      className={`${selectedStyle === decorationList?.data?.[0]?.name ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Vibrant Colors
+                  </li>
 
-                    {/* SELECTED badge */}
-                    {selectedStyle === "flat" && (
-                      <div className="absolute bottom-0 left-0 w-full bg-[#ff0000] text-white text-center py-1 text-sm font-semibold">
-                        SELECTED
-                      </div>
-                    )}
-                  </label>
+                  <li className="flex gap-2 items-center">
+                    <Image src={right_icon} width={20} height={20}
+                      className={`${selectedStyle === decorationList?.data?.[0]?.name ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Most Popular
+                  </li>
+                </ul>
+
+                {selectedStyle === decorationList?.data?.[0]?.name && (
+                  <div className="absolute bottom-0 left-0 w-full bg-[#ff0000] text-white text-center py-1 text-sm font-semibold">
+                    SELECTED
+                  </div>
+                )}
+              </label>
 
 
-                  {/* Leather Patch */}
-                  <label
-                    className={`relative border rounded-xl cursor-pointer transition overflow-hidden
-        ${selectedStyle === "puff" ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
+
+              {/* BOX 2 — decorationList.data[1] */}
+              <label
+                className={`relative border rounded-xl cursor-pointer transition overflow-hidden
+        ${selectedStyle === decorationList?.data?.[1]?.name ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
       `}
-                  >
-                    <div className={`absolute top-0 left-0 w-full px-4 py-2 text-white font-semibold  text-2xl
-        ${selectedStyle === "puff" ? "bg-[#ff0000]" : "bg-black/70"}
-      `}>
-                      Leather Patch
-                    </div>
+              >
+                <div
+                  className={`absolute top-0 left-0 w-full px-4 py-2 text-white font-semibold text-2xl
+          ${selectedStyle === decorationList?.data?.[1]?.name ? "bg-[#ff0000]" : "bg-black/70"}
+        `}
+                >
+                  {decorationList?.data?.[1]?.name}
+                </div>
 
-                    <input
-                      type="radio"
-                      name="embroideryType"
-                      value="puff"
-                      checked={selectedStyle === "puff"}
-                      onChange={() => setSelectedStyle("puff")}
-                      className="hidden"
+                <input
+                  type="radio"
+                  name="embroideryType"
+                  value={decorationList?.data?.[1]?.name}
+                  checked={selectedStyle === decorationList?.data?.[1]?.name}
+                  onChange={() => {
+                    const selected = decorationList?.data?.[1];
+                    setSelectedStyle(selected?.name);
+                    setSelectedOption({ id: selected?.recordId, name: selected?.name });
+                    setSelectedDecorationId(selected?.recordId);
+                  }}
+                  className="hidden"
+                />
+
+
+                <ul className="mt-10 space-y-1 p-4 bg-[#f1e3e3]">
+                  <li className="flex gap-2 items-center">
+                    <Image src={right_icon} width={20} height={20}
+                      className={`${selectedStyle === decorationList?.data?.[1]?.name ? "opacity-100" : "opacity-40"}`}
                     />
+                    No Minimum Order
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <Image src={right_icon} width={20} height={20}
+                      className={`${selectedStyle === decorationList?.data?.[1]?.name ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Synthetic Water Resistant Leather
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <Image src={right_icon} width={20} height={20}
+                      className={`${selectedStyle === decorationList?.data?.[1]?.name ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Great For Small Details
+                  </li>
+                </ul>
 
-                    <ul className="mt-10 space-y-1 p-4 bg-[#f1e3e3]">
-                      <li className="flex gap-2 items-center">
-                        <Image src={right_icon} width={20} height={20}
-                          className={`${selectedStyle === "puff" ? "opacity-100" : "opacity-40"}`}
-                        />
-                        No Minimum Order
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <Image src={right_icon} width={20} height={20}
-                          className={`${selectedStyle === "puff" ? "opacity-100" : "opacity-40"}`}
-                        />
-                        Synthetic Water Resistant Leather
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <Image src={right_icon} width={20} height={20}
-                          className={`${selectedStyle === "puff" ? "opacity-100" : "opacity-40"}`}
-                        />
-                        Great For Small Details
-                      </li>
-                    </ul>
+                {selectedStyle === decorationList?.data?.[1]?.name && (
+                  <div className="absolute bottom-0 left-0 w-full bg-[#ff0000] text-white text-center py-1 text-sm font-semibold">
+                    SELECTED
+                  </div>
+                )}
+              </label>
 
-                    {/* SELECTED badge */}
-                    {selectedStyle === "puff" && (
-                      <div className="absolute bottom-0 left-0 w-full bg-[#ff0000] text-white text-center py-1 text-sm font-semibold">
-                        SELECTED
+            </div>
+          </div>
+
+
+
+          {/* Artwork Setup section  */}
+
+          <div className="mt-8">
+            <div className='p-4 bg-[#ff0000]'>
+              <h2 className='text-2xl font-bold text-white'>Artwork Setup</h2>
+            </div>
+            <div className='bg-[#eee] p-4 rounded-2xl mt-4'>
+              <p>Every logo must be hand converted by one of our designers into a new file that works for our machines. We test and tweak every logo until the output meets or exceeds our very high quality standards.
+                You will receive a digital stitch preview for feedback and approval before your order goes into production. We keep your artwork on file for all future orders.</p>
+            </div>
+          </div>
+
+
+          {/* Pricing selector Section  */}
+          <div className="">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[300px]">
+
+              <label
+                className={`relative border border-4 rounded-xl cursor-pointer transition overflow-hidden p-4
+                   ${selectedPrice === "flat" ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
+                 `}
+              >
+                <h2
+                  className="text-2xl font-bold"
+                  style={{ fontFamily: "Arial, sans-serif" }}
+                >
+                  Standard<br /><s>+$50</s>FREE
+                </h2>
+
+
+                <input
+                  type="radio"
+                  name="embroideryType"
+                  value="flat"
+                  checked={selectedPrice === "flat"}
+                  onChange={() => setSelectedPrice("flat")}
+                  className="hidden"
+                />
+
+                <ul className="my-2 space-y-1">
+                  <li className="flex gap-2 items-center">
+                    <Image src={blue_icon} width={20} height={20}
+                      className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Digital Patch Mockup
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <Image src={blue_icon} width={20} height={20}
+                      className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
+                    />
+                    One Round of Revisions
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <Image src={blue_icon} width={20} height={20}
+                      className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Physical patch test internally approved by us
+                  </li>
+                </ul>
+                <button
+                  className={`py-2 px-3 text-md rounded-2xl my-2
+               ${selectedPrice === "flat" ? "bg-[#ff0000] text-white" : "bg-[#eee] text-[#7f7f7f]"}
+             `}
+                >
+                  Standard Setup
+                </button>
+
+
+                <p>Included FREE for orders of 12+ hats</p>
+
+              </label>
+
+              <label
+                className={`relative border rounded-xl cursor-pointer transition overflow-hidden p-4
+                   ${selectedPrice === "puff" ? "border-[#ff0000] border-4 shadow-lg" : "border-gray-300"}
+                 `}
+              >
+                <h2
+                  style={{ fontFamily: "Arial, sans-serif" }}
+                  className='text-2xl'>Premimum<br />+$50</h2>
+
+                <input
+                  type="radio"
+                  name="embroideryType"
+                  value="puff"
+                  checked={selectedPrice === "puff"}
+                  onChange={() => setSelectedPrice("puff")}
+                  className="hidden"
+                />
+
+                <ul className="my-2 space-y-1">
+                  <li className="flex gap-2 items-center">
+                    <Image src={blue_icon} width={20} height={20}
+                      className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Digital Patch Mockup
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <Image src={blue_icon} width={20} height={20}
+                      className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Unlimited Revisions
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <Image src={blue_icon} width={20} height={20}
+                      className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
+                    />
+                    Physical patch hat photo(s) sent to you for approval
+                  </li>
+                </ul>
+                <button
+                  className={`py-2 px-3 text-md rounded-2xl my-2
+               ${selectedPrice === "puff" ? "bg-[#ff0000] text-white" : "bg-[#eee] text-[#7f7f7f]"}
+             `}
+                >
+                  Premium Setup
+                </button>
+
+
+                <p> Only Available for orders of 12+ hats</p>
+
+              </label>
+
+            </div>
+          </div>
+
+          {/* Embroidery Options */}
+          {selectedOption?.name === "Embroidery" && (
+            <div className="mb-8 mt-4">
+              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className={`border rounded-xl p-5 cursor-pointer transition ${embroideryType === "Standard Flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
+                  <input type="radio" name="embroidery" value="Standard Flat" checked={embroideryType === "Standard Flat"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
+                  <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
+                  <p className="text-sm text-gray-600 mb-4">Most common embroidery type. Works well for smaller details.</p>
+                  <button type="button" className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium">
+                    Flat Embroidery
+                  </button>
+                </label>
+
+                <label className={`border rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D Puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
+                  <input type="radio" name="embroidery" value="3D Puff" checked={embroideryType === "3D Puff"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
+                  <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
+                  <p className="text-sm text-gray-600 mb-4">Creates a raised 3D look. Only certain designs can be puffed.</p>
+                  <button type="button" className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium">
+                    3D Puff Embroidery
+                  </button>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Leather Patch Options */}
+          {selectedOption?.name === "Leather Patch" && (
+            <div className='mb-8'>
+              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
+              <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mb-4'>
+                <h2 className='text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
+                <p className='text-[15px]'>We will convert your artwork and send you mockups.</p>
+              </div>
+              <div className='border-1 border-[#ed1c24] px-5 py-7 rounded-xl'>
+                <h2 className='mb-3 text-[#1A1A1A] text-[20px] font-semibold'>Leather Patch</h2>
+                <ul className='flex items-center gap-4 mb-4'>
+                  <li className='flex items-center gap-1'><FaCheck /> Synthetic Leather</li>
+                  <li className='flex items-center gap-1'><FaCheck /> Very Classy Look</li>
+                  <li className='flex items-center gap-1'><FaCheck /> Best For Simple Designs</li>
+                </ul>
+                <div className='mb-3'>
+                  <Select value={patchShape} onChange={(e) => setPatchShape(e.target.value)}>
+                    <option value="">Select Patch Shape</option>
+                    <option value="Circle">Circle</option>
+                    <option value="Rectangle">Rectangle</option>
+                    <option value="Shield">Shield</option>
+                  </Select>
+                </div>
+                <div>
+                  <Select value={patchColor} onChange={(e) => setPatchColor(e.target.value)}>
+                    <option value="">Select Patch Color</option>
+                    <option value="Brown">Brown</option>
+                    <option value="Black">Black</option>
+                    <option value="Red">Red</option>
+                    <option value="Blue">Blue</option>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Logo Placement */}
+          <div className='flex justify-center'>
+            <div className='team_wrap mb-8'>
+              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3>
+
+              <div className='grid grid-cols-1 lg:grid-cols-3 gap-5'>
+                {placements.map((item) => (
+                  <div
+                    key={item.id}
+                    className='product_list_box text-center cursor-pointer'
+                    onClick={() => setLogoPlacement(item.label)}
+                  >
+                    <div
+                      className={`mb-3 border rounded-[8px] overflow-hidden 
+          ${logoPlacement === item.label ? "border-[#ed1c24]" : "border-[#E2E2E2]"} `}
+                    >
+                      <Image src={item.img} alt={item.label} />
+                    </div>
+
+                    <p className='text-[18px] text-[#353535] font-medium'>{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+
+          {/* Placement Size Notes */}
+          <div className='mb-8 form_area'>
+            <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Use the Placement & Size Notes below to give us any specific sizing or placement you may want.</p>
+            <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Note:</strong> Placement can only change 1 time for every 6 or more hats ordered and must stay the same size.</p>
+            <Textarea className='!text-black' rows={3} value={placementSizeNotes} onChange={(e) => setPlacementSizeNotes(e.target.value)} placeholder="Any specific notes about placement or size" rows={3} />
+          </div>
+
+
+          {/* Additional Addons */}
+          <div className="mt-8 mb-8">
+            <div className="px-4 py-3 bg-[#ed1c24]">
+              <h2 className="text-2xl font-bold text-white">Additional Addons</h2>
+            </div>
+            <div className="mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+              <div className="rounded-xl bg-[#f5f5f5] p-4 text-sm text-gray-800">
+                <h3 className="mb-2 text-lg font-semibold">Back & Side Stitching</h3>
+                <p>You can add back, left side and right side stitching to your hats.</p>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {stitchingOptions.map((option) => {
+                  const isSelected =
+                    (option.id === "back" && backStitching) ||
+                    (option.id === "left" && leftStitching) ||
+                    (option.id === "right" && rightStitching);
+
+                  return (
+                    <button key={option.id} className={`overflow-hidden rounded-xl border-4 ${isSelected ? "border-red-500 bg-[#f5f8ff]" : "border-gray-300 bg-white"}`} onClick={() => toggleStitching(option.id)}>
+                      <img src={option.img} alt={option.label} className="h-32 w-full object-cover" />
+                      <div className={`py-2 text-center text-sm font-semibold ${isSelected ? "bg-[#ed1c24] text-white" : "text-gray-600 bg-white"}`}>
+                        {option.label}
                       </div>
-                    )}
-                  </label>
-
-                </div>
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Artwork Setup section  */}
-
-              <div className="my-8">
-                <div>
-                  <h2>Artwork Setup</h2>
-                </div>
-                <div>
-                  <p>Every logo must be hand converted by one of our designers into a new file that works for our machines. We test and tweak every logo until the output meets or exceeds our very high quality standards.
-                    You will receive a digital stitch preview for feedback and approval before your order goes into production. We keep your artwork on file for all future orders.</p>
-                </div>
-              </div>
-
-              <div className='mt-5 decoration_type_area'>
-                <Label className='text-[#615E5E] text-base'>Decoration Method</Label>
-                <Select value={decorationMethod}
-                  onChange={(e) => setDecorationMethod(e.target.value)}>
-                  <option value="Embroidery">Embroidery</option>
-                  <option value="Leather Patch">Leather Patch</option>
-                </Select>
-              </div>
-            </div>
-
-          </div>
-          {
-            decorationMethod === "Embroidery" && (
-              <div>
-
-                <div className="my-8">
-                  <h2 className="text-2xl font-semibold mb-4">Embroidery Option</h2>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    {/* Flat Embroidery */}
-                    <label
-                      className={`border rounded-xl p-5 cursor-pointer transition ${selected === "flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"
-                        }`}
-                    >
-                      <input
-                        type="radio"
-                        name="embroidery"
-                        value="flat"
-                        checked={selected === "flat"}
-                        onChange={() => setSelected("flat")}
-                        className="hidden"
-                      />
-
-                      <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        This method is the most common embroidery type. Works well for smaller details and intricate designs.
-                      </p>
-
-                      <button
-                        type="button"
-                        className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
-                      >
-                        Flat Embroidery
-                      </button>
-                      <p className='text-[#4c4b4b] mt-5 ml-3 text-[11px]'>*This is the default pricing option and included in the prices shown on the item select step.</p>
-                    </label>
-
-                    {/* 3D Puff Embroidery */}
-                    <label
-                      className={`border rounded-xl p-5 cursor-pointer transition ${selected === "puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"
-                        }`}
-                    >
-                      <input
-                        type="radio"
-                        name="embroidery"
-                        value="puff"
-                        checked={selected === "puff"}
-                        onChange={() => setSelected("puff")}
-                        className="hidden"
-                      />
-
-                      <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Creates a raised 3D look. Only certain designs or blocky elements can be puffed.
-                      </p>
-
-                      <button
-                        type="button"
-                        className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium cursor-pointer"
-                      >
-                        3D Puff Embroidery
-                      </button>
-                    </label>
-                  </div>
-                </div>
-
-
-              </div>
-            )
-          }
-
-
-          {
-            decorationMethod === "Leather Patch" && (
-              <div>
-                <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
-                <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px]'>
-                  <h2 className='py-0 ml-3 text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
-                  <p className='ml-3 text-[15px]'>We will convert your artwork and send you mockups of what the patch will look like for approval and feedback before we begin production of your order.</p>
-                </div>
-                <div className='flex justify-between gap-3 decoration_type_area'>
-                  <div className='mt-3 w-[700px] border-1 border-[#ed1c24] px-5 py-7 rounded-xl mb-4'>
-                    <h2 className='mb-3 ml-3 text-[#1A1A1A] text-[20px] font-semibold'>Leather Patch</h2>
-                    <ul className='ml-3 mt-2 flex items-center gap-4'>
-                      <li className='flex items-center gap-1'>
-                        <FaCheck />  Synthetic Leather
-                      </li>
-                      <li className='flex items-center gap-1'>
-                        <FaCheck />  Very Classy Look
-                      </li>
-                      <li className='flex items-center gap-1'>
-                        <FaCheck />   Best For Simple Designs
-                      </li>
-                    </ul>
-                    <div className='mt-3'>
-                      <Select >
-                        <option>Select Patch Option</option>
-                        <option>Circle</option>
-                        <option>Square</option>
-                        <option>Oval</option>
-                        <option>Diamond</option>
-                        <option>Hexagon</option>
-                        <option>Custom</option>
-                      </Select>
+              <div className="mt-4 space-y-3">
+                {backStitching && (
+                  <div>
+                    <label className="mb-1 block font-semibold text-sm">Back Stitch Details:</label>
+                    <input type="text" value={backStitchDetails} onChange={(e) => setBackStitchDetails(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="Enter details here..." />
+                    <div className="mt-2 flex items-center gap-2">
+                      <label className="rounded-md bg-[#0046ff] px-3 py-2 text-xs font-semibold text-white cursor-pointer">
+                        Upload Back Design
+                        <input type="file" className="hidden" onChange={(e) => handleStitchingFileUpload(e, 'back')} accept="image/*" />
+                      </label>
+                      <span className="text-xs text-gray-500">{backStitchingFile ? backStitchingFile.name : "No File Selected"}</span>
                     </div>
-                    <div className='mt-3'>
-                      <Select>
-                        <option>Select Patch Color</option>
-                        <option>Brown</option>
-                        <option>Black</option>
-                        <option>Red</option>
-                        <option>Blue</option>
-                      </Select>
-                    </div>
-
                   </div>
+                )}
 
-                </div>
+                {leftStitching && (
+                  <div>
+                    <label className="mb-1 block font-semibold text-sm">Left Side Details:</label>
+                    <input type="text" value={leftSideDetails} onChange={(e) => setLeftSideDetails(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="Enter details here..." />
+                    <div className="mt-2 flex items-center gap-2">
+                      <label className="rounded-md bg-[#0046ff] px-3 py-2 text-xs font-semibold text-white cursor-pointer">
+                        Upload Left Side Design
+                        <input type="file" className="hidden" onChange={(e) => handleStitchingFileUpload(e, 'left')} accept="image/*" />
+                      </label>
+                      <span className="text-xs text-gray-500">{leftStitchingFile ? leftStitchingFile.name : "No File Selected"}</span>
+                    </div>
+                  </div>
+                )}
+
+                {rightStitching && (
+                  <div>
+                    <label className="mb-1 block font-semibold text-sm">Right Side Details:</label>
+                    <input type="text" value={rightSideDetails} onChange={(e) => setRightSideDetails(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="Enter details here..." />
+                    <div className="mt-2 flex items-center gap-2">
+                      <label className="rounded-md bg-[#0046ff] px-3 py-2 text-xs font-semibold text-white cursor-pointer">
+                        Upload Right Side Design
+                        <input type="file" className="hidden" onChange={(e) => handleStitchingFileUpload(e, 'right')} accept="image/*" />
+                      </label>
+                      <span className="text-xs text-gray-500">{rightStitchingFile ? rightStitchingFile.name : "No File Selected"}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            )
-          }
-
-
-          <div className='team_wrap mb-8'>
-
-            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Print Style</h3>
-
-            <div className='grid grid-cols-1 lg:grid-cols-4 gap-5'>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={print_01} alt='print_01' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>Standard Print</p>
-              </div>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={print_02} alt='print_02' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>Leather Patch Print</p>
-              </div>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={print_03} alt='print_03' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>3d Embroidery Print</p>
-              </div>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={print_04} alt='print_04' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>Flat Embroidery Print</p>
-              </div>
-
-
             </div>
           </div>
-
-          <div className='team_wrap mb-8'>
-
-            <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3>
-
-            <div className='grid grid-cols-1 lg:grid-cols-4 gap-5'>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={cap_left} alt='cap_left' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>Left Side</p>
-              </div>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={cap_front} alt='cap_front' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>Front Side</p>
-              </div>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={cap_right} alt='cap_right' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>Right Side</p>
-              </div>
-
-              <div className='product_list_box text-center'>
-                <div className='mb-3 border border-[#E2E2E2] rounded-[8px]'>
-                  <Image src={cap_back} alt='cap_back' className="" />
-                </div>
-                <p className='text-[18px] text-[#353535] font-medium'>Back Side</p>
-              </div>
-
-            </div>
-
-          </div>
-
-
+          {/* General Notes */}
           <div className='mb-10 form_area'>
             <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>General Notes</h3>
-            <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Please use this space to let us know any other special details about this order that you think we should know.</p>
-            <Textarea id="comment" placeholder="Order Notes" required rows={4} />
+            <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Please use this space to let us know any other special details about this order.</p>
+            <Textarea className='!text-black' value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)} placeholder="Order Notes" rows={4} />
           </div>
 
-          <button onClick={handleCheckoutClick} className='bg-[#ED1C24] hover:bg-black text-white text-base rounded-full w-full py-3 cursor-pointer'>
-            Checkout
+          <button
+            onClick={() => handleCheckoutClick()}
+            disabled={loading}
+            className={`text-white text-base rounded-full w-full py-3 cursor-pointer
+    ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#ED1C24] hover:bg-black"}
+  `}
+          >
+            {loading ? "Waiting..." : "Checkout"}
           </button>
 
         </div>
       </div>
-      {/* Who We Are section ends here */}
-
-
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-0'>
         <div className='bg-[#9f9f9f] py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area'>
           <div className='flex items-center gap-2 relative z-20'>
-            <div>
-              <IoIosColorPalette className='text-white text-5xl' />
-            </div>
+            <IoIosColorPalette className='text-white text-5xl' />
             <div>
               <p className='text-white text-base font-medium'>12+ Items</p>
               <p className='text-white text-base font-medium'>Free Artwork Setup</p>
@@ -652,9 +921,7 @@ const page = () => {
         </div>
         <div className='bg-[#9f9f9f] py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area'>
           <div className='flex items-center gap-2 relative z-20'>
-            <div>
-              <TbTruckDelivery className='text-white text-5xl' />
-            </div>
+            <TbTruckDelivery className='text-white text-5xl' />
             <div>
               <p className='text-white text-base font-medium'>24+ Items</p>
               <p className='text-white text-base font-medium'>Free Shipping</p>
@@ -663,9 +930,7 @@ const page = () => {
         </div>
         <div className='bg-[#9f9f9f] py-6 flex justify-center items-center'>
           <div className='flex items-center gap-2'>
-            <div>
-              <IoMdTrophy className='text-white text-5xl' />
-            </div>
+            <IoMdTrophy className='text-white text-5xl' />
             <div>
               <p className='text-white text-base font-medium'>48+ Items</p>
               <p className='text-white text-base font-medium'>Free Premium Setup</p>
@@ -673,7 +938,6 @@ const page = () => {
           </div>
         </div>
       </div>
-
     </div>
   )
 }

@@ -71,34 +71,35 @@ import { v4 as uuidv4 } from "uuid";
 
 
 const page = () => {
+  const { cartListItem } = useSelector((state) => state?.cart);
   const [selectedSupplier, setSelectedSupplier] = useState('Supplier')
   const { suppliersList } = useSelector((state) => state?.suppliers)
-  const{decorationList}=useSelector((state)=>state?.cart)
+  const { decorationList } = useSelector((state) => state?.cart)
   const { productList, allProList } = useSelector((state) => state?.prod)
   const [hatQuantities, setHatQuantities] = useState({});
 
- useEffect(() => {
-  const savedId = sessionStorage.getItem("id");
-  const savedUUID = sessionStorage.getItem("uuid");
+  useEffect(() => {
+    const savedId = sessionStorage.getItem("id");
+    const savedUUID = sessionStorage.getItem("uuid");
 
-  // If already present, DO NOT call API
-  if (savedId && savedUUID) {
-    console.log("UUID already exists, API not called");
-    return;
-  }
-
-  // Otherwise generate new UUID and call API
-  const cartUUID = uuidv4();
-
-  dispatch(addCartUUID({ uuid: cartUUID })).then((res) => {
-    console.log("res", res);
-
-    if (res?.payload?.status_code === 201) {
-      sessionStorage.setItem("id", res?.payload?.data?.id);
-      sessionStorage.setItem("uuid", res?.payload?.data?.fields?.uuid);
+    // If already present, DO NOT call API
+    if (savedId && savedUUID) {
+      console.log("UUID already exists, API not called");
+      return;
     }
-  });
-}, []);
+
+    // Otherwise generate new UUID and call API
+    const cartUUID = uuidv4();
+
+    dispatch(addCartUUID({ uuid: cartUUID })).then((res) => {
+      console.log("res", res);
+
+      if (res?.payload?.status_code === 201) {
+        sessionStorage.setItem("id", res?.payload?.data?.id);
+        sessionStorage.setItem("uuid", res?.payload?.data?.fields?.uuid);
+      }
+    });
+  }, []);
 
   const dispatch = useDispatch()
   useEffect(() => {
@@ -134,21 +135,33 @@ const page = () => {
     }
   }
 
-  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedOption, setSelectedOption] = useState({
+    id: "",
+    name: ""
+  });
+
+  // console.log('selectedOption', selectedOption)
+
 
   const totalItems = Object.values(hatQuantities).flatMap(h => Object.values(h)).reduce((a, b) => a + b, 0);
-  const maxItems = 40; 
+  const maxItems = 40;
   const progressPercent = Math.min((totalItems / maxItems) * 100, 100); // 0-100%
 
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(getDecorationType())
-  },[])
-    useEffect(() => {
+  }, [])
+  useEffect(() => {
     if (decorationList?.data?.length > 0) {
-      setSelectedOption(decorationList.data[0].recordId); // AUTO SELECT FIRST
+      const first = decorationList.data[0];
+
+      setSelectedOption({
+        id: first.recordId,
+        name: first.name
+      });
     }
   }, [decorationList]);
-  
+
+
   return (
     <div>
       <div className='banner_area py-0 lg:p-0'>
@@ -177,20 +190,24 @@ const page = () => {
             <div className='w-full lg:w-2/12 mb-3 lg:mb-0 form_area'>
               <Select
                 required
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(e.target.value)}
+                value={selectedOption.id}
+                onChange={(e) => {
+                  const selected = decorationList?.data?.find(
+                    deco => deco.recordId === e.target.value
+                  );
+
+                  setSelectedOption({
+                    id: selected?.recordId,
+                    name: selected?.name
+                  });
+                }}
               >
-                {/* <option value="Emboidary">Emboidary</option>
-                <option value="Patch">Patch</option> */}
-                {decorationList?.data?.map((deco)=>{
-                  return(
-                    <>
-                      <option value={deco?.recordId}>{deco?.name}</option>
-                    </>
-                  )
-                
-                })}
+                {decorationList?.data?.map((deco) => (
+                  <option value={deco?.recordId}>{deco?.name}</option>
+                ))}
               </Select>
+
+
             </div>
           </div>
 
@@ -279,6 +296,8 @@ const page = () => {
       <div className='product_list_section mb-20 mt-10'>
         <div className='max-w-6xl mx-auto'>
           <ProductAccordion
+            selectedDecoId={selectedOption.id}
+            selectedDecoName={selectedOption.name}
             selectedOption={selectedOption}
             hatQuantities={hatQuantities}
             setHatQuantities={setHatQuantities}
@@ -330,8 +349,8 @@ const page = () => {
           </div>
         </div>
         <div className='bg-[#ed1c24] py-4 text-center'>
-          <p className='text-xl text-white font-bold pb-0'>Current Total: $0</p>
-          <p className='text-[18px] text-white font-medium pb-0'>0 items</p>
+          <p className='text-xl text-white font-bold pb-0'>Current Total: {cartListItem?.data?.data?.summary?.formattedPrice?cartListItem?.data?.data?.summary?.formattedPrice:0}</p>
+          <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.data?.summary?.totalQuantity? cartListItem?.data?.data?.summary?.totalQuantity:0} items</p>
         </div>
       </div>
 

@@ -31,7 +31,7 @@ export const uploadLogo = createAsyncThunk(
             const response = await api.post(`user/logo/upload-logo`, userInput);
             console.log("response", response);
 
-            if (response?.data?.status_code === 200) {
+            if (response?.data?.status_code === 201) {
                 return response.data;
             } else {
                 if (response?.data?.errors) {
