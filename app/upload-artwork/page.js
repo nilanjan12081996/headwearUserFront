@@ -811,7 +811,7 @@ const page = () => {
           <div className='mb-8 form_area'>
             <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Use the Placement & Size Notes below to give us any specific sizing or placement you may want.</p>
             <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Note:</strong> Placement can only change 1 time for every 6 or more hats ordered and must stay the same size.</p>
-            <Textarea className='!text-black' rows={3} value={placementSizeNotes} onChange={(e) => setPlacementSizeNotes(e.target.value)} placeholder="Any specific notes about placement or size" rows={3} />
+            <Textarea className='!text-black' rows={3} value={placementSizeNotes} onChange={(e) => setPlacementSizeNotes(e.target.value)} placeholder="Any specific notes about placement or size" />
           </div>
 
 
