@@ -426,6 +426,7 @@ const page = () => {
             )}
 
             <div ref={checkboxRef} className="flex items-center gap-2 check_area">
+              <div>
               <Checkbox id="promotion"
                 checked={agree}
                 onChange={() => {
@@ -433,6 +434,7 @@ const page = () => {
                   setErrorMsg("");
                 }}
               />
+              </div>
               <Label className='text-[#615E5E] text-base' htmlFor="promotion">
                 I own the rights to this artwork being used or have permission from the owner to use it.
               </Label>
@@ -470,11 +472,11 @@ const page = () => {
 
           {/* Hat selector Section */}
           <div className="my-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[300px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* BOX 1 — decorationList.data[0] */}
               <label
-                className={`relative border rounded-xl cursor-pointer transition overflow-hidden
+                className={`relative border rounded-xl cursor-pointer transition overflow-hidden min-h-[300px]
         ${selectedStyle === decorationList?.data?.[0]?.name ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
       `}
               >
@@ -536,7 +538,7 @@ const page = () => {
 
               {/* BOX 2 — decorationList.data[1] */}
               <label
-                className={`relative border rounded-xl cursor-pointer transition overflow-hidden
+                className={`relative border rounded-xl cursor-pointer transition overflow-hidden min-h-[300px]
         ${selectedStyle === decorationList?.data?.[1]?.name ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
       `}
               >
@@ -715,8 +717,7 @@ const page = () => {
                   onChange={() => {
                     if (totalQty < 12) {
                       toast.error("Premium Setup not is only available for orders of 12 hats or more.", {
-                        duration: 2000,
-                        style: { fontSize: "16px" }
+                        duration: 2000
                       });
                       return;
                     }
@@ -847,7 +848,7 @@ const page = () => {
             <div className='team_wrap mb-8'>
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3>
 
-              <div className='grid grid-cols-1 lg:grid-cols-3 gap-5'>
+              <div className='grid grid-cols-3 gap-2'>
                 {placements.map((item) => (
                   <div
                     key={item.id}
@@ -855,7 +856,7 @@ const page = () => {
                     onClick={() => setLogoPlacement(item.label)}
                   >
                     <div
-                      className={`mb-3 border rounded-[8px] overflow-hidden 
+                      className={`mb-3 border-4 rounded-[8px] overflow-hidden 
           ${logoPlacement === item.label ? "border-[#ed1c24]" : "border-[#E2E2E2]"} `}
                     >
                       <Image src={item.img} alt={item.label} />

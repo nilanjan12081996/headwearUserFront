@@ -187,7 +187,7 @@ const page = () => {
                 <li className='text-[#ED1C24] text-base'>Caps</li>
               </ul>
             </div>
-            <div className='w-full lg:w-2/12 mb-3 lg:mb-0 form_area'>
+            <div className='w-[200px] md:w-full lg:w-2/12 mb-3 lg:mb-0 form_area'>
               <Select
                 required
                 value={selectedOption.id}
@@ -309,41 +309,41 @@ const page = () => {
 
 
       <div className='fixed bottom-0 w-full'>
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-0 bg-[#9f9f9f] relative'>
+        <div className='grid grid-cols-3 gap-0 bg-[#9f9f9f] relative'>
           <div
             className='absolute top-0 left-0 h-full bg-[#ff7379] z-0'
             style={{ width: `${progressPercent}%`, transition: 'width 0.3s' }}
           />
-          <div className='py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area relative'>
+          <div className='py-6 flex justify-center items-center border-r-2 border-[#000000] item_area relative'>
             <div className='flex items-center gap-2 relative z-20'>
               <div>
-                <IoIosColorPalette className='text-white text-5xl' />
+                <IoIosColorPalette className='text-white text-2xl  md:text-2xl lg:text-5xl' />
               </div>
-              <div>
-                <p className='text-white text-base font-medium'>12+ Items</p>
-                <p className='text-white text-base font-medium'>Free Artwork Setup</p>
+              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
+                <p className='text-white'>12+ Items</p>
+                <p className='text-white'>Free Artwork Setup</p>
               </div>
             </div>
           </div>
-          <div className='py-6 flex justify-center items-center lg:border-r-2 border-[#000000]'>
+          <div className='py-6 flex justify-center items-center border-r-2 border-[#000000]'>
             <div className='flex items-center gap-2 relative z-20'>
               <div>
-                <TbTruckDelivery className='text-white text-5xl' />
+                <TbTruckDelivery className='text-white text-2xl  md:text-2xl lg:text-5xl' />
               </div>
-              <div>
-                <p className='text-white text-base font-medium'>24+ Items</p>
-                <p className='text-white text-base font-medium'>Free Shipping</p>
+              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
+                <p className='text-white'>24+ Items</p>
+                <p className='text-white'>Free Shipping</p>
               </div>
             </div>
           </div>
           <div className='py-6 flex justify-center items-center'>
             <div className='flex items-center gap-2 relative z-20'>
               <div>
-                <IoMdTrophy className='text-white text-5xl' />
+                <IoMdTrophy className='text-white text-2xl  md:text-3xl lg:text-5xl' />
               </div>
-              <div>
-                <p className='text-white text-base font-medium'>48+ Items</p>
-                <p className='text-white text-base font-medium'>Free Premium Setup</p>
+              <div  className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
+                <p className='text-white'>48+ Items</p>
+                <p className='text-white'>Free Premium Setup</p>
               </div>
             </div>
           </div>

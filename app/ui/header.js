@@ -97,7 +97,7 @@ const Header = () => {
                     </div>
                     <NavbarCollapse
                       ref={navbarRef}
-                      className={isNavbarOpen ? 'block' : 'hidden md:block'}
+                      className={isNavbarOpen ? 'block' : 'hidden lg:block'}
                     >
                       <li onClick={closeNavbar}>
                         <Link href="/" passHref>Join The Club</Link>
@@ -126,7 +126,7 @@ const Header = () => {
               <div className="mr-10 lg:mr-0 flex items-center mt-0 lg:mt-0">
                 <div className="flex gap-2 relative">
                   <Link
-                    className="text-white bg-[#ed1c24] flex items-center cursor-pointer uppercase font-medium text-xs lg:text-[15px] rounded-[35px] px-2 py-1.5 lg:px-8 lg:py-4 hover:bg-black"
+                    className="text-white bg-[#ed1c24] flex items-center cursor-pointer uppercase font-medium text-xs lg:text-[14px] rounded-[35px] px-2 py-1.5 lg:px-4 lg:py-3 hover:bg-black"
                     href="/product-list"
                     passHref
                   >
@@ -134,7 +134,7 @@ const Header = () => {
                   </Link>
                   <button
                     onClick={() => setOpenCartPopup(true)}
-                    className="relative flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full 
+                    className="relative flex items-center gap-2 bg-black text-white px-2 py-1.5 lg:px-4 lg:py-3 rounded-full 
   hover:bg-[#ed1c24] transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
                   >
                     <FaShoppingCart size={18} />
@@ -147,7 +147,7 @@ const Header = () => {
                       </span>
                     )}
 
-                    View Cart
+                    <span className="hidden md:inline">View Cart</span>
                   </button>
 
                   <CartDropdown

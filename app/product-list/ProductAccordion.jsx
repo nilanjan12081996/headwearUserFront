@@ -544,7 +544,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     <div key={brand.id}>
 
                         <div className='bg-[#efefef] p-4 my-2'>
-                            <h2 className='text-[35px] font-bold'>{brand.brandName}</h2>
+                            <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.brandName}</h2>
                         </div>
 
                         <div className='product_details_area_box'>
@@ -580,7 +580,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                         <Image src={preview_01} alt='preview_01' className="w-[400px]" />
                                                     </div>
 
-                                                    <div className='w-8/12 mx-auto my-6'>
+                                                    <div className='w-[full] md:w-8/12 mx-auto my-6'>
                                                         <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
                                                             <p className='text-base text-black'>{hat.description}</p>
                                                         </div>
@@ -604,7 +604,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                                                                 {/* EMBROIDERY */}
                                                                 <div className='flex gap-2 mb-1'>
-                                                                    <div className={`w-3/12 flex items-center justify-center text-black font-medium text-base 
+                                                                    <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base 
                                                                         ${selectedDecoName === "Embroidery" ? "bg-[#ff7379] text-white" : "bg-[#eeeeee]"}`}>
                                                                         EMBROIDERY
                                                                     </div>
@@ -619,10 +619,10 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                                                                             return (
                                                                                 <div key={index} className="text-center">
-                                                                                    <p className={`p-1 text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                    <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
                                                                                         {tier.minQty}
                                                                                     </p>
-                                                                                    <div className={`p-1 text-sm ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                    <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
                                                                                         ${tier.unitPrice}
                                                                                     </div>
                                                                                 </div>
@@ -633,7 +633,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                                                                 {/* PATCH */}
                                                                 <div className='flex gap-2'>
-                                                                    <div className={`w-3/12 flex items-center justify-center text-black font-medium text-base 
+                                                                    <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base
                                                                         ${selectedDecoName === "Leather Patch" ? "bg-[#ff7379] text-white" : "bg-[#eeeeee]"}`}>
                                                                         PATCH
                                                                     </div>
@@ -648,10 +648,10 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                                                                             return (
                                                                                 <div key={index} className="text-center">
-                                                                                    <p className={`p-1 text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                    <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
                                                                                         {tier.minQty}
                                                                                     </p>
-                                                                                    <div className={`p-1 text-sm ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                    <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
                                                                                         ${tier.unitPrice}
                                                                                     </div>
                                                                                 </div>
@@ -668,7 +668,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
 
                                                     {/* COLOR SELECTOR FIXED */}
-                                                    <div className='grid grid-cols-4 gap-4'>
+                                                    <div className='grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
                                                         {hat.colors?.map((color, index) => {
                                                             const variant = color.sizeVariants?.[0];
                                                             const inventoryRecordId = variant?.inventory?.recordId;
