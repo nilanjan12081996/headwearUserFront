@@ -16,6 +16,7 @@ import { getHatBrandList, getHatListDetail } from '../reducers/HatBrandSlice';
 import HatColorSelector from './HatColorSelector';
 import { addCartGroup, addCartItem, cartList, updateCartItem } from '../reducers/CartSlice';
 import { useRouter } from 'next/navigation';
+import { toast, ToastContainer } from 'react-toastify';
 
 
 
@@ -35,6 +36,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
     const dispatch = useDispatch();
     const { brandList, brandWiseHatList } = useSelector((state) => state.hatBrand);
+    const { cartListItem } = useSelector((state) => state?.cart);
     // Page load e restore kore first render e
     const [cartItemMap, setCartItemMap] = useState(() => {
         if (typeof window !== "undefined") {
@@ -523,11 +525,18 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
     // console.log('selectedOption',selectedDecoName)
 
     const handleNextpage = () => {
+        const totalQty = cartListItem?.data?.data?.summary?.totalQuantity;
+
+        if (!totalQty || totalQty === 0) {
+            toast.error("You need to select some hats from the expandable regions before continuing to the next step.");
+            return;
+        }
         router.push("/upload-artwork")
     }
 
     return (
         <div className='product_details_area'>
+            <ToastContainer/>
             {brandList?.data?.map((brand) => {
                 const hats = brandWiseHatList?.[brand.id]?.data?.hats || [];
 
