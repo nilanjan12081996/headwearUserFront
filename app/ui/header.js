@@ -10,17 +10,21 @@ import VerifyOtpModal from '../modal/verifyOtpModal';
 import LoginModal from '../modal/LoginModal';
 import RegistrationModal from '../modal/RegistrationModal';
 import PriceListModal from '../modal/PriceListModal';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { cartList } from "../reducers/CartSlice";
 import { FaShoppingCart } from "react-icons/fa";
 import CartDropdown from "./CartDropdown";
 
 const Header = () => {
   const [openLoginModal, setOpenLoginModal] = useState(false);
+  const { cartListItem } = useSelector((state) => state?.cart);
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
   const [openVerifyOtpModal, setOpenVerifyOtpModal] = useState(false);
   const [openPricModal, setOpenPriceModal] = useState(false);
   const [openCartPopup, setOpenCartPopup] = useState(false);
+  const totalQty = cartListItem?.data?.data?.summary?.totalQuantity || 0;
+  console.log('totalQty',totalQty)
+
 
   // Navbar toggle state
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
@@ -63,6 +67,7 @@ const Header = () => {
   //     id: savedUUid
   //   }))
   // }, [])
+  console.log('cartListItem', cartListItem)
 
   return (
     <div>
@@ -129,12 +134,22 @@ const Header = () => {
                   </Link>
                   <button
                     onClick={() => setOpenCartPopup(true)}
-                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full 
-             hover:bg-[#ed1c24] transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
+                    className="relative flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full 
+  hover:bg-[#ed1c24] transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
                   >
                     <FaShoppingCart size={18} />
+
+                    {/* Quantity Badge */}
+                    {totalQty > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold 
+      w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+                        {totalQty}
+                      </span>
+                    )}
+
                     View Cart
                   </button>
+
                   <CartDropdown
                     open={openCartPopup}
                     onClose={() => setOpenCartPopup(false)}

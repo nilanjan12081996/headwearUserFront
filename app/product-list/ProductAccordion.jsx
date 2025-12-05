@@ -31,15 +31,42 @@ function debounce(fn, delay = 300) {
 }
 
 
-const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, hatQuantities, setHatQuantities }) => {
+const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
 
     const dispatch = useDispatch();
     const { brandList, brandWiseHatList } = useSelector((state) => state.hatBrand);
-    const [cartItemMap, setCartItemMap] = useState({});
+    // Page load e restore kore first render e
+    const [cartItemMap, setCartItemMap] = useState(() => {
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem("cartItemMap");
+            return saved ? JSON.parse(saved) : {};
+        }
+        return {};
+    });
+
     const [cartItemId, setCartItemId] = useState()
     const [isProcessing, setIsProcessing] = useState({});
     const [createLock, setCreateLock] = useState({});
-    const router=useRouter()
+    const router = useRouter()
+
+    useEffect(() => {
+        localStorage.setItem("cartItemMap", JSON.stringify(cartItemMap));
+    }, [cartItemMap]);
+
+    // initial state with localStorage
+    const [hatQuantities, setHatQuantities] = useState(() => {
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem("hatQuantities");
+            return saved ? JSON.parse(saved) : initialHatQuantities || {};
+        }
+        return initialHatQuantities || {};
+    });
+
+    // save every time quantity changes
+    useEffect(() => {
+        setParentHatQuantities(hatQuantities); // sync to parent if needed
+        localStorage.setItem("hatQuantities", JSON.stringify(hatQuantities));
+    }, [hatQuantities]);
 
 
     let updateQueue = {};
@@ -291,9 +318,10 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
 
     const increase = async (uniqueHatId, colorName, recordId, varientId, inventoryRecordId) => {
-        // UI Update Immediately (optimistic)
-        const newQty = (hatQuantities[uniqueHatId]?.[colorName] || 0) + 1;
+        const key = `${uniqueHatId}-${colorName}`;
 
+        // 1️⃣ Optimistic UI update
+        const newQty = (hatQuantities[uniqueHatId]?.[colorName] || 0) + 1;
         setHatQuantities(prev => ({
             ...prev,
             [uniqueHatId]: {
@@ -302,75 +330,69 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
             }
         }));
 
-        const key = `${uniqueHatId}-${colorName}`;
         let cartItemId = cartItemMap?.[uniqueHatId]?.[colorName];
 
-        // If create is already locked (in progress), just update pendingDesiredQty
+        // 2️⃣ If creation is in progress, just update pendingDesiredQty
         if (createLock[key]) {
-            pendingDesiredQty[key] = newQty; // keep last desired qty while creating
+            pendingDesiredQty[key] = newQty;
             return;
         }
 
-        // If no cartItemId — we must create. Lock creation immediately.
+        // 3️⃣ CREATE FLOW: no cartItemId exists
         if (!cartItemId) {
-            // Lock creation
             setCreateLock(prev => ({ ...prev, [key]: true }));
 
             try {
-                // Start group create
+                // Create Cart Group
                 const resGroup = await dispatch(addCartGroup({
                     cart_id: savedSeeesonId,
                     hat_id: recordId,
                     decoration_id: selectedDecoId
                 }));
 
-                if (resGroup?.payload?.status_code === 201) {
-                    const resItem = await dispatch(addCartItem({
-                        group_id: resGroup.payload.data.id,
-                        varient_size_id: varientId,
-                        // For initial create, send the *current* desired qty (we might adjust after)
-                        quantity: newQty,
-                        inventry_id: inventoryRecordId
-                    }));
+                if (resGroup?.payload?.status_code !== 201) {
+                    throw new Error("addCartGroup failed");
+                }
 
-                    cartItemId = resItem?.payload?.data?.id;
+                // Create Cart Item
+                const resItem = await dispatch(addCartItem({
+                    group_id: resGroup.payload.data.id,
+                    varient_size_id: varientId,
+                    quantity: newQty,
+                    inventry_id: inventoryRecordId
+                }));
 
-                    // Save cartItemId into map
-                    setCartItemMap(prev => ({
+                cartItemId = resItem?.payload?.data?.id;
+                if (!cartItemId) throw new Error("addCartItem failed");
+
+                // Save cartItemId in map & persist to localStorage
+                setCartItemMap(prev => {
+                    const updated = {
                         ...prev,
                         [uniqueHatId]: {
                             ...prev[uniqueHatId],
                             [colorName]: cartItemId
                         }
-                    }));
+                    };
+                    localStorage.setItem("cartItemMap", JSON.stringify(updated));
+                    return updated;
+                });
 
-                    // Now check if user clicked more while create was in progress
-                    const pending = pendingDesiredQty[key];
-                    if (typeof pending !== 'undefined' && pending !== newQty) {
-                        // If pending differs, we must ensure server ends up with 'pending' qty.
-                        // Put into updateQueue for batching (or dispatch immediately if you prefer)
-                        updateQueue[key] = {
-                            cartItemId,
-                            qty: pending
-                        };
-                        delete pendingDesiredQty[key];
-                        processUpdateQueue(dispatch, savedUUid);
-                    } else {
-                        // No pending bigger qty — still might want to ensure cartList sync
-                        // we could optionally enqueue current qty (but creation already set it)
-                        // so just refresh cartList once
-                        await dispatch(cartList({ id: savedUUid }));
-                    }
-                } else {
-                    // create failed — clear pending buffer
+                // 4️⃣ Check pending qty during creation
+                const pending = pendingDesiredQty[key];
+                if (typeof pending !== "undefined" && pending !== newQty) {
+                    updateQueue[key] = { cartItemId, qty: pending };
                     delete pendingDesiredQty[key];
-                    console.error('addCartGroup failed', resGroup);
+                    processUpdateQueue(dispatch, savedUUid);
+                } else {
+                    await dispatch(cartList({ id: savedUUid }));
                 }
+
             } catch (err) {
-                console.error('create flow error', err);
+                console.error("create flow error:", err);
                 delete pendingDesiredQty[key];
             } finally {
-                // Always unlock creation state
+                // Unlock creation
                 setCreateLock(prev => {
                     const next = { ...prev };
                     delete next[key];
@@ -381,9 +403,11 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
             return;
         }
 
-        // Normal update flow (cartItemId exists)
+        // 5️⃣ UPDATE FLOW: cartItemId exists
         queueCartUpdate(uniqueHatId, colorName, cartItemId, newQty);
     };
+
+
 
 
 
@@ -498,7 +522,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
     // console.log('selectedOption',selectedDecoName)
 
-    const handleNextpage=()=>{
+    const handleNextpage = () => {
         router.push("/upload-artwork")
     }
 
@@ -683,7 +707,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
             })}
 
             <div className='flex justify-center'>
-                <button onClick={()=>handleNextpage()}className='text-xl cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300'>
+                <button onClick={() => handleNextpage()} className='text-xl cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300'>
                     Next Step
                 </button>
             </div>

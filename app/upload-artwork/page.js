@@ -77,6 +77,8 @@ import { getDecorationType, uploadLogo } from '../reducers/CartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { addArtWork } from '../reducers/ArtWorkSlice';
 import { useRef } from "react";
+import { toast, ToastContainer } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 
 
 
@@ -84,6 +86,7 @@ import { useRef } from "react";
 
 const page = () => {
   const router = useRouter();
+  const { cartListItem } = useSelector((state) => state?.cart);
   const { decorationList } = useSelector((state) => state?.cart)
   const { loading } = useSelector((state) => state?.art)
   const searchParams = useSearchParams();
@@ -321,7 +324,7 @@ const page = () => {
   const handleCheckoutClick = async () => {
     if (!agree) {
       setErrorMsg("You must agree to copyright/ownership permission.");
-       checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     const payload = preparePayload();
@@ -353,11 +356,12 @@ const page = () => {
 
   };
 
+  const totalQty = cartListItem?.data?.data?.summary?.totalQuantity || 0;
 
 
   return (
-
     <div>
+      <ToastContainer />
       <div className='banner_area py-0 lg:p-0'>
         <div className="relative">
           <Image src={list_banner} alt='list_banner' className="w-full" />
@@ -590,17 +594,27 @@ const page = () => {
             </div>
           </div>
 
-
-
-          {/* Artwork Setup section  */}
-
+          {/* Artwork Setup section */}
           <div className="mt-8">
             <div className='p-4 bg-[#ff0000]'>
               <h2 className='text-2xl font-bold text-white'>Artwork Setup</h2>
             </div>
-            <div className='bg-[#eee] p-4 rounded-2xl mt-4'>
-              <p>Every logo must be hand converted by one of our designers into a new file that works for our machines. We test and tweak every logo until the output meets or exceeds our very high quality standards.
-                You will receive a digital stitch preview for feedback and approval before your order goes into production. We keep your artwork on file for all future orders.</p>
+            <div className='bg-[#eee] p-4 rounded-2xl my-4'>
+              <p>
+                {selectedStyle === decorationList?.data?.[0]?.name &&
+                  `Every logo must be hand converted by one of our designers into a new file that works for our machines. We test and tweak every logo until the output meets or exceeds our very high quality standards.
+                  You will receive a digital stitch preview for feedback and approval before your order goes into production.
+                  We keep your artwork on file for all future orders.`}
+
+                {selectedStyle === decorationList?.data?.[1]?.name &&
+                  `Every logo must be hand converted by one of our designers into a new file that works for our machines. We test and tweak every logo until the output meets or exceeds our very high quality standards.
+                  You will receive a digital preview for feedback and approval before your order goes into production.
+                  We keep your artwork on file for all future orders.`}
+                {!selectedStyle &&
+                  `Every logo must be hand converted by one of our designers into a new file that works for our machines. We test and tweak every logo until the output meets or exceeds our very high quality standards.
+                  You will receive a digital stitch preview for feedback and approval before your order goes into production.
+                  We keep your artwork on file for all future orders.`}
+              </p>
             </div>
           </div>
 
@@ -632,25 +646,43 @@ const page = () => {
                 />
 
                 <ul className="my-2 space-y-1">
-                  <li className="flex gap-2 items-center">
-                    <Image src={blue_icon} width={20} height={20}
-                      className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
-                    />
-                    Digital Patch Mockup
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <Image src={blue_icon} width={20} height={20}
-                      className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
-                    />
-                    One Round of Revisions
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <Image src={blue_icon} width={20} height={20}
-                      className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
-                    />
-                    Physical patch test internally approved by us
-                  </li>
+                  {selectedStyle && (
+                    <>
+                      <li className="flex gap-2 items-center">
+                        <Image
+                          src={blue_icon}
+                          width={20}
+                          height={20}
+                          className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        {selectedStyle === decorationList?.data?.[0]?.name
+                          ? "Digital Stitching Mockup"
+                          : "Digital Patch Mockup"}
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image
+                          src={blue_icon}
+                          width={20}
+                          height={20}
+                          className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        One Round of Revisions
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image
+                          src={blue_icon}
+                          width={20}
+                          height={20}
+                          className={`${selectedPrice === "flat" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        {selectedStyle === decorationList?.data?.[0]?.name
+                          ? "Physical test stitch out internally approved by us"
+                          : "Physical patch test internally approved by us"}
+                      </li>
+                    </>
+                  )}
                 </ul>
+
                 <button
                   className={`py-2 px-3 text-md rounded-2xl my-2
                ${selectedPrice === "flat" ? "bg-[#ff0000] text-white" : "bg-[#eee] text-[#7f7f7f]"}
@@ -670,37 +702,67 @@ const page = () => {
                  `}
               >
                 <h2
+                  className="text-2xl font-bold"
                   style={{ fontFamily: "Arial, sans-serif" }}
-                  className='text-2xl'>Premimum<br />+$50</h2>
+                >
+                  Premimum<br />+$50</h2>
 
                 <input
                   type="radio"
                   name="embroideryType"
                   value="puff"
                   checked={selectedPrice === "puff"}
-                  onChange={() => setSelectedPrice("puff")}
-                  className="hidden"
+                  onChange={() => {
+                    if (totalQty < 12) {
+                      toast.error("Premium Setup not is only available for orders of 12 hats or more.", {
+                        duration: 2000,
+                        style: { fontSize: "16px" }
+                      });
+                      return;
+                    }
+                    setSelectedPrice("puff");
+                  }}
+                  className={`hidden ${totalQty < 12 ? "pointer-events-none opacity-50" : ""}`}
                 />
 
+
                 <ul className="my-2 space-y-1">
-                  <li className="flex gap-2 items-center">
-                    <Image src={blue_icon} width={20} height={20}
-                      className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
-                    />
-                    Digital Patch Mockup
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <Image src={blue_icon} width={20} height={20}
-                      className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
-                    />
-                    Unlimited Revisions
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <Image src={blue_icon} width={20} height={20}
-                      className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
-                    />
-                    Physical patch hat photo(s) sent to you for approval
-                  </li>
+                  {selectedStyle && (
+                    <>
+                      <li className="flex gap-2 items-center">
+                        <Image
+                          src={blue_icon}
+                          width={20}
+                          height={20}
+                          className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        {selectedStyle === decorationList?.data?.[0]?.name
+                          ? "Digital Stitching Mockup"
+                          : "Digital Patch Mockup"}
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image
+                          src={blue_icon}
+                          width={20}
+                          height={20}
+                          className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
+
+                        />
+                        Unlimited Revisions
+                      </li>
+                      <li className="flex gap-2 items-center">
+                        <Image
+                          src={blue_icon}
+                          width={20}
+                          height={20}
+                          className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
+                        />
+                        {selectedStyle === decorationList?.data?.[0]?.name
+                          ? "Physical test stitch out photo(s) sent to you for approval"
+                          : "Physical patch hat photo(s) sent to you for approval"}
+                      </li>
+                    </>
+                  )}
                 </ul>
                 <button
                   className={`py-2 px-3 text-md rounded-2xl my-2
@@ -746,7 +808,7 @@ const page = () => {
 
           {/* Leather Patch Options */}
           {selectedOption?.name === "Leather Patch" && (
-            <div className='mb-8'>
+            <div className='mb-8 mt-4'>
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
               <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mb-4'>
                 <h2 className='text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
