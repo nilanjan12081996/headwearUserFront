@@ -972,7 +972,7 @@ const page = () => {
         </div>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-0'>
+      {/* <div className='grid grid-cols-1 lg:grid-cols-3 gap-0'>
         <div className='bg-[#9f9f9f] py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area'>
           <div className='flex items-center gap-2 relative z-20'>
             <IoIosColorPalette className='text-white text-5xl' />
@@ -1000,7 +1000,7 @@ const page = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }

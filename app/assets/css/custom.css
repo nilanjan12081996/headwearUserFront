@@ -1279,7 +1279,7 @@ body {
     background: none;
     position: absolute;
     right: 0;
-    top: -12px;
+    top: -8px;
   }
 
   .main_menu {
@@ -1307,9 +1307,9 @@ body {
   } */
 
   .main_menu ul {
-    position: absolute;
+    position: fixed;
     margin: 0;
-    right: 70px !important;
+    left: 0px !important;
     top: -25px;
     width: 250px;
     z-index: 100;
@@ -1461,17 +1461,17 @@ body {
   }
 }
 
-@media screen and (min-width: 360px) and (max-width: 767px) {
+/* @media screen and (min-width: 360px) and (max-width: 767px) {
   .main_menu ul {
     right: 125px !important;
   }
-}
+} */
 
-@media screen and (min-width: 412px) and (max-width: 767px) {
+/* @media screen and (min-width: 412px) and (max-width: 767px) {
   .main_menu ul {
     right: 175px !important;
   }
-}
+} */
 
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 }
