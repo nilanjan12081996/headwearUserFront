@@ -1476,6 +1476,13 @@ body {
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 }
 
+@media (max-width: 1200px) {
+  .main_menu ul li a {
+    font-size: 14px;
+    line-height: 28px; 
+  }
+}
+
 @media screen and (min-width: 1600px) and (max-width: 1999px) {
   .dashboard_wrapper {
     gap: 0;

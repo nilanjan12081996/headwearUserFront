@@ -74,12 +74,12 @@ const Header = () => {
       <ToastContainer />
       <div className="header_section w-full lg:pb-0 left-0 lg:top-0">
         <div className="pt-0 lg:pt-0 lg:py-0 px-4 lg:px-0 rounded-0 relative z-10 bg-white">
-          <div className="w-full bg-white px-0 py-5 rounded-b-2xl max-w-7xl mx-auto ">
+          <div className="w-full bg-white px-0 py-5 rounded-b-2xl max-w-6xl mx-auto ">
             <div className="header_top flex justify-between items-center">
               {/* Logo */}
               <div className="mr-2 hidden lg:block">
                 <Link href="/" passHref>
-                  <Image src={logo} alt='logo' className='w-[161px]' />
+                  <Image src={logo} alt='logo' className='w-[161px] max-[1200px]:w-[120px]' />
                 </Link>
               </div>
               <div className="mr-2 lg:hidden">
@@ -147,7 +147,7 @@ const Header = () => {
                       </span>
                     )}
 
-                    <span className="hidden md:inline">View Cart</span>
+                    <span className="hidden lg:inline">View Cart</span>
                   </button>
 
                   <CartDropdown
