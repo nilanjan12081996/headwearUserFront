@@ -187,7 +187,7 @@ const page = () => {
                 <li className='text-[#ED1C24] text-base'>Caps</li>
               </ul>
             </div>
-            <div className='w-[200px] md:w-full lg:w-2/12 mb-3 lg:mb-0 form_area'>
+            <div className='w-[200px] mb-3 lg:mb-0 form_area'>
               <Select
                 required
                 value={selectedOption.id}
