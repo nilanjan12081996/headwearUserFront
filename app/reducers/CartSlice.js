@@ -149,7 +149,7 @@ export const getDecorationType = createAsyncThunk(
     'getDecorationType',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get(`user/hats/decoration-types`);
+            const response = await api.get(`/postgresapi/user/decoration/list`);
 
             console.log("Cart Item Response", response);
 

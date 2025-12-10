@@ -6,7 +6,7 @@ export const getHatBrandList = createAsyncThunk(
     "hatBrand/getHatBrandList",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get("user/hats/brand-list");
+            const response = await api.get("postgresapi/user/brand/list?page=1&limit=10");
 
             if (response?.data?.status_code === 200) {
                 return response.data;
@@ -27,12 +27,12 @@ export const getHatListDetail = createAsyncThunk(
     async ({ brandId }, { rejectWithValue }) => {
         try {
             const response = await api.get(
-                `user/hats/hatlist-detail?brandId=${brandId}`
+                `postgresapi/user/hat/list?brand_id=${brandId}`
             );
 
             if (response?.data?.status_code === 200) {
                 return {
-                    brandId,         
+                    brandId,
                     data: response.data
                 };
             } else {
@@ -46,11 +46,37 @@ export const getHatListDetail = createAsyncThunk(
     }
 );
 
+export const getSingleHatDetail = createAsyncThunk(
+    "hatBrand/getSingleHatDetail",
+    async ({ hatId }, { rejectWithValue }) => {
+        try {
+            const response = await api.get(
+                `postgresapi/user/hat/detail/${hatId}`
+            );
+
+            if (response?.data?.status_code === 200) {
+                return {
+                    hatId,
+                    data: response.data, // detail object
+                };
+            } else {
+                return rejectWithValue(
+                    response?.data?.errors || "Something went wrong."
+                );
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+);
+
+
 const initialState = {
     loading: false,
     error: null,
     brandList: [],
-    brandWiseHatList: {},  
+    brandWiseHatList: {},
+    singleHatDetail: null,
 };
 
 const hatBrandSlice = createSlice({
@@ -89,7 +115,21 @@ const hatBrandSlice = createSlice({
             .addCase(getHatListDetail.rejected, (state, { payload }) => {
                 state.loading = false;
                 state.error = payload;
+            })
+
+            .addCase(getSingleHatDetail.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getSingleHatDetail.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.singleHatDetail = payload;
+                state.error = null;
+            })
+            .addCase(getSingleHatDetail.rejected, (state, { payload }) => {
+                state.loading = false;
+                state.error = payload;
             });
+
     },
 });
 

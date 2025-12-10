@@ -12,7 +12,7 @@ import Moss from "../assets/imagesource/Moss.png";
 import Buck from "../assets/imagesource/Buck.png";
 import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
-import { getHatBrandList, getHatListDetail } from '../reducers/HatBrandSlice';
+import { getHatBrandList, getHatListDetail, getSingleHatDetail } from '../reducers/HatBrandSlice';
 import HatColorSelector from './HatColorSelector';
 import { addCartGroup, addCartItem, cartList, updateCartItem } from '../reducers/CartSlice';
 import { useRouter } from 'next/navigation';
@@ -33,10 +33,10 @@ function debounce(fn, delay = 300) {
 
 
 const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
-
     const dispatch = useDispatch();
-    const { brandList, brandWiseHatList } = useSelector((state) => state.hatBrand);
+    const { brandList, brandWiseHatList, singleHatDetail, loading } = useSelector((state) => state.hatBrand);
     const { cartListItem } = useSelector((state) => state?.cart);
+    console.log('singleHatDetail', singleHatDetail)
     // Page load e restore kore first render e
     const [cartItemMap, setCartItemMap] = useState(() => {
         if (typeof window !== "undefined") {
@@ -80,10 +80,20 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         if (!brandList || !brandList.data) return;
 
         brandList.data.forEach((brand) => {
-            dispatch(getHatListDetail({ brandId: brand.id }));
+            dispatch(getHatListDetail({ brandId: brand.id })
+            )
         });
 
     }, [brandList]);
+
+    const handleHatClick = (hatId) => {
+        console.log("Hello");
+
+        console.log("hatId", hatId);
+
+        dispatch(getSingleHatDetail({ hatId }))
+    };
+
 
 
     const savedSeeesonId = sessionStorage.getItem("id");
@@ -457,73 +467,6 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         }
     };
 
-
-
-
-
-
-
-
-
-
-    // const handleManualChange = async (uniqueHatId, colorName, newQty, recordId, varientId, inventoryRecordId) => {
-    //     if (newQty < 0) return;
-    //     setHatQuantities(prev => ({
-    //         ...prev,
-    //         [uniqueHatId]: {
-    //             ...prev[uniqueHatId],
-    //             [colorName]: newQty
-    //         }
-    //     }));
-
-    //     const cartItemId = cartItemMap?.[uniqueHatId]?.[colorName];
-
-    //     if (!cartItemId && newQty > 0) {
-
-    //         const resGroup = await dispatch(addCartGroup({
-    //             cart_id: savedSeeesonId,
-    //             hat_id: recordId,
-    //             decoration_id: selectedDecoId
-    //         }));
-
-    //         if (resGroup?.payload?.status_code === 201) {
-    //             const resItem = await dispatch(addCartItem({
-    //                 group_id: resGroup?.payload?.data?.id,
-    //                 varient_size_id: varientId,
-    //                 quantity: newQty,
-    //                 inventry_id: inventoryRecordId
-    //             }));
-
-    //             const newId = resItem?.payload?.data?.id;
-
-    //             if (newId) {
-    //                 setCartItemMap(prev => ({
-    //                     ...prev,
-    //                     [uniqueHatId]: {
-    //                         ...prev[uniqueHatId],
-    //                         [colorName]: newId
-    //                     }
-    //                 }));
-    //             }
-
-    //             await dispatch(cartList({ id: savedUUid }));
-    //         }
-
-    //         return;
-    //     }
-    //     if (cartItemId) {
-    //         await dispatch(updateCartItem({
-    //             cart_item_id: cartItemId,
-    //             quantity: newQty
-    //         }));
-
-    //         await dispatch(cartList({ id: savedUUid }));
-    //     }
-    // };
-
-
-    // console.log('selectedOption',selectedDecoName)
-
     const handleNextpage = () => {
         const totalQty = cartListItem?.data?.data?.summary?.totalQuantity;
 
@@ -536,15 +479,22 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
     return (
         <div className='product_details_area'>
-            <ToastContainer/>
+            <ToastContainer />
             {brandList?.data?.map((brand) => {
-                const hats = brandWiseHatList?.[brand.id]?.data?.hats || [];
+                const hats =
+                    brandWiseHatList?.[brand.id]?.data?.map((item) => ({
+                        id: item.id,
+                        name: item.name,
+                        description: item.description
+                    })) || [];
+
+                console.log('hats', hats)
 
                 return (
                     <div key={brand.id}>
 
                         <div className='bg-[#efefef] p-4 my-2'>
-                            <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.brandName}</h2>
+                            <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.name}</h2>
                         </div>
 
                         <div className='product_details_area_box'>
@@ -559,151 +509,197 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                         // ---------- FIX: Single unique hat ID ----------
                                         const uniqueHatId = `${brand.id}_${hat.id}`;
 
-                                        const sizeParts = hat?.sizeChart ? hat.sizeChart.split(",").map(s => s.trim()) : [];
-                                        const mainSize = sizeParts[0] || "";
-                                        const otherSizes = sizeParts.slice(1).join(", ");
-
-
                                         return (
                                             <AccordionPanel key={hat.id}>
-                                                <AccordionTitle>
-                                                    <div className='flex items-center gap-3'>
-                                                        <Image src={preview_01} alt='preview_01' className="w-[80px]" />
-                                                        <p className='text-xl text-[#ff7379] font-semibold'>{hat.hatName}</p>
-                                                    </div>
-                                                </AccordionTitle>
+                                                <div onClick={() => handleHatClick(hat.id)}>
+                                                    <AccordionTitle>
+                                                        <div className='flex items-center gap-3' >
+                                                            <Image src={preview_01} alt='preview_01' className="w-[80px]" />
+                                                            <p className='text-xl text-[#ff7379] font-semibold'>{hat.name}</p>
+                                                        </div>
+                                                    </AccordionTitle>
+                                                </div>
 
                                                 <AccordionContent>
-
-                                                    {/* HAT IMAGE & DESCRIPTION */}
-                                                    <div className='flex justify-center items-center'>
-                                                        <Image src={preview_01} alt='preview_01' className="w-[400px]" />
-                                                    </div>
-
-                                                    <div className='w-[full] md:w-8/12 mx-auto my-6'>
-                                                        <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
-                                                            <p className='text-base text-black'>{hat.description}</p>
-                                                        </div>
-
-                                                        <div className='bg-[#ff7379] text-center mb-1 font-bold text-base py-2 text-white'>Size Chart</div>
-                                                        <div className='bg-[#eeeeee] text-center mb-1 font-medium text-base py-2 text-black'> {mainSize}</div>
-                                                        {otherSizes && (
-                                                            <div className='text-center mb-4'>
-                                                                <p>{otherSizes}</p>
-                                                            </div>
-                                                        )}
-
-                                                        {/* PRICE TABLE */}
-                                                        <div>
-                                                            {/* embroidery */}
-                                                            <div className='bg-[#ff7379] text-center mb-1 font-bold text-base py-2 text-white'>
-                                                                Total Items Price Break
+                                                    {/* {singleHatDetail.loading && (
+                                                        <p className="text-center text-lg py-4 text-gray-600">Loading...</p>
+                                                    )} */}
+                                                    {singleHatDetail?.data && (
+                                                        <>
+                                                            <div className='flex justify-center items-center'>
+                                                                <Image src={preview_01} alt='preview_01' className="w-[400px]" />
                                                             </div>
 
-                                                            <div className="mb-1">
+                                                            <div className='w-[full] md:w-8/12 mx-auto my-6'>
+                                                                <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
+                                                                    <p className='text-base text-black'>{singleHatDetail?.data?.data?.description}</p>
+                                                                </div>
 
-                                                                {/* EMBROIDERY */}
-                                                                <div className='flex gap-2 mb-1'>
-                                                                    <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base 
+                                                                <div className='bg-[#ff7379] text-center mb-1 font-bold text-base py-2 text-white'>Size Chart</div>
+                                                                <div className='bg-[#eeeeee] text-center mb-1 font-medium text-base py-2 text-black'> {singleHatDetail?.data?.data?.size_chart_json?.size_cart_json}</div>
+
+                                                                {/* PRICE TABLE */}
+                                                                <div>
+                                                                    {/* embroidery */}
+                                                                    <div className='bg-[#ff7379] text-center mb-1 font-bold text-base py-2 text-white'>
+                                                                        Total Items Price Break
+                                                                    </div>
+
+                                                                    <div className="mb-1">
+
+                                                                        {/* EMBROIDERY */}
+                                                                        <div className='flex gap-2 mb-1'>
+                                                                            <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base 
                                                                         ${selectedDecoName === "Embroidery" ? "bg-[#ff7379] text-white" : "bg-[#eeeeee]"}`}>
-                                                                        EMBROIDERY
-                                                                    </div>
+                                                                                EMBROIDERY
+                                                                            </div>
 
-                                                                    <div className='w-9/12 grid grid-cols-8 gap-1'>
-                                                                        {hat.pricing?.embroidery?.tiers?.map((tier, index) => {
+                                                                            <div className='w-9/12 grid grid-cols-8 gap-1'>
+                                                                                {singleHatDetail?.data?.embroideryPrices?.map((tier, index) => {
 
-                                                                            const totalQty = Object.values(hatQuantities[uniqueHatId] || {})
-                                                                                .reduce((a, b) => a + b, 0);
+                                                                                    const totalQty = Object.values(hatQuantities[uniqueHatId] || {})
+                                                                                        .reduce((a, b) => a + b, 0);
 
-                                                                            const meetsQty = totalQty >= tier.minQty;
+                                                                                    const meetsQty = totalQty >= tier.min_qty;
 
-                                                                            return (
-                                                                                <div key={index} className="text-center">
-                                                                                    <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                        {tier.minQty}
-                                                                                    </p>
-                                                                                    <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
-                                                                                        ${tier.unitPrice}
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-                                                                </div>
+                                                                                    return (
+                                                                                        <div key={index} className="text-center">
+                                                                                            <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                                {tier.min_qty}
+                                                                                            </p>
+                                                                                            <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                                ${Number(tier.unit_price)}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        </div>
 
-                                                                {/* PATCH */}
-                                                                <div className='flex gap-2'>
-                                                                    <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base
+                                                                        {/* PATCH */}
+                                                                        <div className='flex gap-2'>
+                                                                            <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base
                                                                         ${selectedDecoName === "Leather Patch" ? "bg-[#ff7379] text-white" : "bg-[#eeeeee]"}`}>
-                                                                        PATCH
+                                                                                PATCH
+                                                                            </div>
+
+                                                                            <div className='w-9/12 grid grid-cols-8 gap-1'>
+                                                                                {singleHatDetail?.data?.leatherPatchPrices?.map((tier, index) => {
+
+                                                                                    const totalQty = Object.values(hatQuantities[uniqueHatId] || {})
+                                                                                        .reduce((a, b) => a + b, 0);
+
+                                                                                    const meetsQty = totalQty >= tier.min_qty;
+
+                                                                                    return (
+                                                                                        <div key={index} className="text-center">
+                                                                                            <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                                {tier.min_qty}
+                                                                                            </p>
+                                                                                            <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                                ${Number(tier.unit_price)}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        </div>
+
                                                                     </div>
 
-                                                                    <div className='w-9/12 grid grid-cols-8 gap-1'>
-                                                                        {hat.pricing?.leatherPatch?.tiers?.map((tier, index) => {
-
-                                                                            const totalQty = Object.values(hatQuantities[uniqueHatId] || {})
-                                                                                .reduce((a, b) => a + b, 0);
-
-                                                                            const meetsQty = totalQty >= tier.minQty;
-
-                                                                            return (
-                                                                                <div key={index} className="text-center">
-                                                                                    <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                        {tier.minQty}
-                                                                                    </p>
-                                                                                    <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
-                                                                                        ${tier.unitPrice}
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
+                                                                    <div className='bg-[#eeeeee] mb-4 font-medium text-sm py-2 pr-2 text-black text-right'>Price includes item & decoration.</div>
                                                                 </div>
-
                                                             </div>
 
-                                                            <div className='bg-[#eeeeee] mb-4 font-medium text-sm py-2 pr-2 text-black text-right'>Price includes item & decoration.</div>
-                                                        </div>
-                                                    </div>
+                                                            {/* <div className='grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+                                                                {singleHatDetail?.data?.data?.hatColors?.map((color, index) => {
+                                                                    const variant = color.sizeVariants?.[0];
+                                                                    const inventoryRecordId = variant?.inventory?.recordId;
+                                                                    return (
+                                                                        <HatColorSelector
+                                                                            key={color.id}
+                                                                            colorName={color.colorName}
+                                                                            colorImage={color?.imageUrl}
+                                                                            sizeVariants={color?.sizeVariants}
+                                                                            value={hatQuantities[uniqueHatId]?.[color.colorName] || 0}
 
+                                                                            onIncrease={() =>
+                                                                                increase(uniqueHatId, color.colorName, hat.recordId, hat.colors[index]?.sizeVariants?.[0]?.recordId, inventoryRecordId)
+                                                                            }
 
-                                                    {/* COLOR SELECTOR FIXED */}
-                                                    <div className='grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-                                                        {hat.colors?.map((color, index) => {
-                                                            const variant = color.sizeVariants?.[0];
-                                                            const inventoryRecordId = variant?.inventory?.recordId;
-                                                            return (
-                                                                <HatColorSelector
-                                                                    key={color.id}
-                                                                    colorName={color.colorName}
-                                                                    colorImage={color?.imageUrl}
-                                                                    sizeVariants={color?.sizeVariants}
-                                                                    value={hatQuantities[uniqueHatId]?.[color.colorName] || 0}
+                                                                            onDecrease={() =>
+                                                                                decrease(uniqueHatId, color.colorName, hat.recordId, hat.colors[index]?.sizeVariants?.[0]?.recordId, inventoryRecordId)
+                                                                            }
 
-                                                                    onIncrease={() =>
-                                                                        increase(uniqueHatId, color.colorName, hat.recordId, hat.colors[index]?.sizeVariants?.[0]?.recordId, inventoryRecordId)
-                                                                    }
+                                                                            onChange={(val) =>
+                                                                                handleManualChange(
+                                                                                    uniqueHatId,
+                                                                                    color.colorName,
+                                                                                    val,
+                                                                                    hat.recordId,
+                                                                                    hat.colors[index]?.sizeVariants?.[0]?.recordId,
+                                                                                    inventoryRecordId
+                                                                                )
+                                                                            }
 
-                                                                    onDecrease={() =>
-                                                                        decrease(uniqueHatId, color.colorName, hat.recordId, hat.colors[index]?.sizeVariants?.[0]?.recordId, inventoryRecordId)
-                                                                    }
+                                                                        />
+                                                                    )
+                                                                })}
+                                                            </div> */}
+                                                            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                                {singleHatDetail?.data?.data?.hatColors?.map((color, index) => {
 
-                                                                    onChange={(val) =>
-                                                                        handleManualChange(
-                                                                            uniqueHatId,
-                                                                            color.colorName,
-                                                                            val,
-                                                                            hat.recordId,
-                                                                            hat.colors[index]?.sizeVariants?.[0]?.recordId,
-                                                                            inventoryRecordId
-                                                                        )
-                                                                    }
+                                                                    const sizeVariant = color?.hatSizes?.[0]; // correct key
+                                                                    const variantRecordId = sizeVariant?.id;  // size variant id
+                                                                    const inventoryRecordId = sizeVariant?.inventory?.recordId; // if exists
 
-                                                                />
-                                                            )
-                                                        })}
-                                                    </div>
+                                                                    return (
+                                                                        <HatColorSelector
+                                                                            key={color.id}
 
+                                                                            colorName={color.name}                      // FIXED
+                                                                            colorImage={color.primary_image_url}         // FIXED
+                                                                            sizeVariants={color.hatSizes}                // FIXED
+
+                                                                            value={hatQuantities[uniqueHatId]?.[color.name] || 0}   // FIXED
+
+                                                                            onIncrease={() =>
+                                                                                increase(
+                                                                                    uniqueHatId,
+                                                                                    color.name,
+                                                                                    hat.recordId,
+                                                                                    variantRecordId,     // FIXED
+                                                                                    inventoryRecordId
+                                                                                )
+                                                                            }
+
+                                                                            onDecrease={() =>
+                                                                                decrease(
+                                                                                    uniqueHatId,
+                                                                                    color.name,
+                                                                                    hat.recordId,
+                                                                                    variantRecordId,     // FIXED
+                                                                                    inventoryRecordId
+                                                                                )
+                                                                            }
+
+                                                                            onChange={(val) =>
+                                                                                handleManualChange(
+                                                                                    uniqueHatId,
+                                                                                    color.name,
+                                                                                    val,
+                                                                                    hat.recordId,
+                                                                                    variantRecordId,      // FIXED
+                                                                                    inventoryRecordId
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    );
+                                                                })}
+                                                            </div>
+
+                                                        </>
+                                                    )}
                                                 </AccordionContent>
                                             </AccordionPanel>
                                         )
@@ -714,8 +710,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     </div>
                 )
             })}
-
-            <div className='flex justify-center'>
+            <div className='flex justify-center mt-6'>
                 <button onClick={() => handleNextpage()} className='text-xl cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300'>
                     Next Step
                 </button>

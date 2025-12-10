@@ -155,7 +155,7 @@ const page = () => {
       const first = decorationList.data[0];
 
       setSelectedOption({
-        id: first.recordId,
+        id: first.id,
         name: first.name
       });
     }
@@ -193,17 +193,17 @@ const page = () => {
                 value={selectedOption.id}
                 onChange={(e) => {
                   const selected = decorationList?.data?.find(
-                    deco => deco.recordId === e.target.value
+                    deco => deco.id === e.target.value
                   );
 
                   setSelectedOption({
-                    id: selected?.recordId,
+                    id: selected?.id,
                     name: selected?.name
                   });
                 }}
               >
                 {decorationList?.data?.map((deco) => (
-                  <option value={deco?.recordId}>{deco?.name}</option>
+                  <option value={deco?.id}>{deco?.name}</option>
                 ))}
               </Select>
 
