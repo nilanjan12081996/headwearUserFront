@@ -4,14 +4,14 @@ import { CgFileDocument } from "react-icons/cg"
 import small_cap from "../assets/imagesource/small_cap.png";
 import { useDispatch } from "react-redux";
 import { saveOrder } from "../reducers/CheckoutSlice";
-const OrderSummary = () => {
+const OrderSummary = ({ cust_id, billingId, shippingId }) => {
   const dispatch = useDispatch();
 
   const handleOrderNow = () => {
     const orderData = {
       cart_id: 1,
-      billing_address_id: 1,
-      shipping_address_id: 1,
+      billing_address_id: billingId,
+      shipping_address_id: shippingId,
       shipping_method_id: 1,
       artwork_config_id: 1,
     };
@@ -92,9 +92,18 @@ const OrderSummary = () => {
           </div>
         </div>
 
-        <button  onClick={handleOrderNow} className='bg-[#ED1C24] hover:bg-black text-white text-base rounded-full w-full py-3 cursor-pointer'>
-          Order Now
+        <button
+          onClick={handleOrderNow}
+          disabled={!billingId || !shippingId}
+          className={`text-white text-base rounded-full w-full py-3 cursor-pointer 
+    ${!billingId || !shippingId
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-[#ED1C24] hover:bg-black"
+            }`}
+        >
+         Order Now
         </button>
+
 
 
       </div>
