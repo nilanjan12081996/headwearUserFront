@@ -67,8 +67,8 @@ import Image from 'next/image';
 
 
 import { FaPlus } from "react-icons/fa";
-import { useForm } from 'react-hook-form';
-import { useDispatch } from 'react-redux';
+import { set, useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
 import { addAddress } from '../reducers/CheckoutSlice';
 import OrderSummary from './OrderSummary';
 
@@ -77,6 +77,10 @@ import OrderSummary from './OrderSummary';
 
 
 const page = () => {
+    const{loading}=useSelector((state)=>state?.check)
+    const[cust_id,setCust_id]=useState()
+    const[billingId,setBillingId]=useState()
+    const[shippingId,setShippingId]=useState()
     const [sameAddress, setSameAddress] = useState(false);
   const dispatch = useDispatch()
   const {
@@ -91,16 +95,26 @@ const page = () => {
 
   const billing = watch("billing");
 
-  useEffect(() => {
+useEffect(() => {
   if (sameAddress) {
-    setValue("shipping.line1", billing?.line1);
-    setValue("shipping.line2", billing?.line2);
-    setValue("shipping.city", billing?.city);
-    setValue("shipping.state", billing?.state);
-    setValue("shipping.postal_code", billing?.postal_code);
-    setValue("shipping.country", billing?.country);
+    // copy billing → shipping
+    setValue("shipping.line1", billing?.line1 || "");
+    setValue("shipping.line2", billing?.line2 || "");
+    setValue("shipping.city", billing?.city || "");
+    setValue("shipping.state", billing?.state || "");
+    setValue("shipping.postal_code", billing?.postal_code || "");
+    setValue("shipping.country", billing?.country || "");
+  } else {
+    // CLEAR SHIPPING FIELDS when unchecked
+    setValue("shipping.line1", "");
+    setValue("shipping.line2", "");
+    setValue("shipping.city", "");
+    setValue("shipping.state", "");
+    setValue("shipping.postal_code", "");
+    setValue("shipping.country", "");
   }
 }, [sameAddress, billing, setValue]);
+
 
 
   const onSubmit = (data) => {
@@ -111,7 +125,8 @@ const page = () => {
         email: data.email,
         phone: data.phone,
         company_name: data.company_name,
-        session_uuid: savedUUid
+        //session_uuid: savedUUid
+        session_uuid: '7a7f3285-43fc-43c4-a03b-822c018dfb07'
       },
       billing: {
         line1: data.billing.line1,
@@ -134,7 +149,10 @@ const page = () => {
     };
 
     console.log("FINAL PAYLOAD:", payload);
-    dispatch(addAddress(payload));
+    dispatch(addAddress(payload)).then((res)=>{
+        console.log("Res",res);
+        
+    });
   };
   return (
     <div>
@@ -402,7 +420,12 @@ const page = () => {
                 </div>
               </div>
             </form>
-           <OrderSummary/>
+           <OrderSummary 
+           cust_id={cust_id}
+           billingId={billingId}
+           shippingId={shippingId}
+           
+           />
           </div>
 
         </div>
