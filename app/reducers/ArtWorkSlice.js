@@ -6,7 +6,7 @@ export const addArtWork = createAsyncThunk(
     'addArtWork',
     async (userInput, { rejectWithValue }) => {
         try {
-            const response = await api.post(`user/artWork/add`, userInput);
+            const response = await api.post(`postgresapi/user/artWork/add`, userInput);
             console.log("response", response);
 
             if (response?.data?.status_code === 201) {

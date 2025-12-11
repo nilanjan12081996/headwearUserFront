@@ -124,6 +124,8 @@ const page = () => {
   const [placementSizeNotes, setPlacementSizeNotes] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
 
+  const [colorNotes, setColorNotes]=useState("")
+
   // Back stitching states
   const [backStitching, setBackStitching] = useState(false);
   const [backStitchDetails, setBackStitchDetails] = useState("");
@@ -267,7 +269,7 @@ const page = () => {
       const first = decorationList.data[0];
 
       setSelectedOption({
-        id: first.recordId,
+        id: first.id,
         name: first.name
       });
     }
@@ -299,7 +301,8 @@ const page = () => {
 
     const payload = {
       sessionUuid: sessionUUid || deviceId,
-      cart_id: cartId,
+      // cart_id: cartId,
+      cart_id: 1,
       logo_id: logoId,
       primary_decoration_type_id: selectedOption.id,
       embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
@@ -308,6 +311,7 @@ const page = () => {
       logo_placement: logoPlacement,
       placement_size_notes: placementSizeNotes,
       order_notes: orderNotes,
+      color_notes: colorNotes,
       back_stitching: backStitching,
       back_stitch_details: backStitching ? backStitchDetails : "",
       back_stitching_file: backStitching && backStitchingFile ? backStitchingFile : null,
@@ -427,13 +431,13 @@ const page = () => {
 
             <div ref={checkboxRef} className="flex items-center gap-2 check_area">
               <div>
-              <Checkbox id="promotion"
-                checked={agree}
-                onChange={() => {
-                  setAgree(!agree);
-                  setErrorMsg("");
-                }}
-              />
+                <Checkbox id="promotion"
+                  checked={agree}
+                  onChange={() => {
+                    setAgree(!agree);
+                    setErrorMsg("");
+                  }}
+                />
               </div>
               <Label className='text-[#615E5E] text-base' htmlFor="promotion">
                 I own the rights to this artwork being used or have permission from the owner to use it.
@@ -451,8 +455,8 @@ const page = () => {
               onChange={(e) => {
                 const selected = decorationList?.data?.find(d => d.recordId === e.target.value);
                 if (selected) {
-                  setSelectedOption({ id: selected.recordId, name: selected.name });
-                  setSelectedDecorationId(selected.recordId);
+                  setSelectedOption({ id: selected.id, name: selected.name });
+                  setSelectedDecorationId(selected.id);
 
                   if (selected.name === "Embroidery") {
                     setSelectedStyle("Embroidery");
@@ -497,8 +501,8 @@ const page = () => {
                   onChange={() => {
                     const selected = decorationList?.data?.[0];
                     setSelectedStyle(selected?.name);
-                    setSelectedOption({ id: selected?.recordId, name: selected?.name });
-                    setSelectedDecorationId(selected?.recordId);
+                    setSelectedOption({ id: selected?.id, name: selected?.name });
+                    setSelectedDecorationId(selected?.id);
                   }}
                   className="hidden"
                 />
@@ -558,8 +562,8 @@ const page = () => {
                   onChange={() => {
                     const selected = decorationList?.data?.[1];
                     setSelectedStyle(selected?.name);
-                    setSelectedOption({ id: selected?.recordId, name: selected?.name });
-                    setSelectedDecorationId(selected?.recordId);
+                    setSelectedOption({ id: selected?.id, name: selected?.name });
+                    setSelectedDecorationId(selected?.id);
                   }}
                   className="hidden"
                 />
@@ -878,9 +882,20 @@ const page = () => {
           </div>
 
 
+          <div className="mt-8">
+            <div className='p-4 bg-[#ff0000]'>
+              <h2 className='text-2xl font-bold text-white'>Logo Colors</h2>
+            </div>
+            <div className='my-8  form_area'>
+              <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Let us know in the color notes below any specific colors you would like us to use in your design.</p>
+              <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Note:</strong> Color can only change 1 time for every 6 or more hats ordered.</p>
+              <Textarea className='!text-black' rows={3} value={colorNotes} onChange={(e) => setColorNotes(e.target.value)} placeholder="Color Notes" />
+            </div>
+          </div>
+
           {/* Additional Addons */}
           <div className="mt-8 mb-8">
-            <div className="px-4 py-3 bg-[#ed1c24]">
+            <div className="px-4 py-3 bg-[#ff0000]">
               <h2 className="text-2xl font-bold text-white">Additional Addons</h2>
             </div>
             <div className="mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm p-4">

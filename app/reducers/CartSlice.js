@@ -28,7 +28,7 @@ export const uploadLogo = createAsyncThunk(
     'uploadLogo',
     async (userInput, { rejectWithValue }) => {
         try {
-            const response = await api.post(`user/logo/upload-logo`, userInput);
+            const response = await api.post(`postgresapi/user/logo/upload-logo`, userInput);
             console.log("response", response);
 
             if (response?.data?.status_code === 201) {
