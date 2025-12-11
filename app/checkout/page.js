@@ -1,3 +1,4 @@
+'use client'
 import Link from 'next/link'
 import React from 'react'
 
@@ -66,10 +67,57 @@ import Image from 'next/image';
 
 
 import { FaPlus } from "react-icons/fa";
+import { useForm } from 'react-hook-form';
+import { useDispatch } from 'react-redux';
+import { addAddress } from '../reducers/CheckoutSlice';
+
+
 
 
 
 const page = () => {
+const dispatch=useDispatch()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const savedUUid = sessionStorage.getItem("uuid")
+
+const onSubmit = (data) => {
+    const payload = {
+      customer: {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        phone: data.phone,
+        company_name: data.company_name,
+        session_uuid: "c8d5fd56-fe74-49ba-a97c-40c2a8aede1e",
+      },
+      billing: {
+        line1: data.billing.line1,
+        line2: data.billing.line2,
+        city: data.billing.city,
+        state: data.billing.state,
+        postal_code: data.billing.postal_code,
+        country: data.billing.country,
+        address_type: "BILLING",
+      },
+      shipping: {
+        line1: data.shipping.line1,
+        line2: data.shipping.line2,
+        city: data.shipping.city,
+        state: data.shipping.state,
+        postal_code: data.shipping.postal_code,
+        country: data.shipping.country,
+        address_type: "SHIPPING",
+      },
+    };
+
+    console.log("FINAL PAYLOAD:", payload);
+    dispatch(addAddress(payload));
+  };
   return (
     <div>
       <div className='banner_area py-0 lg:p-0'>
@@ -111,86 +159,203 @@ const page = () => {
 
 
             <div className='lg:flex items-start justify-start gap-8'>
-                <div className='lg:w-8/12 form_area mb-4 lg:mb-0'>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                <div className='lg:w-10/12 form_area mb-4 lg:mb-0'>
 
-                    <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Billing Information</h3>
+                    <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Personal Information</h3>
 
                     <div className='lg:flex gap-4 mb-4'>
                         <div className='lg:w-4/12'>
                             <div className="mb-2 block">
                             <Label htmlFor="base">First name</Label>
                             </div>
-                            <TextInput id="base" type="text" sizing="md" placeholder='Your first name' />
+                            <TextInput {...register("first_name",{required:true})} id="base" type="text" sizing="md" placeholder='Your first name' />
+                         {errors.first_name && (
+                      <small className="text-red-500">
+                        First name is required
+                      </small>
+                    )}
                         </div>
                         <div className='lg:w-4/12'>
                             <div className="mb-2 block">
                             <Label htmlFor="base">Last name</Label>
                             </div>
-                            <TextInput id="base" type="text" sizing="md" placeholder='Your last name' />
+                            <TextInput {...register("last_name",{required:true})} id="base" type="text" sizing="md" placeholder='Your last name' />
+                         {errors.first_name && (
+                      <small className="text-red-500">
+                        Last name is required
+                      </small>
+                    )}
                         </div>
                         <div className='lg:w-4/12'>
                             <div className="mb-2 block">
                             <Label htmlFor="base">Company Name (optional)</Label>
                             </div>
-                            <TextInput id="base" type="text" sizing="md" placeholder='Company name' />
+                            <TextInput {...register("company_name")} id="base" type="text" sizing="md" placeholder='Company name' />
                         </div>
                     </div>
-
+                    <div className='flex gap-4 mb-4'>
+                        <div className='w-6/12'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">Email</Label>
+                            </div>
+                            <TextInput {...register("email",{required:true})} id="base" type="email" sizing="md" placeholder='Email Address' />
+                         {errors.email && (
+                      <small className="text-red-500">
+                        Email is required
+                      </small>
+                    )}
+                        </div>
+                        <div className='w-6/12'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">Phone</Label>
+                            </div>
+                            <TextInput {...register("phone",{required:true})}id="base" type="text" sizing="md" placeholder='Phone number' />
+                            {errors.phone && (
+                      <small className="text-red-500">
+                        phone is required
+                      </small>
+                    )}
+                        </div>
+                   </div>
+               
+                    <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Billing Information</h3>
                     <div className='flex gap-4 mb-4'>
                         <div className='w-full'>
                             <div className="mb-2 block">
-                            <Label htmlFor="base">Street Address</Label>
+                            <Label htmlFor="base">Address Line 1</Label>
                             </div>
-                            <TextInput id="base" type="text" sizing="md" placeholder='Your first name' />
+                            <TextInput {...register("billing.line1",{required:true})} id="base" type="text" sizing="md" placeholder='Address Line 1' />
+                             {errors.phone && (
+                      <small className="text-red-500">
+                        Address Line1 is Required
+                      </small>
+                    )}
+                        </div>
+                         <div className='w-full'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">Address Line 2</Label>
+                            </div>
+                            <TextInput {...register("billing.line2",{required:true})} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
+                             {errors.phone && (
+                      <small className="text-red-500">
+                        Address Line2 is Required
+                      </small>
+                    )}
                         </div>
                    </div>
-
-                   <div className='lg:flex gap-4 mb-4'>
+                     <div className='lg:flex gap-4 mb-4'>
                         <div className='lg:w-5/12'>
                             <div className="mb-2 block">
                             <Label htmlFor="base">Country / Region</Label>
                             </div>
-                            <Select required>
-                                <option>Country</option>
-                                <option>01</option>
-                                <option>02</option>
-                                <option>03</option>
-                            </Select>
+                           <TextInput {...register("billing.country",{required:true})} id="base" type="text" sizing="md" placeholder='Country' />
+                            {errors.phone && (
+                      <small className="text-red-500">
+                        Country is Required
+                      </small>
+                    )}
                         </div>
-                        <div className='lg:w-3/12'>
+                        <div className='lg:w-5/12'>
                             <div className="mb-2 block">
                             <Label htmlFor="base">States</Label>
                             </div>
-                            <Select required>
-                                <option>States</option>
-                                <option>01</option>
-                                <option>02</option>
-                                <option>03</option>
-                            </Select>
+                             <TextInput {...register("billing.state",{required:true})} id="base" type="text" sizing="md" placeholder='State' />
+                            {errors.phone && (
+                      <small className="text-red-500">
+                       State is Required
+                      </small>
+                    )}
                         </div>
                    </div>
 
                    <div className='flex gap-4 mb-4'>
                         <div className='w-6/12'>
                             <div className="mb-2 block">
-                            <Label htmlFor="base">Email</Label>
+                            <Label  htmlFor="base">Postal Code</Label>
                             </div>
-                            <TextInput id="base" type="email" sizing="md" placeholder='Email Address' />
+                            <TextInput {...register("billing.postal_code",{required:true})} id="base" type="text" sizing="md" placeholder='Postal Code' />
+                            {errors.phone && (
+                      <small className="text-red-500">
+                       Postal Code is Required
+                      </small>
+                    )}
                         </div>
                         <div className='w-6/12'>
                             <div className="mb-2 block">
-                            <Label htmlFor="base">Phone</Label>
+                            <Label htmlFor="base">City</Label>
                             </div>
-                            <TextInput id="base" type="text" sizing="md" placeholder='Phone number' />
+                            <TextInput  {...register("billing.city",{required:true})} id="base" type="text" sizing="md" placeholder='City' />
+                            {errors.phone && (
+                        <small className="text-red-500">
+                        City is Required
+                        </small>
+                        )}
                         </div>
                    </div>
 
-                   <div className="flex items-center gap-2 check_area">
+                     <div className="flex items-center gap-2 check_area mb-2">
                         <Checkbox id="promotion" />
                         <Label className='text-[#615E5E] text-base' htmlFor="promotion">Ship to a different address</Label>
                     </div>
 
+
+                    <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Shipping Information</h3>
+                     <div className='flex gap-4 mb-4'>
+                        <div className='w-full'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">Address Line 1</Label>
+                            </div>
+                            <TextInput {...register("shipping.line1",{required:"Address Line1 is Required"})} id="base" type="text" sizing="md" placeholder='Address Line 1' />
+                            {errors.phone && (
+                        <small className="text-red-500">
+                        City is Required
+                        </small>
+                        )}
+                        </div>
+                         <div className='w-full'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">Address Line 2</Label>
+                            </div>
+                            <TextInput {...register("shipping.line2",{required:"Address Line2 is Required"})} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
+                        </div>
+                   </div>
+                     <div className='lg:flex gap-4 mb-4'>
+                        <div className='lg:w-5/12'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">Country / Region</Label>
+                            </div>
+                           <TextInput {...register("shipping.country",{required:"Country is Required"})} id="base" type="text" sizing="md" placeholder='Country' />
+                        </div>
+                        <div className='lg:w-5/12'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">States</Label>
+                            </div>
+                             <TextInput {...register("shipping.state",{required:"State is Required"})} id="base" type="text" sizing="md" placeholder='State' />
+                        </div>
+                   </div>
+
+                   <div className='flex gap-4 mb-4'>
+                        <div className='w-6/12'>
+                            <div className="mb-2 block">
+                            <Label  htmlFor="base">Postal Code</Label>
+                            </div>
+                            <TextInput {...register("shipping.postal_code",{required:"Postal Code is Required"})} id="base" type="text" sizing="md" placeholder='Postal Code' />
+                        </div>
+                        <div className='w-6/12'>
+                            <div className="mb-2 block">
+                            <Label htmlFor="base">City</Label>
+                            </div>
+                            <TextInput  {...register("shipping.city",{required:"City is Required"})} id="base" type="text" sizing="md" placeholder='City' />
+                        </div>
+                   </div>
+
+                  
+                <div> 
+                    <button type='submit' className='!bg-[#ED1C24] !w-auto !px-15 !py-3 hover:bg-[#000] hover:text-[#fff]'>Save</button>
+                </div>   
                 </div>
+                </form>
                 <div className='lg:w-4/12 border border-[#E6E6E6] rounded-[10px] p-4'>
                    <h3 className='text-[22px] font-semibold text-[#1A1A1A] pb-4'>Order Summery</h3>
 
