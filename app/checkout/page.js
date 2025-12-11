@@ -317,7 +317,12 @@ const page = () => {
                     <div className="mb-2 block">
                       <Label htmlFor="base">Address Line 2</Label>
                     </div>
-                    <TextInput {...register("shipping.line2", { required: "Address Line2 is Required" })} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
+                    <TextInput {...register("shipping.line2", { required: true })} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
+                    {errors.phone && (
+                      <small className="text-red-500">
+                        Address Line 2 is Required
+                      </small>
+                    )}
                   </div>
                 </div>
                 <div className='lg:flex gap-4 mb-4'>
@@ -325,13 +330,23 @@ const page = () => {
                     <div className="mb-2 block">
                       <Label htmlFor="base">Country / Region</Label>
                     </div>
-                    <TextInput {...register("shipping.country", { required: "Country is Required" })} id="base" type="text" sizing="md" placeholder='Country' />
+                    <TextInput {...register("shipping.country", { required: true })} id="base" type="text" sizing="md" placeholder='Country' />
+                    {errors.phone && (
+                      <small className="text-red-500">
+                        Country is Required
+                      </small>
+                    )}
                   </div>
                   <div className='lg:w-5/12'>
                     <div className="mb-2 block">
                       <Label htmlFor="base">States</Label>
                     </div>
-                    <TextInput {...register("shipping.state", { required: "State is Required" })} id="base" type="text" sizing="md" placeholder='State' />
+                    <TextInput {...register("shipping.state", { required: true })} id="base" type="text" sizing="md" placeholder='State' />
+                    {errors.phone && (
+                      <small className="text-red-500">
+                        State is Required
+                      </small>
+                    )}
                   </div>
                 </div>
 
@@ -340,13 +355,23 @@ const page = () => {
                     <div className="mb-2 block">
                       <Label htmlFor="base">Postal Code</Label>
                     </div>
-                    <TextInput {...register("shipping.postal_code", { required: "Postal Code is Required" })} id="base" type="text" sizing="md" placeholder='Postal Code' />
+                    <TextInput {...register("shipping.postal_code", { required: true })} id="base" type="text" sizing="md" placeholder='Postal Code' />
+                    {errors.shipping.postal_code && (
+                      <small className="text-red-500">
+                        Postal Code is Required
+                      </small>
+                    )}
                   </div>
                   <div className='w-6/12'>
                     <div className="mb-2 block">
                       <Label htmlFor="base">City</Label>
                     </div>
-                    <TextInput  {...register("shipping.city", { required: "City is Required" })} id="base" type="text" sizing="md" placeholder='City' />
+                    <TextInput  {...register("shipping.city", { required: true })} id="base" type="text" sizing="md" placeholder='City' />
+                    {errors.shipping.city && (
+                      <small className="text-red-500">
+                        City is Required
+                      </small>
+                    )}
                   </div>
                 </div>
 
