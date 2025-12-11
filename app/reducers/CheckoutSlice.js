@@ -76,6 +76,19 @@ const CheckoutSlice = createSlice(
                     state.loading = false
                     state.error = payload
                 })
+
+                .addCase(saveOrder.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(saveOrder.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.orderSaveData = payload;
+                    state.error = false;
+                })
+                .addCase(saveOrder.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                });
         }
     }
 )
