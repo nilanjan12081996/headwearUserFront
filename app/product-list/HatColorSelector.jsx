@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { FiPlusCircle } from "react-icons/fi";
 
 const HatColorSelector = ({ colorName, colorImage, value, onIncrease, onDecrease, onChange, sizeVariants }) => {
-    // console.log('colorName',colorName)
+    console.log('sizeVariants',sizeVariants)
     return (
         <div className='border-2 border-[#dddddd] rounded-[15px] text-center p-4'>
             <div className='flex items-center justify-center mb-2 relative w-[110px] mx-auto'>
@@ -19,8 +19,8 @@ const HatColorSelector = ({ colorName, colorImage, value, onIncrease, onDecrease
             <div className='border-1 border-[#dddddd] rounded-[10px] text-center p-2 w-[180px] mx-auto'>
                 <div className="pb-4">
                     {sizeVariants?.map((v) => (
-                        <p key={v.recordId} className='text-base text-black font-normal'>
-                            {v.sizeLabel}
+                        <p key={v.id} className='text-base text-black font-normal'>
+                            {v.size_label}
                         </p>
                     ))}
                 </div>

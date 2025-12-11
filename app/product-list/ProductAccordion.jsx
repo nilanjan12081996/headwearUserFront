@@ -649,27 +649,26 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                             <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                                                 {singleHatDetail?.data?.data?.hatColors?.map((color, index) => {
 
-                                                                    const sizeVariant = color?.hatSizes?.[0]; // correct key
-                                                                    const variantRecordId = sizeVariant?.id;  // size variant id
-                                                                    const inventoryRecordId = sizeVariant?.inventory?.recordId; // if exists
+                                                                    const sizeVariants = color?.hatSizes || [];
 
+                                                                    // console.log('sizeVariants',sizeVariants)
                                                                     return (
                                                                         <HatColorSelector
                                                                             key={color.id}
 
-                                                                            colorName={color.name}                      // FIXED
-                                                                            colorImage={color.primary_image_url}         // FIXED
-                                                                            sizeVariants={color.hatSizes}                // FIXED
+                                                                            colorName={color.name}
+                                                                            colorImage={color.primary_image_url}
+                                                                            sizeVariants={sizeVariants}
 
-                                                                            value={hatQuantities[uniqueHatId]?.[color.name] || 0}   // FIXED
+                                                                            value={hatQuantities[uniqueHatId]?.[color.name] || 0}
 
                                                                             onIncrease={() =>
                                                                                 increase(
                                                                                     uniqueHatId,
                                                                                     color.name,
                                                                                     hat.recordId,
-                                                                                    variantRecordId,     // FIXED
-                                                                                    inventoryRecordId
+                                                                                    sizeVariants[0]?.id,
+                                                                                    sizeVariants[0]?.inventory?.recordId
                                                                                 )
                                                                             }
 
@@ -678,8 +677,8 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                                     uniqueHatId,
                                                                                     color.name,
                                                                                     hat.recordId,
-                                                                                    variantRecordId,     // FIXED
-                                                                                    inventoryRecordId
+                                                                                    sizeVariants[0]?.id,
+                                                                                    sizeVariants[0]?.inventory?.recordId
                                                                                 )
                                                                             }
 
@@ -689,8 +688,8 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                                     color.name,
                                                                                     val,
                                                                                     hat.recordId,
-                                                                                    variantRecordId,      // FIXED
-                                                                                    inventoryRecordId
+                                                                                    sizeVariants[0]?.id,
+                                                                                    sizeVariants[0]?.inventory?.recordId
                                                                                 )
                                                                             }
                                                                         />
