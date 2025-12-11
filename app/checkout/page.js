@@ -93,7 +93,7 @@ const page = () => {
         email: data.email,
         phone: data.phone,
         company_name: data.company_name,
-        session_uuid: "c8d5fd56-fe74-49ba-a97c-40c2a8aede1e",
+        session_uuid: savedUUid
       },
       billing: {
         line1: data.billing.line1,
@@ -226,7 +226,7 @@ const page = () => {
                       <Label htmlFor="base">Address Line 1</Label>
                     </div>
                     <TextInput {...register("billing.line1", { required: true })} id="base" type="text" sizing="md" placeholder='Address Line 1' />
-                    {errors.phone && (
+                    {errors?.billing?.line1 && (
                       <small className="text-red-500">
                         Address Line1 is Required
                       </small>
@@ -237,7 +237,7 @@ const page = () => {
                       <Label htmlFor="base">Address Line 2</Label>
                     </div>
                     <TextInput {...register("billing.line2", { required: true })} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
-                    {errors.phone && (
+                    {errors?.billing?.line2 && (
                       <small className="text-red-500">
                         Address Line2 is Required
                       </small>
@@ -250,7 +250,7 @@ const page = () => {
                       <Label htmlFor="base">Country / Region</Label>
                     </div>
                     <TextInput {...register("billing.country", { required: true })} id="base" type="text" sizing="md" placeholder='Country' />
-                    {errors.phone && (
+                    {errors?.billing?.country && (
                       <small className="text-red-500">
                         Country is Required
                       </small>
@@ -261,7 +261,7 @@ const page = () => {
                       <Label htmlFor="base">States</Label>
                     </div>
                     <TextInput {...register("billing.state", { required: true })} id="base" type="text" sizing="md" placeholder='State' />
-                    {errors.phone && (
+                    {errors?.billing?.state && (
                       <small className="text-red-500">
                         State is Required
                       </small>
@@ -275,7 +275,7 @@ const page = () => {
                       <Label htmlFor="base">Postal Code</Label>
                     </div>
                     <TextInput {...register("billing.postal_code", { required: true })} id="base" type="text" sizing="md" placeholder='Postal Code' />
-                    {errors.phone && (
+                    {errors?.billing?.postal_code && (
                       <small className="text-red-500">
                         Postal Code is Required
                       </small>
@@ -286,7 +286,7 @@ const page = () => {
                       <Label htmlFor="base">City</Label>
                     </div>
                     <TextInput  {...register("billing.city", { required: true })} id="base" type="text" sizing="md" placeholder='City' />
-                    {errors.phone && (
+                    {errors?.billing?.city && (
                       <small className="text-red-500">
                         City is Required
                       </small>
@@ -296,7 +296,7 @@ const page = () => {
 
                 <div className="flex items-center gap-2 check_area mb-2">
                   <Checkbox id="promotion" />
-                  <Label className='text-[#615E5E] text-base' htmlFor="promotion">Ship to a different address</Label>
+                  <Label className='text-[#615E5E] text-base' htmlFor="promotion">Ship to Same address</Label>
                 </div>
 
 
@@ -307,7 +307,7 @@ const page = () => {
                       <Label htmlFor="base">Address Line 1</Label>
                     </div>
                     <TextInput {...register("shipping.line1", { required: true })} id="base" type="text" sizing="md" placeholder='Address Line 1' />
-                    {errors.phone && (
+                    {errors?.shipping?.line1 && (
                       <small className="text-red-500">
                         Address Line 1 is Required
                       </small>
@@ -318,7 +318,7 @@ const page = () => {
                       <Label htmlFor="base">Address Line 2</Label>
                     </div>
                     <TextInput {...register("shipping.line2", { required: true })} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
-                    {errors.phone && (
+                    {errors?.shipping?.line2 && (
                       <small className="text-red-500">
                         Address Line 2 is Required
                       </small>
@@ -331,7 +331,7 @@ const page = () => {
                       <Label htmlFor="base">Country / Region</Label>
                     </div>
                     <TextInput {...register("shipping.country", { required: true })} id="base" type="text" sizing="md" placeholder='Country' />
-                    {errors.phone && (
+                    {errors?.shipping?.country && (
                       <small className="text-red-500">
                         Country is Required
                       </small>
@@ -342,7 +342,7 @@ const page = () => {
                       <Label htmlFor="base">States</Label>
                     </div>
                     <TextInput {...register("shipping.state", { required: true })} id="base" type="text" sizing="md" placeholder='State' />
-                    {errors.phone && (
+                    {errors?.shipping?.state && (
                       <small className="text-red-500">
                         State is Required
                       </small>
@@ -356,7 +356,7 @@ const page = () => {
                       <Label htmlFor="base">Postal Code</Label>
                     </div>
                     <TextInput {...register("shipping.postal_code", { required: true })} id="base" type="text" sizing="md" placeholder='Postal Code' />
-                    {errors.shipping.postal_code && (
+                    {errors?.shipping?.postal_code && (
                       <small className="text-red-500">
                         Postal Code is Required
                       </small>
@@ -367,7 +367,7 @@ const page = () => {
                       <Label htmlFor="base">City</Label>
                     </div>
                     <TextInput  {...register("shipping.city", { required: true })} id="base" type="text" sizing="md" placeholder='City' />
-                    {errors.shipping.city && (
+                    {errors?.shipping?.city && (
                       <small className="text-red-500">
                         City is Required
                       </small>
