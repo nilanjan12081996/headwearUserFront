@@ -26,6 +26,12 @@ const nextConfig = {
         port: '',
         pathname: '/uploads/hatColors/**',
       },
+         {
+        protocol: 'https',
+        hostname: 'showmecustomheadwearuserapi.bestworks.cloud',
+        port: '',
+        pathname: '/uploads/brand/**',
+      },
      
     ],
   },

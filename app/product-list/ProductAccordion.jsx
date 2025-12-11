@@ -45,6 +45,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         }
         return {};
     });
+    let base_url="https://showmecustomheadwearuserapi.bestworks.cloud"
 
     const [cartItemId, setCartItemId] = useState()
     const [isProcessing, setIsProcessing] = useState({});
@@ -494,6 +495,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     <div key={brand.id}>
 
                         <div className='bg-[#efefef] p-4 my-2'>
+                            <Image src={base_url+brand?.image_url} width={100} height={50}/>
                             <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.name}</h2>
                         </div>
 
