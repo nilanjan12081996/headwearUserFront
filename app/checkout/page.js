@@ -151,6 +151,11 @@ useEffect(() => {
     console.log("FINAL PAYLOAD:", payload);
     dispatch(addAddress(payload)).then((res)=>{
         console.log("Res",res);
+        if(res?.payload?.status_code===201){
+            setCust_id(res?.payload?.data?.customer?.id)
+            setShippingId(res?.payload?.data?.addresses?.[0]?.data?.id)
+            setBillingId(res?.payload?.data?.addresses?.[1]?.data?.id)
+        }
         
     });
   };
@@ -416,7 +421,7 @@ useEffect(() => {
 
 
                 <div>
-                  <button type='submit' className='!bg-[#ED1C24] !w-auto !px-15 !py-3 hover:bg-[#000] hover:text-[#fff]'>Save</button>
+                  <button type='submit' className='!bg-[#ED1C24] !w-auto !px-15 !py-3 hover:bg-[#000] hover:text-[#fff]'>{loading?"Waiting..":"Save"}</button>
                 </div>
               </div>
             </form>
