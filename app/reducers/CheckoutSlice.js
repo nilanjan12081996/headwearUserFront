@@ -24,13 +24,36 @@ export const addAddress = createAsyncThunk(
     }
 )
 
+export const saveOrder = createAsyncThunk(
+    "order/saveOrder",
+    async (orderData, { rejectWithValue }) => {
+        try {
+            const response = await api.post(
+                "postgresapi/user/order/save",
+                orderData
+            );
+
+            if (response?.data?.status_code === 201) {
+                return response.data;
+            } else {
+                return rejectWithValue(
+                    response?.data?.errors || "Something went wrong."
+                );
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+);
+
 
 
 
 const initialState = {
     loading: false,
     error: false,
-    addAddressData:""
+    addAddressData: "",
+    orderSaveData: "",
 
 }
 
@@ -41,18 +64,18 @@ const CheckoutSlice = createSlice(
         reducers: {},
         extraReducers: (builder) => {
             builder
-            .addCase(addAddress.pending,(state)=>{
-                state.loading=true
-            })
-            .addCase(addAddress.fulfilled,(state,{paylaod})=>{
-                state.loading=false
-                state.addAddressData=paylaod
-                state.error=false
-            })
-            .addCase(addAddress.rejected,(state,{payload})=>{
-                state.loading=false
-                state.error=payload
-            })
+                .addCase(addAddress.pending, (state) => {
+                    state.loading = true
+                })
+                .addCase(addAddress.fulfilled, (state, { paylaod }) => {
+                    state.loading = false
+                    state.addAddressData = paylaod
+                    state.error = false
+                })
+                .addCase(addAddress.rejected, (state, { payload }) => {
+                    state.loading = false
+                    state.error = payload
+                })
         }
     }
 )
