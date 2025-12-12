@@ -106,9 +106,9 @@ export const addCartItem = createAsyncThunk(
 
 export const updateCartItem = createAsyncThunk(
     'cart/updateCartItem',
-    async ({ cart_item_id, quantity }, { rejectWithValue }) => {
+    async ({ id, quantity }, { rejectWithValue }) => {
         try {
-            const response = await api.patch(`user/cart/item/update/${cart_item_id}`, { quantity });
+            const response = await api.patch(`postgresapi/user/cart/items-update/${id}`, { quantity });
 
             console.log("Cart Item Response", response);
 
@@ -128,7 +128,7 @@ export const cartList = createAsyncThunk(
     'cart/cartList',
     async ({ id }, { rejectWithValue }) => {
         try {
-            const response = await api.get(`user/cart/list?id=${id}&type=sessionUUID`);
+            const response = await api.get(`postgresapi/user/cart/items?session_uuid=${id}`);
 
             console.log("Cart Item Response", response);
 

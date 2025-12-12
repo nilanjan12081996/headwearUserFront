@@ -63,7 +63,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getSuppliers } from '../reducers/SupplierSlice';
 import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 import ProductAccordion from './ProductAccordion';
-import { addCartUUID, getDecorationType } from '../reducers/CartSlice';
+import { addCartUUID, cartList, getDecorationType } from '../reducers/CartSlice';
 import { v4 as uuidv4 } from "uuid";
 
 
@@ -77,6 +77,8 @@ const page = () => {
   const { decorationList } = useSelector((state) => state?.cart)
   const { productList, allProList } = useSelector((state) => state?.prod)
   const [hatQuantities, setHatQuantities] = useState({});
+
+
 
   useEffect(() => {
     const savedId = sessionStorage.getItem("id");
@@ -102,14 +104,19 @@ const page = () => {
   }, []);
 
   const dispatch = useDispatch()
-  useEffect(() => {
-    dispatch(getSuppliers({
-      page: 1,
-      limit: 10
+  // useEffect(() => {
+  //   dispatch(getSuppliers({
+  //     page: 1,
+  //     limit: 10
+  //   }))
+  // }, [])
+  // console.log("suppliersList", suppliersList);
+ useEffect(() => {
+  const savedUUID = sessionStorage.getItem("uuid");
+    dispatch(cartList({
+      id: savedUUID
     }))
   }, [])
-  console.log("suppliersList", suppliersList);
-
   const handleSupplierChange = (e) => {
 
 
@@ -160,6 +167,8 @@ const page = () => {
       });
     }
   }, [decorationList]);
+
+  console.log('cartListItem', cartListItem)
 
 
   return (
@@ -341,7 +350,7 @@ const page = () => {
               <div>
                 <IoMdTrophy className='text-white text-2xl  md:text-3xl lg:text-5xl' />
               </div>
-              <div  className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
+              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
                 <p className='text-white'>48+ Items</p>
                 <p className='text-white'>Free Premium Setup</p>
               </div>
@@ -349,8 +358,10 @@ const page = () => {
           </div>
         </div>
         <div className='bg-[#ed1c24] py-4 text-center'>
-          <p className='text-xl text-white font-bold pb-0'>Current Total: {cartListItem?.data?.data?.summary?.formattedPrice?cartListItem?.data?.data?.summary?.formattedPrice:0}</p>
-          <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.data?.summary?.totalQuantity? cartListItem?.data?.data?.summary?.totalQuantity:0} items</p>
+          <p className='text-xl text-white font-bold pb-0'>
+            Current Total: {cartListItem?.data?.grand_total_amount ?? 0}
+          </p>
+          <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.total_items? cartListItem?.data?.total_items : 0} items</p>
         </div>
       </div>
 

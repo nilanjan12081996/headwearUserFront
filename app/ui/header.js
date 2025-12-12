@@ -59,14 +59,14 @@ const Header = () => {
     };
   }, [isNavbarOpen]);
 
-  // const savedUUid = sessionStorage.getItem("uuid")
+   const savedUUid = sessionStorage.getItem("uuid")
   const dispatch = useDispatch()
 
-  // useEffect(() => {
-  //   dispatch(cartList({
-  //     id: savedUUid
-  //   }))
-  // }, [])
+  useEffect(() => {
+    dispatch(cartList({
+      id: savedUUid
+    }))
+  }, [])
   console.log('cartListItem', cartListItem)
 
   return (
