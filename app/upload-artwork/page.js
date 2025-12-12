@@ -92,7 +92,7 @@ const page = () => {
   const router = useRouter();
   const { cartListItem } = useSelector((state) => state?.cart);
   const { decorationList } = useSelector((state) => state?.cart)
-  const { loading,adonPriceData,setUpPlanListData } = useSelector((state) => state?.art)
+  const { loading, adonPriceData, setUpPlanListData } = useSelector((state) => state?.art)
   const searchParams = useSearchParams();
   const supName = atob(searchParams.get('name'))
   const [logoId, setLogoId] = useState()
@@ -152,12 +152,12 @@ const page = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const checkboxRef = useRef(null);
 
-useEffect(()=>{
-dispatch(addOnPrice())
-dispatch(setUpPlanList())
-  },[])
-console.log("adonPriceData",adonPriceData);
-console.log("setUpPlanListData",setUpPlanListData);
+  useEffect(() => {
+    dispatch(addOnPrice())
+    dispatch(setUpPlanList())
+  }, [])
+  console.log("adonPriceData", adonPriceData);
+  console.log("setUpPlanListData", setUpPlanListData);
 
 
   const stitchingOptions = [
@@ -237,7 +237,7 @@ console.log("setUpPlanListData",setUpPlanListData);
     const formData = new FormData();
     formData.append('session_uuid', deviceId); // Your device/session ID
     formData.append('logo', file);
-    formData.append('notes',"N/A")
+    formData.append('notes', "N/A")
 
     try {
       const result = await dispatch(uploadLogo(formData)).unwrap();
@@ -307,7 +307,9 @@ console.log("setUpPlanListData",setUpPlanListData);
     if (id === "left") setLeftStitching(!leftStitching);
     if (id === "right") setRightStitching(!rightStitching);
   };
+  
 
+  const savedCardId = localStorage.getItem('cartId')
   // Prepare final payload
   const preparePayload = () => {
     const selectedDecoration = decorationList?.data?.find(
@@ -317,7 +319,7 @@ console.log("setUpPlanListData",setUpPlanListData);
     const payload = {
       sessionUuid: sessionUUid || deviceId,
       // cart_id: cartId,
-      cart_id: 1,
+      cart_id: savedCardId,
       logo_id: logoId,
       primary_decoration_type_id: selectedOption.id,
       embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
@@ -366,8 +368,14 @@ console.log("setUpPlanListData",setUpPlanListData);
     // Here you would dispatch your API call
     await dispatch(addArtWork(formData)).then((res) => {
       console.log("addartwork", res);
+      // if (res?.payload?.status_code === 201) {
+      //   router.push("/checkout")
+      // }
+
       if (res?.payload?.status_code === 201) {
-        router.push("/checkout")
+
+        const artworkId = res?.payload?.data?.id;
+        router.push(`/checkout?artwork_id=${artworkId}`);
       }
 
     });
@@ -820,15 +828,77 @@ console.log("setUpPlanListData",setUpPlanListData);
                   </button>
                 </label>
 
-                <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D_puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
-                  <input type="radio" name="embroidery" value="3D_puff" checked={embroideryType === "3D_puff"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
+                <label
+                  className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D_puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="embroidery"
+                    value="3D_puff"
+                    checked={embroideryType === "3D_puff"}
+                    onChange={(e) => setEmbroideryType(e.target.value)}
+                    className="hidden"
+                  />
+
                   <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
-                  <p className="text-sm text-gray-600 mb-4">Creates a raised 3D look. Only certain designs can be puffed.</p>
-                  <button type="button" className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Creates a raised 3D look. Only certain designs can be puffed.
+                  </p>
+
+                  <button
+                    type="button"
+                    className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium"
+                  >
                     3D Puff Embroidery
                   </button>
-                  
+
+                  {/* 🔥 Loop Price List */}
+                  {/* {adonPriceData?.data?.threeDPuff?.[0]?.price_tiers?.map((tier, i) => (
+                    <div key={i} className="text-center my-2">
+                      <p className='p-1 text-[10px] sm:text-sm text-white font-bold bg-[#eeeeee]'>
+                        {tier.min_qty}
+                      </p>
+                      <div className='p-1 text-[10px] sm:text-sm text-white font-bold bg-[#ffffff] '>
+                        ${Number(tier.unit_price)}
+                      </div>                  
+                    </div>
+                  ))} */}
+
+                  {/* ---- 3D Puff Price Table ---- */}
+                  <div className="bg-white border rounded-xl shadow p-4 mt-4">
+
+                    <h3 className="text-center bg-[#e0e0e0] font-semibold p-2 rounded">
+                      3D Puff Quantity Price Breaks
+                    </h3>
+
+                    {/* The Table */}
+                    <div className="mt-3">
+                      {/* Header Row (Quantities) */}
+                      <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t">
+                        {adonPriceData?.data?.threeDPuff?.[0]?.price_tiers?.map((tier) => (
+                          <div key={tier.id} className="py-2 font-bold text-sm">
+                            {tier.min_qty}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Price Row */}
+                      <div className="grid grid-cols-6 text-center bg-white rounded-b">
+                        {adonPriceData?.data?.threeDPuff?.[0]?.price_tiers?.map((tier) => (
+                          <div
+                            key={tier.id}
+                            className="py-2 text-sm font-semibold text-[#000]"
+                          >
+                            ${Number(tier.unit_price)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
                 </label>
+
               </div>
             </div>
           )}
@@ -925,6 +995,38 @@ console.log("setUpPlanListData",setUpPlanListData);
                 <h3 className="mb-2 text-lg font-semibold">Back & Side Stitching</h3>
                 <p>You can add back, left side and right side stitching to your hats.</p>
               </div>
+
+              <div className="bg-white rounded-xl shadow p-4 mt-4">
+
+                <h3 className="text-center bg-[#e0e0e0] font-semibold p-2 rounded">
+                  Back & Side Stitching Price Breaks
+                </h3>
+
+                {/* The Table */}
+                <div className="mt-3">
+                  {/* Header Row (Quantities) */}
+                  <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t">
+                    {adonPriceData?.data?.backStitching?.[0]?.price_tiers?.map((tier) => (
+                      <div key={tier.id} className="py-2 font-bold text-sm bg-[#eee]">
+                        {tier.min_qty}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Price Row */}
+                  <div className="grid grid-cols-6 text-center bg-white rounded-b">
+                    {adonPriceData?.data?.backStitching?.[0]?.price_tiers?.map((tier) => (
+                      <div
+                        key={tier.id}
+                        className="py-2 text-sm font-semibold text-[#000]"
+                      >
+                        ${Number(tier.unit_price)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
 
               <div className="mt-4 grid grid-cols-3 gap-3">
                 {stitchingOptions.map((option) => {

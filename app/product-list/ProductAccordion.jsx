@@ -399,6 +399,7 @@ const increase = async (
             }));
 
             const newId = resItem?.payload?.data?.cartGroups?.[0]?.cartItems?.[0]?.id;
+            localStorage.setItem("cartId",newId);
 
             if (!newId) throw new Error("Add item failed");
 
@@ -557,7 +558,7 @@ const decrease = async (uniqueHatId, colorName) => {
     
     
     const handleNextpage = () => {
-        const totalQty = cartListItem?.data?.data?.summary?.totalQuantity;
+        const totalQty = cartListItem?.data?.cart?.total_items;
 
         if (!totalQty || totalQty === 0) {
             toast.error("You need to select some hats from the expandable regions before continuing to the next step.");

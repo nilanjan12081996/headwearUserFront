@@ -69,19 +69,27 @@ import Image from 'next/image';
 import { FaPlus } from "react-icons/fa";
 import { set, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { addAddress } from '../reducers/CheckoutSlice';
+import { addAddress, updateCustomer } from '../reducers/CheckoutSlice';
 import OrderSummary from './OrderSummary';
+import { toast, ToastContainer } from 'react-toastify';
+import { useSearchParams } from 'next/navigation';
 
 
 
 
 
 const page = () => {
-    const{loading}=useSelector((state)=>state?.check)
-    const[cust_id,setCust_id]=useState()
-    const[billingId,setBillingId]=useState()
-    const[shippingId,setShippingId]=useState()
-    const [sameAddress, setSameAddress] = useState(false);
+  const { loading } = useSelector((state) => state?.check)
+  const [cust_id, setCust_id] = useState()
+  const [billingId, setBillingId] = useState()
+  const [shippingId, setShippingId] = useState()
+  const [sameAddress, setSameAddress] = useState(false);
+
+  const params = useSearchParams();
+  const artworkId = params.get("artwork_id");
+
+  console.log("Artwork ID:", artworkId);
+
   const dispatch = useDispatch()
   const {
     register,
@@ -92,28 +100,29 @@ const page = () => {
   } = useForm();
 
   const savedUUid = sessionStorage.getItem("uuid")
+  const cartId = localStorage.getItem("cartId")
 
   const billing = watch("billing");
 
-useEffect(() => {
-  if (sameAddress) {
-    // copy billing → shipping
-    setValue("shipping.line1", billing?.line1 || "");
-    setValue("shipping.line2", billing?.line2 || "");
-    setValue("shipping.city", billing?.city || "");
-    setValue("shipping.state", billing?.state || "");
-    setValue("shipping.postal_code", billing?.postal_code || "");
-    setValue("shipping.country", billing?.country || "");
-  } else {
-    // CLEAR SHIPPING FIELDS when unchecked
-    setValue("shipping.line1", "");
-    setValue("shipping.line2", "");
-    setValue("shipping.city", "");
-    setValue("shipping.state", "");
-    setValue("shipping.postal_code", "");
-    setValue("shipping.country", "");
-  }
-}, [sameAddress, billing, setValue]);
+  useEffect(() => {
+    if (sameAddress) {
+      // copy billing → shipping
+      setValue("shipping.line1", billing?.line1 || "");
+      setValue("shipping.line2", billing?.line2 || "");
+      setValue("shipping.city", billing?.city || "");
+      setValue("shipping.state", billing?.state || "");
+      setValue("shipping.postal_code", billing?.postal_code || "");
+      setValue("shipping.country", billing?.country || "");
+    } else {
+      // CLEAR SHIPPING FIELDS when unchecked
+      setValue("shipping.line1", "");
+      setValue("shipping.line2", "");
+      setValue("shipping.city", "");
+      setValue("shipping.state", "");
+      setValue("shipping.postal_code", "");
+      setValue("shipping.country", "");
+    }
+  }, [sameAddress, billing, setValue]);
 
 
 
@@ -149,18 +158,24 @@ useEffect(() => {
     };
 
     console.log("FINAL PAYLOAD:", payload);
-    dispatch(addAddress(payload)).then((res)=>{
-        console.log("Res",res);
-        if(res?.payload?.status_code===201){
-            setCust_id(res?.payload?.data?.customer?.id)
-            setShippingId(res?.payload?.data?.addresses?.[0]?.data?.id)
-            setBillingId(res?.payload?.data?.addresses?.[1]?.data?.id)
-        }
-        
+    dispatch(addAddress(payload)).then((res) => {
+      console.log("Res", res);
+      if (res?.payload?.status_code === 201) {
+        setCust_id(res?.payload?.data?.customer?.id)
+        setShippingId(res?.payload?.data?.addresses?.[0]?.data?.id)
+        setBillingId(res?.payload?.data?.addresses?.[1]?.data?.id)
+        dispatch(updateCustomer({
+          id: cartId,
+          customer_id: res?.payload?.data?.customer?.id
+        }))
+        toast.success(res?.payload?.message)
+      }
+
     });
   };
   return (
     <div>
+      <ToastContainer />
       <div className='banner_area py-0 lg:p-0'>
         {/* home banner section start here */}
         <div className="relative">
@@ -336,9 +351,9 @@ useEffect(() => {
                 </div>
 
                 <div className="flex items-center gap-2 check_area mb-2">
-                  <Checkbox id="promotion" 
-                   checked={sameAddress}
-                   onChange={(e) => setSameAddress(e.target.checked)}
+                  <Checkbox id="promotion"
+                    checked={sameAddress}
+                    onChange={(e) => setSameAddress(e.target.checked)}
                   />
                   <Label className='text-[#615E5E] text-base' htmlFor="promotion">Ship to Same address</Label>
                 </div>
@@ -421,16 +436,17 @@ useEffect(() => {
 
 
                 <div>
-                  <button type='submit' className='!bg-[#ED1C24] !w-auto !px-15 !py-3 hover:bg-[#000] hover:text-[#fff]'>{loading?"Waiting..":"Save"}</button>
+                  <button type='submit' className='!bg-[#ED1C24] !w-auto !px-15 !py-3 hover:bg-[#000] hover:text-[#fff]'>{loading ? "Waiting.." : "Save"}</button>
                 </div>
               </div>
             </form>
-           <OrderSummary 
-           cust_id={cust_id}
-           billingId={billingId}
-           shippingId={shippingId}
-           
-           />
+            <OrderSummary
+              cust_id={cust_id}
+              billingId={billingId}
+              shippingId={shippingId}
+              artworkId={artworkId}
+
+            />
           </div>
 
         </div>

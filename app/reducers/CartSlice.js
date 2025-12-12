@@ -124,6 +124,27 @@ export const updateCartItem = createAsyncThunk(
     }
 );
 
+
+export const dropDownToggle = createAsyncThunk(
+    'cart/dropDownToggle',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.patch(`postgresapi/user/cart/decoration-toggle`, userInput);
+
+            console.log("Cart Item Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            const errorMessage = err?.response?.data?.message || err?.message || "Failed to update cart item";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
 export const cartList = createAsyncThunk(
     'cart/cartList',
     async ({ id }, { rejectWithValue }) => {
@@ -165,6 +186,26 @@ export const getDecorationType = createAsyncThunk(
     }
 );
 
+export const updateAddOn = createAsyncThunk(
+    'cart/updateAddOn',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.patch(`postgresapi/user/cart/artwork/update`, userInput);
+
+            console.log("Cart Item Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            const errorMessage = err?.response?.data?.message || err?.message || "Failed to update cart item";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
 
 
 const initialState = {
@@ -177,7 +218,9 @@ const initialState = {
     itemData: "",
     updateData: '',
     cartListItem: '',
-    decorationList:[]
+    decorationList:[],
+    dropDownToggleData:{},
+    updateAddOnData:{}
 }
 
 const CartSlice = createSlice(
@@ -283,6 +326,30 @@ const CartSlice = createSlice(
                     state.error = false;
                 })
                 .addCase(getDecorationType.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+                       .addCase(dropDownToggle.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(dropDownToggle.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.dropDownToggleData = payload;
+                    state.error = false;
+                })
+                .addCase(dropDownToggle.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+                .addCase(updateAddOn.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(updateAddOn.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.updateAddOnData = payload;
+                    state.error = false;
+                })
+                .addCase(updateAddOn.rejected, (state, { payload }) => {
                     state.loading = false;
                     state.error = payload;
                 })

@@ -24,6 +24,29 @@ export const addAddress = createAsyncThunk(
     }
 )
 
+
+export const updateCustomer = createAsyncThunk(
+    'updateCustomer',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`postgresapi/user/order/customer/update`, userInput);
+            console.log("response", response);
+
+            if (response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                if (response?.data?.errors) {
+                    return rejectWithValue(response.data.errors);
+                } else {
+                    return rejectWithValue('Something went wrong.');
+                }
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+)
+
 export const saveOrder = createAsyncThunk(
     "order/saveOrder",
     async (orderData, { rejectWithValue }) => {
@@ -54,6 +77,7 @@ const initialState = {
     error: false,
     addAddressData: "",
     orderSaveData: "",
+    updateCustomerData:{}
 
 }
 
@@ -88,7 +112,20 @@ const CheckoutSlice = createSlice(
                 .addCase(saveOrder.rejected, (state, { payload }) => {
                     state.loading = false;
                     state.error = payload;
+                })
+                .addCase(updateCustomer.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(updateCustomer.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.updateCustomerData = payload;
+                    state.error = false;
+                })
+                .addCase(updateCustomer.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
                 });
+
         }
     }
 )

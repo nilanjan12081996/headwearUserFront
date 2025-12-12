@@ -63,7 +63,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getSuppliers } from '../reducers/SupplierSlice';
 import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 import ProductAccordion from './ProductAccordion';
-import { addCartUUID, cartList, getDecorationType } from '../reducers/CartSlice';
+import { addCartUUID, cartList, dropDownToggle, getDecorationType } from '../reducers/CartSlice';
 import { v4 as uuidv4 } from "uuid";
 
 
@@ -111,8 +111,8 @@ const page = () => {
   //   }))
   // }, [])
   // console.log("suppliersList", suppliersList);
- useEffect(() => {
-  const savedUUID = sessionStorage.getItem("uuid");
+  useEffect(() => {
+    const savedUUID = sessionStorage.getItem("uuid");
     dispatch(cartList({
       id: savedUUID
     }))
@@ -209,6 +209,11 @@ const page = () => {
                     id: selected?.id,
                     name: selected?.name
                   });
+
+                  dispatch(dropDownToggle({
+                    session_uuid: sessionStorage.getItem("uuid"),
+                    decoration_type_id: selected?.id
+                  }));
                 }}
               >
                 {decorationList?.data?.map((deco) => (
@@ -359,9 +364,9 @@ const page = () => {
         </div>
         <div className='bg-[#ed1c24] py-4 text-center'>
           <p className='text-xl text-white font-bold pb-0'>
-            Current Total: {cartListItem?.data?.grand_total_amount ?? 0}
+            Current Total: {cartListItem?.data?.cart?.grand_total_amount ?? 0}
           </p>
-          <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.total_items? cartListItem?.data?.total_items : 0} items</p>
+          <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.cart?.total_items ? cartListItem?.data?.cart?.total_items : 0} items</p>
         </div>
       </div>
 
