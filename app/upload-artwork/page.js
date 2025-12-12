@@ -53,6 +53,10 @@ import on_progress from "../assets/imagesource/on_progress.png";
 
 import right_icon from "../assets/imagesource/smallCheck.png";
 import blue_icon from "../assets/imagesource/smallCheckBlue.png";
+import back_stitching from "../assets/imagesource/stitching1.jpg";
+import left_stitching from "../assets/imagesource/stitching2.jpg";
+import right_stitching from "../assets/imagesource/stitching3.jpg";
+
 
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -124,7 +128,7 @@ const page = () => {
   const [placementSizeNotes, setPlacementSizeNotes] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
 
-  const [colorNotes, setColorNotes]=useState("")
+  const [colorNotes, setColorNotes] = useState("")
 
   // Back stitching states
   const [backStitching, setBackStitching] = useState(false);
@@ -151,19 +155,19 @@ const page = () => {
     {
       id: "back",
       label: "Back Stitching",
-      img: "/images/back-stitching.jpg",
+      img: back_stitching,
       color: "#0046ff",
     },
     {
       id: "left",
       label: "Left Side Stitching",
-      img: "/images/left-stitching.jpg",
+      img: left_stitching,
       color: "#0046ff",
     },
     {
       id: "right",
       label: "Right Side Stitching",
-      img: "/images/right-stitching.jpg",
+      img: right_stitching,
       color: "gray",
     },
   ];
@@ -274,6 +278,7 @@ const page = () => {
       });
     }
   }, [decorationList]);
+  console.log("selectedOption", selectedOption)
 
 
   const handleStitchingFileUpload = async (event, type) => {
@@ -453,7 +458,7 @@ const page = () => {
               required
               value={selectedOption.id}
               onChange={(e) => {
-                const selected = decorationList?.data?.find(d => d.recordId === e.target.value);
+                const selected = decorationList?.data?.find(d => d.id === e.target.value);
                 if (selected) {
                   setSelectedOption({ id: selected.id, name: selected.name });
                   setSelectedDecorationId(selected.id);
@@ -468,7 +473,7 @@ const page = () => {
             >
               <option value="">Select Decoration Type</option>
               {decorationList?.data?.map((deco) => (
-                <option key={deco.recordId} value={deco.recordId}>{deco.name}</option>
+                <option key={deco.id} value={deco.id}>{deco.name}</option>
               ))}
             </Select>
 
@@ -790,7 +795,7 @@ const page = () => {
             <div className="mb-8 mt-4">
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className={`border rounded-xl p-5 cursor-pointer transition ${embroideryType === "Standard Flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
+                <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "Standard Flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
                   <input type="radio" name="embroidery" value="Standard Flat" checked={embroideryType === "Standard Flat"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
                   <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
                   <p className="text-sm text-gray-600 mb-4">Most common embroidery type. Works well for smaller details.</p>
@@ -799,7 +804,7 @@ const page = () => {
                   </button>
                 </label>
 
-                <label className={`border rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D Puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
+                <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D Puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
                   <input type="radio" name="embroidery" value="3D Puff" checked={embroideryType === "3D Puff"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
                   <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
                   <p className="text-sm text-gray-600 mb-4">Creates a raised 3D look. Only certain designs can be puffed.</p>
@@ -898,7 +903,7 @@ const page = () => {
             <div className="px-4 py-3 bg-[#ff0000]">
               <h2 className="text-2xl font-bold text-white">Additional Addons</h2>
             </div>
-            <div className="mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+            <div className= "w-full lg:w-1/2 mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
               <div className="rounded-xl bg-[#f5f5f5] p-4 text-sm text-gray-800">
                 <h3 className="mb-2 text-lg font-semibold">Back & Side Stitching</h3>
                 <p>You can add back, left side and right side stitching to your hats.</p>
@@ -913,7 +918,14 @@ const page = () => {
 
                   return (
                     <button key={option.id} className={`overflow-hidden rounded-xl border-4 ${isSelected ? "border-red-500 bg-[#f5f8ff]" : "border-gray-300 bg-white"}`} onClick={() => toggleStitching(option.id)}>
-                      <img src={option.img} alt={option.label} className="h-32 w-full object-cover" />
+                      <Image
+                        src={option.img}
+                        alt={option.label}
+                        className="w-full object-cover"
+                        width={300}
+                        height={200}
+                      />
+
                       <div className={`py-2 text-center text-sm font-semibold ${isSelected ? "bg-[#ed1c24] text-white" : "text-gray-600 bg-white"}`}>
                         {option.label}
                       </div>
