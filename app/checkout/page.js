@@ -125,8 +125,8 @@ useEffect(() => {
         email: data.email,
         phone: data.phone,
         company_name: data.company_name,
-        //session_uuid: savedUUid
-        session_uuid: '7a7f3285-43fc-43c4-a03b-822c018dfb07'
+        session_uuid: savedUUid
+        //session_uuid: '7a7f3285-43fc-43c4-a03b-822c018dfb07'
       },
       billing: {
         line1: data.billing.line1,
