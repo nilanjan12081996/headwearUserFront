@@ -79,7 +79,7 @@ import { FaCheck, FaPlus } from "react-icons/fa";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { getDecorationType, uploadLogo } from '../reducers/CartSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { addArtWork } from '../reducers/ArtWorkSlice';
+import { addArtWork, addOnPrice, setUpPlanList } from '../reducers/ArtWorkSlice';
 import { useRef } from "react";
 import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
@@ -92,7 +92,7 @@ const page = () => {
   const router = useRouter();
   const { cartListItem } = useSelector((state) => state?.cart);
   const { decorationList } = useSelector((state) => state?.cart)
-  const { loading } = useSelector((state) => state?.art)
+  const { loading,adonPriceData,setUpPlanListData } = useSelector((state) => state?.art)
   const searchParams = useSearchParams();
   const supName = atob(searchParams.get('name'))
   const [logoId, setLogoId] = useState()
@@ -108,6 +108,7 @@ const page = () => {
   const [backFile, setBackFile] = useState(null);
   const [leftFile, setLeftFile] = useState(null);
   const [rightFile, setRightFile] = useState(null);
+  const [logoNotes, setLogoNotes] = useState()
 
 
   const toggleStitch = (id) => {
@@ -151,6 +152,14 @@ const page = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const checkboxRef = useRef(null);
 
+useEffect(()=>{
+dispatch(addOnPrice())
+dispatch(setUpPlanList())
+  },[])
+console.log("adonPriceData",adonPriceData);
+console.log("setUpPlanListData",setUpPlanListData);
+
+
   const stitchingOptions = [
     {
       id: "back",
@@ -173,9 +182,9 @@ const page = () => {
   ];
 
   const placements = [
-    { id: "left", label: "Left Side", img: cap_left },
-    { id: "front", label: "Front Center", img: cap_front },
-    { id: "right", label: "Right Side", img: cap_right },
+    { id: "left", label: "left_side", img: cap_left },
+    { id: "front", label: "front_center", img: cap_front },
+    { id: "right", label: "right_side", img: cap_right },
 
   ];
 
@@ -226,8 +235,9 @@ const page = () => {
 
     // Create FormData
     const formData = new FormData();
-    formData.append('uuid', deviceId); // Your device/session ID
-    formData.append('image', file);
+    formData.append('session_uuid', deviceId); // Your device/session ID
+    formData.append('logo', file);
+    formData.append('notes',"N/A")
 
     try {
       const result = await dispatch(uploadLogo(formData)).unwrap();
@@ -238,8 +248,8 @@ const page = () => {
 
         setUploadedFile(prev => ({
           ...prev,
-          serverPath: result.data?.imagePaths[0],
-          sessionUUID: result.data?.Session_UUID
+          serverPath: result.data?.original_file_url,
+          sessionUUID: result.data?.session_uuid
         }));
         // const uploadedImagePath = result.imagePaths[0];
         // console.log('Uploaded:', uploadedImagePath);
@@ -434,6 +444,12 @@ const page = () => {
               </div>
             )}
 
+            {/* Logo Notes */}
+            {/* <div className='mb-8 form_area'>
+              <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Use the Placement & Size Notes below to give us any specific sizing or placement you may want.</p>
+              <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Note:</strong> Add Notes</p>
+              <Textarea className='!text-black' rows={3} value={logoNotes} onChange={(e) => setLogoNotes(e.target.value)} placeholder="Any specific notes about placement or size" />
+            </div> */}
             <div ref={checkboxRef} className="flex items-center gap-2 check_area">
               <div>
                 <Checkbox id="promotion"
@@ -795,8 +811,8 @@ const page = () => {
             <div className="mb-8 mt-4">
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "Standard Flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
-                  <input type="radio" name="embroidery" value="Standard Flat" checked={embroideryType === "Standard Flat"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
+                <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "standard_flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
+                  <input type="radio" name="embroidery" value="standard_flat" checked={embroideryType === "standard_flat"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
                   <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
                   <p className="text-sm text-gray-600 mb-4">Most common embroidery type. Works well for smaller details.</p>
                   <button type="button" className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium">
@@ -804,13 +820,14 @@ const page = () => {
                   </button>
                 </label>
 
-                <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D Puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
-                  <input type="radio" name="embroidery" value="3D Puff" checked={embroideryType === "3D Puff"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
+                <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D_puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
+                  <input type="radio" name="embroidery" value="3D_puff" checked={embroideryType === "3D_puff"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
                   <h3 className="text-lg font-semibold mb-2">3D Puff Embroidery</h3>
                   <p className="text-sm text-gray-600 mb-4">Creates a raised 3D look. Only certain designs can be puffed.</p>
                   <button type="button" className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium">
                     3D Puff Embroidery
                   </button>
+                  
                 </label>
               </div>
             </div>
@@ -903,7 +920,7 @@ const page = () => {
             <div className="px-4 py-3 bg-[#ff0000]">
               <h2 className="text-2xl font-bold text-white">Additional Addons</h2>
             </div>
-            <div className= "w-full lg:w-1/2 mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+            <div className="w-full lg:w-1/2 mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
               <div className="rounded-xl bg-[#f5f5f5] p-4 text-sm text-gray-800">
                 <h3 className="mb-2 text-lg font-semibold">Back & Side Stitching</h3>
                 <p>You can add back, left side and right side stitching to your hats.</p>

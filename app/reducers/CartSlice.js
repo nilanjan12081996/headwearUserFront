@@ -90,7 +90,7 @@ export const addCartItem = createAsyncThunk(
     'addCartItem',
     async (userInput, { rejectWithValue }) => {
         try {
-            const response = await api.post(`user/cart/item/save`, userInput);
+            const response = await api.post(`postgresapi/user/cart/items-add`, userInput);
             console.log("Cart Item Response", response);
 
             if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
