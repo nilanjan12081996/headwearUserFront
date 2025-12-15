@@ -22,7 +22,7 @@ const Header = () => {
   const [openVerifyOtpModal, setOpenVerifyOtpModal] = useState(false);
   const [openPricModal, setOpenPriceModal] = useState(false);
   const [openCartPopup, setOpenCartPopup] = useState(false);
-  const totalQty = cartListItem?.data?.data?.summary?.totalQuantity || 0;
+  const totalQty = cartListItem?.data?.cart?.total_items || 0;
   // console.log('totalQty',totalQty)
 
 

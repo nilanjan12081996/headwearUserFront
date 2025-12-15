@@ -77,7 +77,7 @@ import Image from 'next/image';
 
 import { FaCheck, FaPlus } from "react-icons/fa";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
-import { cartList, getDecorationType, uploadLogo } from '../reducers/CartSlice';
+import { cartList, dropDownToggle, getDecorationType, uploadLogo } from '../reducers/CartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { addArtWork, addOnPrice, setUpPlanList, updateAddOn } from '../reducers/ArtWorkSlice';
 import { useRef } from "react";
@@ -123,7 +123,7 @@ const page = () => {
   const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState("left side");
+  const [logoPlacement, setLogoPlacement] = useState("right_side");
 
   // Additional options
   const [placementSizeNotes, setPlacementSizeNotes] = useState("");
@@ -183,9 +183,9 @@ const page = () => {
 
 
   const placements = [
-    { id: "left", label: "left side", img: cap_left },
-    { id: "front", label: "front center", img: cap_front },
-    { id: "right", label: "right side", img: cap_right },
+    { id: "left", label: "right_side", img: cap_left, heading: "Right Side" },
+    { id: "front", label: "front_center", img: cap_front, heading: "Front Center" },
+    { id: "right", label: "left_side", img: cap_right, heading: "Left Side" },
 
   ];
 
@@ -410,16 +410,16 @@ const page = () => {
     return totalQty >= tier.min_qty && totalQty <= tier.max_qty;
   });
 
-  
- const backStitchingTiers =
-  adonPriceData?.data?.backStitching?.[0]?.price_tiers || [];
 
-const activeBackStitchingTier = backStitchingTiers.find(tier => {
-  if (tier.max_qty === null) {
-    return totalQty >= tier.min_qty;
-  }
-  return totalQty >= tier.min_qty && totalQty <= tier.max_qty;
-});
+  const backStitchingTiers =
+    adonPriceData?.data?.backStitching?.[0]?.price_tiers || [];
+
+  const activeBackStitchingTier = backStitchingTiers.find(tier => {
+    if (tier.max_qty === null) {
+      return totalQty >= tier.min_qty;
+    }
+    return totalQty >= tier.min_qty && totalQty <= tier.max_qty;
+  });
 
 
 
@@ -430,7 +430,8 @@ const activeBackStitchingTier = backStitchingTiers.find(tier => {
     notes = ""
   }) => {
     const payload = {
-      session_uuid: sessionUUid || deviceId
+      session_uuid: sessionUUid,
+      primary_decoration_type_id: selectedOption.id,
     };
 
     // CASE 1: Setup Plan update
@@ -450,12 +451,17 @@ const activeBackStitchingTier = backStitchingTiers.find(tier => {
     console.log("Final Payload", payload);
 
     try {
-      await dispatch(updateAddOn(payload)).unwrap();
-      dispatch(
-        cartList({
-          id: savedUUid
+      await dispatch(updateAddOn(payload))
+        .then((res) => {
+          console.log('ss',res)
+          if (res.payload.status_code === 200) {
+            dispatch(
+              cartList({
+                id: sessionUUid
+              })
+            )
+          }
         })
-      );
     } catch (err) {
       console.error(err);
     }
@@ -563,6 +569,10 @@ const activeBackStitchingTier = backStitchingTiers.find(tier => {
                 if (selected) {
                   setSelectedOption({ id: selected.id, name: selected.name });
                   setSelectedDecorationId(selected.id);
+                  dispatch(dropDownToggle({
+                    session_uuid: sessionStorage.getItem("uuid"),
+                    decoration_type_id: selected?.id
+                  }));
 
                   if (selected.name === "Embroidery") {
                     setSelectedStyle("Embroidery");
@@ -1073,7 +1083,7 @@ const activeBackStitchingTier = backStitchingTiers.find(tier => {
                       <Image src={item.img} alt={item.label} />
                     </div>
 
-                    <p className='text-[18px] text-[#353535] font-medium'>{item.label}</p>
+                    <p className='text-[18px] text-[#353535] font-medium'>{item.heading}</p>
                   </div>
                 ))}
               </div>
@@ -1121,8 +1131,8 @@ const activeBackStitchingTier = backStitchingTiers.find(tier => {
                 <div className="mt-3">
                   {/* Header Row (Quantities) */}
                   <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t mb-1">
-                    {backStitchingTiers .map((tier) => {
-                      const isActive = activeBackStitchingTier ?.id === tier.id;
+                    {backStitchingTiers.map((tier) => {
+                      const isActive = activeBackStitchingTier?.id === tier.id;
 
                       return (
                         <div
@@ -1150,7 +1160,7 @@ const activeBackStitchingTier = backStitchingTiers.find(tier => {
                   </div> */}
                   <div className="grid grid-cols-6 text-center bg-white rounded-b">
                     {backStitchingTiers.map((tier) => {
-                      const isActive = activeBackStitchingTier ?.id === tier.id;
+                      const isActive = activeBackStitchingTier?.id === tier.id;
 
                       return (
                         <div

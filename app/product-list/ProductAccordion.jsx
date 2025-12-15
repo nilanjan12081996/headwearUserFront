@@ -376,10 +376,13 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                 const newCartItemId =
                     res?.payload?.data?.cartGroups?.[0]?.cartItems?.[0]?.id;
+                    console.log("newCartItemId",newCartItemId);
+                    
 
                 if (!newCartItemId) {
                     throw new Error("Cart item creation failed");
                 }
+                localStorage.setItem("cartId", newCartItemId);
                 setCartItemMap(prev => {
                     const updated = {
                         ...prev,
