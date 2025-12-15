@@ -325,6 +325,7 @@ const page = () => {
 
 
   const savedCardId = localStorage.getItem('cartId')
+  const cart_id=localStorage.getItem('cart_id')
   // Prepare final payload
   const preparePayload = () => {
     const selectedDecoration = decorationList?.data?.find(
@@ -334,7 +335,7 @@ const page = () => {
     const payload = {
       sessionUuid: sessionUUid || deviceId,
       // cart_id: cartId,
-      cart_id: savedCardId,
+      cart_id: cart_id,
       logo_id: logoId,
       primary_decoration_type_id: selectedOption.id,
       embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",

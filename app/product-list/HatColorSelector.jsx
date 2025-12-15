@@ -56,6 +56,7 @@
 
 import Image from "next/image";
 import { FiPlusCircle } from "react-icons/fi";
+import black_cap from "../assets/imagesource/black_cap.png";
 
 const HatColorSelector = ({
   colorName,
@@ -71,8 +72,15 @@ const HatColorSelector = ({
       
       {/* IMAGE */}
       <div className="relative w-[120px] mx-auto mb-2">
-        <Image
+        {/* <Image
           src={colorImage}
+          width={80}
+          height={80}
+          alt={colorName}
+          className="mx-auto"
+        /> */}
+         <Image
+          src={black_cap}
           width={80}
           height={80}
           alt={colorName}
@@ -89,7 +97,7 @@ const HatColorSelector = ({
       </p>
 
       {/* SIZE GRID */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-3">
         {sizeVariants.map(size => {
           const qty = quantities?.[size.id] || 0;
 

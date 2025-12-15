@@ -377,12 +377,13 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                 const newCartItemId =
                     res?.payload?.data?.cartGroups?.[0]?.cartItems?.[0]?.id;
                     console.log("newCartItemId",newCartItemId);
-                    
+                const cart_id=res?.payload?.data?.id
 
                 if (!newCartItemId) {
                     throw new Error("Cart item creation failed");
                 }
                 localStorage.setItem("cartId", newCartItemId);
+                localStorage.setItem("cart_id",cart_id)
                 setCartItemMap(prev => {
                     const updated = {
                         ...prev,
@@ -582,7 +583,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     <div key={brand.id}>
 
                         <div className='bg-[#efefef] p-4 my-2'>
-                            <Image src={base_url + brand?.image_url} width={100} height={50} />
+                            {/* <Image src={base_url + brand?.image_url} width={100} height={50} /> */}
                             <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.name}</h2>
                         </div>
 

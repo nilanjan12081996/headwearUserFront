@@ -101,6 +101,7 @@ const page = () => {
 
   const savedUUid = sessionStorage.getItem("uuid")
   const cartId = localStorage.getItem("cartId")
+  const cart_id = localStorage.getItem("cart_id")
 
   const billing = watch("billing");
 
@@ -165,7 +166,7 @@ const page = () => {
         setShippingId(res?.payload?.data?.addresses?.[0]?.data?.id)
         setBillingId(res?.payload?.data?.addresses?.[1]?.data?.id)
         dispatch(updateCustomer({
-          id: cartId,
+          id: cart_id,
           customer_id: res?.payload?.data?.customer?.id
         }))
         toast.success(res?.payload?.message)
