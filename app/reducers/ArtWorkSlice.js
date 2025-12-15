@@ -69,15 +69,38 @@ export const setUpPlanList = createAsyncThunk(
     }
 )
 
+export const updateAddOn = createAsyncThunk(
+    'cart/updateAddOn',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.patch(`postgresapi/user/cart/artwork/update`, userInput);
+
+            console.log("Cart Item Response", response);
+
+            if (response?.data?.status_code === 201 || response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            const errorMessage = err?.response?.data?.message || err?.message || "Failed to update cart item";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+
 
 
 
 const initialState = {
     loading: false,
     error: false,
-    addArtWorkData:"",
-    adonPriceData:[],
-    setUpPlanListData:[]
+    addArtWorkData: "",
+    adonPriceData: [],
+    setUpPlanListData: [],
+    // updateArtWorkData: [],
+    updateAddOnData: {}
 
 }
 
@@ -88,42 +111,55 @@ const ArtWorkSlice = createSlice(
         reducers: {},
         extraReducers: (builder) => {
             builder
-            .addCase(addArtWork.pending,(state)=>{
-                state.loading=true
-            })
-            .addCase(addArtWork.fulfilled,(state,{payload})=>{
-                state.loading=false
-                state.addArtWorkData=payload
-                state.error=false
-            })
-            .addCase(addArtWork.rejected,(state,{payload})=>{
-                state.loading=false
-                state.error=payload
-            })
-                .addCase(addOnPrice.pending,(state)=>{
-                state.loading=true
-            })
-            .addCase(addOnPrice.fulfilled,(state,{payload})=>{
-                state.loading=false
-                state.adonPriceData=payload
-                state.error=false
-            })
-            .addCase(addOnPrice.rejected,(state,{payload})=>{
-                state.loading=false
-                state.error=payload
-            })
-                  .addCase(setUpPlanList.pending,(state)=>{
-                state.loading=true
-            })
-            .addCase(setUpPlanList.fulfilled,(state,{payload})=>{
-                state.loading=false
-                state.setUpPlanListData=payload
-                state.error=false
-            })
-            .addCase(setUpPlanList.rejected,(state,{payload})=>{
-                state.loading=false
-                state.error=payload
-            })
+                .addCase(addArtWork.pending, (state) => {
+                    state.loading = true
+                })
+                .addCase(addArtWork.fulfilled, (state, { payload }) => {
+                    state.loading = false
+                    state.addArtWorkData = payload
+                    state.error = false
+                })
+                .addCase(addArtWork.rejected, (state, { payload }) => {
+                    state.loading = false
+                    state.error = payload
+                })
+                .addCase(addOnPrice.pending, (state) => {
+                    state.loading = true
+                })
+                .addCase(addOnPrice.fulfilled, (state, { payload }) => {
+                    state.loading = false
+                    state.adonPriceData = payload
+                    state.error = false
+                })
+                .addCase(addOnPrice.rejected, (state, { payload }) => {
+                    state.loading = false
+                    state.error = payload
+                })
+                .addCase(setUpPlanList.pending, (state) => {
+                    state.loading = true
+                })
+                .addCase(setUpPlanList.fulfilled, (state, { payload }) => {
+                    state.loading = false
+                    state.setUpPlanListData = payload
+                    state.error = false
+                })
+                .addCase(setUpPlanList.rejected, (state, { payload }) => {
+                    state.loading = false
+                    state.error = payload
+                })
+
+                .addCase(updateAddOn.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(updateAddOn.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.updateAddOnData = payload;
+                    state.error = false;
+                })
+                .addCase(updateAddOn.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
         }
     }
 )

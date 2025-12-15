@@ -77,9 +77,9 @@ import Image from 'next/image';
 
 import { FaCheck, FaPlus } from "react-icons/fa";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
-import { getDecorationType, uploadLogo } from '../reducers/CartSlice';
+import { cartList, getDecorationType, uploadLogo } from '../reducers/CartSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { addArtWork, addOnPrice, setUpPlanList } from '../reducers/ArtWorkSlice';
+import { addArtWork, addOnPrice, setUpPlanList, updateAddOn } from '../reducers/ArtWorkSlice';
 import { useRef } from "react";
 import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
@@ -120,10 +120,10 @@ const page = () => {
 
   // Decoration states
   const [selectedDecorationId, setSelectedDecorationId] = useState("");
-  const [embroideryType, setEmbroideryType] = useState("flat");
+  const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState("Front Center");
+  const [logoPlacement, setLogoPlacement] = useState("left side");
 
   // Additional options
   const [placementSizeNotes, setPlacementSizeNotes] = useState("");
@@ -165,26 +165,27 @@ const page = () => {
       id: "back",
       label: "Back Stitching",
       img: back_stitching,
-      color: "#0046ff",
+      addon_id: 2,
     },
     {
       id: "left",
       label: "Left Side Stitching",
       img: left_stitching,
-      color: "#0046ff",
+      addon_id: 3,
     },
     {
       id: "right",
       label: "Right Side Stitching",
       img: right_stitching,
-      color: "gray",
+      addon_id: 4,
     },
   ];
 
+
   const placements = [
-    { id: "left", label: "left_side", img: cap_left },
-    { id: "front", label: "front_center", img: cap_front },
-    { id: "right", label: "right_side", img: cap_right },
+    { id: "left", label: "left side", img: cap_left },
+    { id: "front", label: "front center", img: cap_front },
+    { id: "right", label: "right side", img: cap_right },
 
   ];
 
@@ -302,12 +303,26 @@ const page = () => {
     if (type === 'right') setRightStitchingFile(file);
   };
 
-  const toggleStitching = (id) => {
-    if (id === "back") setBackStitching(!backStitching);
-    if (id === "left") setLeftStitching(!leftStitching);
-    if (id === "right") setRightStitching(!rightStitching);
+  const toggleStitching = (option) => {
+    let currentValue = false;
+
+    if (option.id === "back") currentValue = backStitching;
+    if (option.id === "left") currentValue = leftStitching;
+    if (option.id === "right") currentValue = rightStitching;
+
+    const newValue = !currentValue;
+
+    if (option.id === "back") setBackStitching(newValue);
+    if (option.id === "left") setLeftStitching(newValue);
+    if (option.id === "right") setRightStitching(newValue);
+
+    handleArtworkUpdate({
+      addonId: option.addon_id,
+      enabled: newValue,
+    });
   };
-  
+
+
 
   const savedCardId = localStorage.getItem('cartId')
   // Prepare final payload
@@ -383,7 +398,69 @@ const page = () => {
 
   };
 
-  const totalQty = cartListItem?.data?.data?.summary?.totalQuantity || 0;
+  const totalQty = cartListItem?.data?.cart?.total_items || 0;
+
+  const threeDPuffTiers =
+    adonPriceData?.data?.threeDPuff?.[0]?.price_tiers || [];
+
+  const activeTier = threeDPuffTiers.find(tier => {
+    if (tier.max_qty === null) {
+      return totalQty >= tier.min_qty;
+    }
+    return totalQty >= tier.min_qty && totalQty <= tier.max_qty;
+  });
+
+  
+ const backStitchingTiers =
+  adonPriceData?.data?.backStitching?.[0]?.price_tiers || [];
+
+const activeBackStitchingTier = backStitchingTiers.find(tier => {
+  if (tier.max_qty === null) {
+    return totalQty >= tier.min_qty;
+  }
+  return totalQty >= tier.min_qty && totalQty <= tier.max_qty;
+});
+
+
+
+  const handleArtworkUpdate = async ({
+    setupPlanId = null,
+    addonId = null,
+    enabled = null,
+    notes = ""
+  }) => {
+    const payload = {
+      session_uuid: sessionUUid || deviceId
+    };
+
+    // CASE 1: Setup Plan update
+    if (setupPlanId !== null) {
+      payload.setup_plan_id = setupPlanId;
+    }
+
+    // CASE 2 / 3 / 4: Addon enable / disable
+    if (addonId !== null && enabled !== null) {
+      payload.addon = {
+        decoration_addon_id: addonId,
+        is_enabled: enabled ? 1 : 0,
+        ...(notes && { notes })
+      };
+    }
+
+    console.log("Final Payload", payload);
+
+    try {
+      await dispatch(updateAddOn(payload)).unwrap();
+      dispatch(
+        cartList({
+          id: savedUUid
+        })
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
 
 
   return (
@@ -676,7 +753,12 @@ const page = () => {
                   name="embroideryType"
                   value="flat"
                   checked={selectedPrice === "flat"}
-                  onChange={() => setSelectedPrice("flat")}
+                  onChange={() => {
+                    setSelectedPrice("flat");
+                    handleArtworkUpdate({
+                      setupPlanId: 1
+                    });
+                  }}
                   className="hidden"
                 />
 
@@ -755,7 +837,11 @@ const page = () => {
                       return;
                     }
                     setSelectedPrice("puff");
-                  }}
+                    handleArtworkUpdate({
+                      setupPlanId: 2
+                    });
+                  }
+                  }
                   className={`hidden ${totalQty < 12 ? "pointer-events-none opacity-50" : ""}`}
                 />
 
@@ -820,7 +906,16 @@ const page = () => {
               <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Embroidery Option</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "standard_flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
-                  <input type="radio" name="embroidery" value="standard_flat" checked={embroideryType === "standard_flat"} onChange={(e) => setEmbroideryType(e.target.value)} className="hidden" />
+                  <input type="radio" name="embroidery" value="standard_flat" checked={embroideryType === "standard_flat"}
+                    onChange={(e) => {
+                      setEmbroideryType(e.target.value);
+
+                      handleArtworkUpdate({
+                        addonId: 1,
+                        enabled: false
+                      });
+                    }}
+                    className="hidden" />
                   <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
                   <p className="text-sm text-gray-600 mb-4">Most common embroidery type. Works well for smaller details.</p>
                   <button type="button" className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium">
@@ -837,7 +932,14 @@ const page = () => {
                     name="embroidery"
                     value="3D_puff"
                     checked={embroideryType === "3D_puff"}
-                    onChange={(e) => setEmbroideryType(e.target.value)}
+                    onChange={(e) => {
+                      setEmbroideryType(e.target.value);
+
+                      handleArtworkUpdate({
+                        addonId: 1,
+                        enabled: true
+                      });
+                    }}
                     className="hidden"
                   />
 
@@ -866,7 +968,7 @@ const page = () => {
                   ))} */}
 
                   {/* ---- 3D Puff Price Table ---- */}
-                  <div className="bg-white border rounded-xl shadow p-4 mt-4">
+                  <div className="bg-white rounded-xl shadow p-4 mt-4">
 
                     <h3 className="text-center bg-[#e0e0e0] font-semibold p-2 rounded">
                       3D Puff Quantity Price Breaks
@@ -875,24 +977,37 @@ const page = () => {
                     {/* The Table */}
                     <div className="mt-3">
                       {/* Header Row (Quantities) */}
-                      <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t">
-                        {adonPriceData?.data?.threeDPuff?.[0]?.price_tiers?.map((tier) => (
-                          <div key={tier.id} className="py-2 font-bold text-sm">
-                            {tier.min_qty}
-                          </div>
-                        ))}
+                      <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t mb-1">
+                        {threeDPuffTiers.map((tier) => {
+                          const isActive = activeTier?.id === tier.id;
+
+                          return (
+                            <div
+                              key={tier.id}
+                              className={`py-2 font-bold text-sm mr-1
+          ${isActive ? 'bg-red-500 text-white' : 'bg-[#eee]'}`}
+                            >
+                              {tier.min_qty}
+                            </div>
+                          );
+                        })}
                       </div>
 
                       {/* Price Row */}
                       <div className="grid grid-cols-6 text-center bg-white rounded-b">
-                        {adonPriceData?.data?.threeDPuff?.[0]?.price_tiers?.map((tier) => (
-                          <div
-                            key={tier.id}
-                            className="py-2 text-sm font-semibold text-[#000]"
-                          >
-                            ${Number(tier.unit_price)}
-                          </div>
-                        ))}
+                        {threeDPuffTiers.map((tier) => {
+                          const isActive = activeTier?.id === tier.id;
+
+                          return (
+                            <div
+                              key={tier.id}
+                              className={`py-2 text-sm font-semibold mr-1
+          ${isActive ? 'bg-red-500 text-white' : 'text-black'}`}
+                            >
+                              ${Number(tier.unit_price)}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -1005,16 +1120,25 @@ const page = () => {
                 {/* The Table */}
                 <div className="mt-3">
                   {/* Header Row (Quantities) */}
-                  <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t">
-                    {adonPriceData?.data?.backStitching?.[0]?.price_tiers?.map((tier) => (
-                      <div key={tier.id} className="py-2 font-bold text-sm bg-[#eee]">
-                        {tier.min_qty}
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t mb-1">
+                    {backStitchingTiers .map((tier) => {
+                      const isActive = activeBackStitchingTier ?.id === tier.id;
+
+                      return (
+                        <div
+                          key={tier.id}
+                          className={`py-2 font-bold text-sm mr-1
+          ${isActive ? 'bg-red-500 text-white' : 'bg-[#eee]'}`}
+                        >
+                          {tier.min_qty}
+                        </div>
+                      );
+                    })}
                   </div>
 
+
                   {/* Price Row */}
-                  <div className="grid grid-cols-6 text-center bg-white rounded-b">
+                  {/* <div className="grid grid-cols-6 text-center bg-white rounded-b">
                     {adonPriceData?.data?.backStitching?.[0]?.price_tiers?.map((tier) => (
                       <div
                         key={tier.id}
@@ -1023,7 +1147,23 @@ const page = () => {
                         ${Number(tier.unit_price)}
                       </div>
                     ))}
+                  </div> */}
+                  <div className="grid grid-cols-6 text-center bg-white rounded-b">
+                    {backStitchingTiers.map((tier) => {
+                      const isActive = activeBackStitchingTier ?.id === tier.id;
+
+                      return (
+                        <div
+                          key={tier.id}
+                          className={`py-2 text-sm font-semibold mr-1
+          ${isActive ? 'bg-red-500 text-white' : 'text-black'}`}
+                        >
+                          ${Number(tier.unit_price)}
+                        </div>
+                      );
+                    })}
                   </div>
+
                 </div>
               </div>
 
@@ -1036,7 +1176,7 @@ const page = () => {
                     (option.id === "right" && rightStitching);
 
                   return (
-                    <button key={option.id} className={`overflow-hidden rounded-xl border-4 ${isSelected ? "border-red-500 bg-[#f5f8ff]" : "border-gray-300 bg-white"}`} onClick={() => toggleStitching(option.id)}>
+                    <button key={option.id} className={`overflow-hidden rounded-xl border-4 ${isSelected ? "border-red-500 bg-[#f5f8ff]" : "border-gray-300 bg-white"}`} onClick={() => toggleStitching(option)}>
                       <Image
                         src={option.img}
                         alt={option.label}

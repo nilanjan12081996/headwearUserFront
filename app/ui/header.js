@@ -23,7 +23,7 @@ const Header = () => {
   const [openPricModal, setOpenPriceModal] = useState(false);
   const [openCartPopup, setOpenCartPopup] = useState(false);
   const totalQty = cartListItem?.data?.data?.summary?.totalQuantity || 0;
-  console.log('totalQty',totalQty)
+  // console.log('totalQty',totalQty)
 
 
   // Navbar toggle state
