@@ -29,6 +29,7 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId }) => {
       localStorage.removeItem("cart_id");
       localStorage.removeItem("cartItemMap");
       localStorage.removeItem("hatQuantities");
+      sessionStorage.removeItem("uuid")
 
       toast.success("Order placed successfully!");
       setTimeout(() => {
