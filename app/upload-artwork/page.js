@@ -325,7 +325,7 @@ const page = () => {
 
 
   const savedCardId = localStorage.getItem('cartId')
-  const cart_id=localStorage.getItem('cart_id')
+  const cart_id = localStorage.getItem('cart_id')
   // Prepare final payload
   const preparePayload = () => {
     const selectedDecoration = decorationList?.data?.find(
@@ -454,7 +454,7 @@ const page = () => {
     try {
       await dispatch(updateAddOn(payload))
         .then((res) => {
-          console.log('ss',res)
+          console.log('ss', res)
           if (res.payload.status_code === 200) {
             dispatch(
               cartList({
@@ -468,6 +468,31 @@ const page = () => {
     }
   };
 
+
+  const hatQuantities = JSON.parse(
+    localStorage.getItem("hatQuantities") || "{}"
+  );
+  const totalItems = Object.values(hatQuantities)
+  .flatMap(h =>
+    Object.values(h).flatMap(c =>
+      Object.values(c)
+    )
+  )
+  .reduce((sum, qty) => sum + Number(qty || 0), 0);
+
+let progressPercent = 0;
+if (totalItems <= 12) {
+  progressPercent = (totalItems / 12) * 33.333;
+} 
+else if (totalItems <= 24) {
+  progressPercent = 33.333 + ((totalItems - 12) / 12) * 33.333;
+} 
+else if (totalItems <= 48) {
+  progressPercent = 66.666 + ((totalItems - 24) / 24) * 33.333;
+} 
+else {
+  progressPercent = 100;
+}
 
 
   return (
@@ -1269,35 +1294,53 @@ const page = () => {
         </div>
       </div>
 
-      {/* <div className='grid grid-cols-1 lg:grid-cols-3 gap-0'>
-        <div className='bg-[#9f9f9f] py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area'>
-          <div className='flex items-center gap-2 relative z-20'>
-            <IoIosColorPalette className='text-white text-5xl' />
-            <div>
-              <p className='text-white text-base font-medium'>12+ Items</p>
-              <p className='text-white text-base font-medium'>Free Artwork Setup</p>
+      <div className='fixed bottom-0 w-full'>
+        <div className='grid grid-cols-3 gap-0 bg-[#9f9f9f] relative'>
+          <div
+            className='absolute top-0 left-0 h-full bg-[#ff7379] z-0'
+            style={{ width: `${progressPercent}%`, transition: 'width 0.3s' }}
+          />
+          <div className='py-3 flex justify-center items-center border-r-2 z-20 border-[#000000] item_area relative'>
+            <div className='flex items-center gap-2 relative z-20'>
+              <div>
+                <IoIosColorPalette className='text-white text-2xl  md:text-2xl lg:text-5xl' />
+              </div>
+              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
+                <p className='text-white'>12+ Items</p>
+                <p className='text-white'>Free Artwork Setup</p>
+              </div>
+            </div>
+          </div>
+          <div className='py-3 flex justify-center items-center border-r-2 border-[#000000] z-20'>
+            <div className='flex items-center gap-2 relative '>
+              <div>
+                <TbTruckDelivery className='text-white text-2xl  md:text-2xl lg:text-5xl' />
+              </div>
+              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
+                <p className='text-white'>24+ Items</p>
+                <p className='text-white'>Free Shipping</p>
+              </div>
+            </div>
+          </div>
+          <div className='py-3 flex justify-center items-center'>
+            <div className='flex items-center gap-2 relative z-20'>
+              <div>
+                <IoMdTrophy className='text-white text-2xl  md:text-3xl lg:text-5xl' />
+              </div>
+              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
+                <p className='text-white'>48+ Items</p>
+                <p className='text-white'>Free Premium Setup</p>
+              </div>
             </div>
           </div>
         </div>
-        <div className='bg-[#9f9f9f] py-6 flex justify-center items-center lg:border-r-2 border-[#000000] item_area'>
-          <div className='flex items-center gap-2 relative z-20'>
-            <TbTruckDelivery className='text-white text-5xl' />
-            <div>
-              <p className='text-white text-base font-medium'>24+ Items</p>
-              <p className='text-white text-base font-medium'>Free Shipping</p>
-            </div>
-          </div>
+        <div className='bg-[#ed1c24] py-3 text-center'>
+          <p className='text-xl text-white font-bold pb-0'>
+            Current Total: {cartListItem?.data?.cart?.grand_total_amount ?? 0}
+          </p>
+          <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.cart?.total_items ? cartListItem?.data?.cart?.total_items : 0} items</p>
         </div>
-        <div className='bg-[#9f9f9f] py-6 flex justify-center items-center'>
-          <div className='flex items-center gap-2'>
-            <IoMdTrophy className='text-white text-5xl' />
-            <div>
-              <p className='text-white text-base font-medium'>48+ Items</p>
-              <p className='text-white text-base font-medium'>Free Premium Setup</p>
-            </div>
-          </div>
-        </div>
-      </div> */}
+      </div>
     </div>
   )
 }

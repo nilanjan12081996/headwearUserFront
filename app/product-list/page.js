@@ -150,16 +150,28 @@ const page = () => {
   // console.log('selectedOption', selectedOption)
 
 
- const totalItems = Object.values(hatQuantities)
-  .flatMap(hat =>
-    Object.values(hat).flatMap(color =>
-      Object.values(color)
+const totalItems = Object.values(hatQuantities)
+  .flatMap(h =>
+    Object.values(h).flatMap(c =>
+      Object.values(c)
     )
   )
-  .reduce((sum, qty) => sum + qty, 0);
+  .reduce((sum, qty) => sum + Number(qty || 0), 0);
 
-const maxItems = 40;
-const progressPercent = Math.min((totalItems / maxItems) * 100, 100);
+let progressPercent = 0;
+if (totalItems <= 12) {
+  progressPercent = (totalItems / 12) * 33.333;
+} 
+else if (totalItems <= 24) {
+  progressPercent = 33.333 + ((totalItems - 12) / 12) * 33.333;
+} 
+else if (totalItems <= 48) {
+  progressPercent = 66.666 + ((totalItems - 24) / 24) * 33.333;
+} 
+else {
+  progressPercent = 100;
+}
+
 
 
   useEffect(() => {
@@ -336,10 +348,10 @@ const progressPercent = Math.min((totalItems / maxItems) * 100, 100);
             className='absolute top-0 left-0 h-full bg-[#ff7379] z-0'
             style={{ width: `${progressPercent}%`, transition: 'width 0.3s' }}
           />
-          <div className='py-6 flex justify-center items-center border-r-2 border-[#000000] item_area relative'>
-            <div className='flex items-center gap-2 relative z-20'>
+          <div className='py-3 flex justify-center items-center border-r-2 z-20 border-[#000000] item_area relative'>
+            <div className='flex items-center gap-2 relative '>
               <div>
-                <IoIosColorPalette className='text-white text-2xl  md:text-2xl lg:text-5xl' />
+                <IoIosColorPalette className='text-white text-2xl md:text-2xl lg:text-5xl' />
               </div>
               <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
                 <p className='text-white'>12+ Items</p>
@@ -347,8 +359,8 @@ const progressPercent = Math.min((totalItems / maxItems) * 100, 100);
               </div>
             </div>
           </div>
-          <div className='py-6 flex justify-center items-center border-r-2 border-[#000000]'>
-            <div className='flex items-center gap-2 relative z-20'>
+          <div className='py-3 flex justify-center items-center border-r-2 z-20 border-[#000000]'>
+            <div className='flex items-center gap-2 relative '>
               <div>
                 <TbTruckDelivery className='text-white text-2xl  md:text-2xl lg:text-5xl' />
               </div>
@@ -358,7 +370,7 @@ const progressPercent = Math.min((totalItems / maxItems) * 100, 100);
               </div>
             </div>
           </div>
-          <div className='py-6 flex justify-center items-center'>
+          <div className='py-3 flex justify-center items-center'>
             <div className='flex items-center gap-2 relative z-20'>
               <div>
                 <IoMdTrophy className='text-white text-2xl  md:text-3xl lg:text-5xl' />
@@ -370,7 +382,7 @@ const progressPercent = Math.min((totalItems / maxItems) * 100, 100);
             </div>
           </div>
         </div>
-        <div className='bg-[#ed1c24] py-4 text-center'>
+        <div className='bg-[#ed1c24] py-3 text-center'>
           <p className='text-xl text-white font-bold pb-0'>
             Current Total: {cartListItem?.data?.cart?.grand_total_amount ?? 0}
           </p>
