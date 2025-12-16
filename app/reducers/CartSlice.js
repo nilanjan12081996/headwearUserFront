@@ -186,6 +186,30 @@ export const getDecorationType = createAsyncThunk(
     }
 );
 
+export const deleteCartItem = createAsyncThunk(
+    'cart/deleteCartItem',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await api.delete(`postgresapi/user/cart/items-del/${id}`);
+
+            console.log("Delete Cart Item Response", response);
+
+            if (response?.data?.status_code === 200 || response?.data?.status_code === 201) {
+                return { id, data: response.data };
+            } else {
+                return rejectWithValue(response?.data?.errors || "Something went wrong.");
+            }
+        } catch (err) {
+            const errorMessage =
+                err?.response?.data?.message ||
+                err?.message ||
+                "Failed to delete cart item";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+
 
 
 
@@ -200,8 +224,9 @@ const initialState = {
     itemData: "",
     updateData: '',
     cartListItem: '',
-    decorationList:[],
-    dropDownToggleData:{},
+    decorationList: [],
+    dropDownToggleData: {},
+    deleteCartItemData: {}
 }
 
 const CartSlice = createSlice(
@@ -298,7 +323,7 @@ const CartSlice = createSlice(
                     state.loading = false;
                     state.error = payload;
                 })
-                    .addCase(getDecorationType.pending, (state) => {
+                .addCase(getDecorationType.pending, (state) => {
                     state.loading = true;
                 })
                 .addCase(getDecorationType.fulfilled, (state, { payload }) => {
@@ -310,7 +335,7 @@ const CartSlice = createSlice(
                     state.loading = false;
                     state.error = payload;
                 })
-                       .addCase(dropDownToggle.pending, (state) => {
+                .addCase(dropDownToggle.pending, (state) => {
                     state.loading = true;
                 })
                 .addCase(dropDownToggle.fulfilled, (state, { payload }) => {
@@ -319,6 +344,19 @@ const CartSlice = createSlice(
                     state.error = false;
                 })
                 .addCase(dropDownToggle.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                })
+
+                .addCase(deleteCartItem.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(deleteCartItem.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.deleteCartItemData = payload;
+                    state.error = false;
+                })
+                .addCase(deleteCartItem.rejected, (state, { payload }) => {
                     state.loading = false;
                     state.error = payload;
                 })

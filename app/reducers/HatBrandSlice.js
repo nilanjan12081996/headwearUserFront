@@ -79,12 +79,12 @@ const initialState = {
     brandList: [],
     brandWiseHatList: {},
     singleHatDetail: null,
-    pagination: {
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        totalCount: 0
-    }
+     pagination: {
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalCount: 0
+  }
 };
 
 const hatBrandSlice = createSlice({

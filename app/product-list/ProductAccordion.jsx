@@ -566,8 +566,6 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         router.push("/upload-artwork")
     }
 
-    console.log('pagination', pagination?.totalPages)
-
     return (
         <div className='product_details_area'>
             <ToastContainer />
@@ -626,9 +624,38 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                 <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
                                                                     <p className='text-base text-black'>{singleHatDetail?.data?.data?.description}</p>
                                                                 </div>
+                                                                <div className="bg-[#ff7379] text-center font-bold text-base py-2 text-white">
+                                                                    Size Chart
+                                                                </div>
 
-                                                                <div className='bg-[#ff7379] text-center mb-1 font-bold text-base py-2 text-white'>Size Chart</div>
-                                                                <div className='bg-[#eeeeee] text-center mb-1 font-medium text-base py-2 text-black'> {singleHatDetail?.data?.data?.size_chart_json?.size_cart_json}</div>
+                                                                <div>
+                                                                    <div
+                                                                        className="grid text-center font-semibold border-gray-300 bg-[#eeeeee] my-1"
+                                                                        style={{
+                                                                            gridTemplateColumns: `repeat(${singleHatDetail?.data?.data?.size_chart_json?.size_chart?.length || 1}, 1fr)`
+                                                                        }}
+                                                                    >
+                                                                        {singleHatDetail?.data?.data?.size_chart_json?.size_chart?.map((item, index) => (
+                                                                            <div key={index} className="py-2">
+                                                                                {item.size}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+
+                                                                    <div
+                                                                        className="grid text-center text-sm"
+                                                                        style={{
+                                                                            gridTemplateColumns: `repeat(${singleHatDetail?.data?.data?.size_chart_json?.size_chart?.length || 1}, 1fr)`
+                                                                        }}
+                                                                    >
+                                                                        {singleHatDetail?.data?.data?.size_chart_json?.size_chart?.map((item, index) => (
+                                                                            <div key={index} className="py-2">
+                                                                                {item.value}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+
 
                                                                 {/* PRICE TABLE */}
                                                                 <div>
@@ -820,7 +847,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                 : "bg-[#ff7379] hover:bg-[#ee8d92] text-white"
                             }`}
                     >
-                         <IoIosArrowBack />
+                        <IoIosArrowBack />
                     </button>
 
                     <span className="text-lg font-medium">
@@ -830,7 +857,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     <button
                         disabled={page === pagination.totalPages}
                         onClick={() => setPage(prev => prev + 1)}
-                         className={`w-10 h-10 flex items-center justify-center rounded-full text-2xl font-bold
+                        className={`w-10 h-10 flex items-center justify-center rounded-full text-2xl font-bold
         ${page === pagination.totalPages
                                 ? "bg-gray-300 cursor-not-allowed"
                                 : "bg-[#ff7379] hover:bg-[#ee8d92] text-white"

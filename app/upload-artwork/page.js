@@ -109,6 +109,7 @@ const page = () => {
   const [leftFile, setLeftFile] = useState(null);
   const [rightFile, setRightFile] = useState(null);
   const [logoNotes, setLogoNotes] = useState()
+  const [open, setOpen] = useState(false);
 
 
   const toggleStitch = (id) => {
@@ -473,26 +474,26 @@ const page = () => {
     localStorage.getItem("hatQuantities") || "{}"
   );
   const totalItems = Object.values(hatQuantities)
-  .flatMap(h =>
-    Object.values(h).flatMap(c =>
-      Object.values(c)
+    .flatMap(h =>
+      Object.values(h).flatMap(c =>
+        Object.values(c)
+      )
     )
-  )
-  .reduce((sum, qty) => sum + Number(qty || 0), 0);
+    .reduce((sum, qty) => sum + Number(qty || 0), 0);
 
-let progressPercent = 0;
-if (totalItems <= 12) {
-  progressPercent = (totalItems / 12) * 33.333;
-} 
-else if (totalItems <= 24) {
-  progressPercent = 33.333 + ((totalItems - 12) / 12) * 33.333;
-} 
-else if (totalItems <= 48) {
-  progressPercent = 66.666 + ((totalItems - 24) / 24) * 33.333;
-} 
-else {
-  progressPercent = 100;
-}
+  let progressPercent = 0;
+  if (totalItems <= 12) {
+    progressPercent = (totalItems / 12) * 33.333;
+  }
+  else if (totalItems <= 24) {
+    progressPercent = 33.333 + ((totalItems - 12) / 12) * 33.333;
+  }
+  else if (totalItems <= 48) {
+    progressPercent = 66.666 + ((totalItems - 24) / 24) * 33.333;
+  }
+  else {
+    progressPercent = 100;
+  }
 
 
   return (
@@ -585,7 +586,7 @@ else {
           </div>
 
           {/* Decoration Method Dropdown */}
-          <div className='mt-5 mb-8 decoration_type_area'>
+          {/* <div className='mt-5 mb-8 decoration_type_area'>
             <Label className='text-[#615E5E] text-base mb-2 block'>Decoration Method</Label>
             <Select
               required
@@ -614,7 +615,73 @@ else {
               ))}
             </Select>
 
+          </div> */}
+
+          {/* Decoration Method Dropdown */}
+          <div className="decoration_type_area w-[250px] mb-3 lg:mb-0 fixed top-[95px] left-1/2 -translate-x-1/2 z-50 ">
+
+            {/* Selected Button */}
+            <button
+              type="button"
+              onClick={() => setOpen(prev => !prev)}
+              className="
+                w-full
+                bg-[#ff7379]
+                text-white
+                font-semibold
+                text-center
+                py-3
+               rounded-b-md
+                cursor-pointer
+                relative
+              "
+            >
+              {selectedOption?.name || "Select Decoration Type"}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">▼</span>
+            </button>
+            {open && (
+              <div className="absolute w-full bg-white shadow-lg mt-1 rounded-md overflow-hidden z-50">
+                {decorationList?.data?.map((deco) => (
+                  <button
+                    key={deco.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedOption({ id: deco.id, name: deco.name });
+                      setSelectedDecorationId(deco.id);
+
+                      dispatch(dropDownToggle({
+                        session_uuid: sessionStorage.getItem("uuid"),
+                        decoration_type_id: deco.id
+                      }));
+
+                      if (deco.name === "Embroidery") {
+                        setSelectedStyle("Embroidery");
+                      } else if (deco.name === "Leather Patch") {
+                        setSelectedStyle("Leather Patch");
+                      }
+
+                      setOpen(false);
+                    }}
+                    className="
+                      w-full
+                      text-[#ff7379]
+                      font-medium
+                      py-4
+                      text-center
+                      border-b
+                      border-[#ff7379]
+                      hover:bg-[#fff1f2]
+                      last:border-b-0
+                      cursor-pointer
+                    "
+                  >
+                    {deco.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
 
           {/* Hat selector Section */}
           <div className="my-8">

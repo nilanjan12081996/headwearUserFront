@@ -152,7 +152,7 @@
 //   const { cartListItem } = useSelector((state) => state?.cart);
 //   const savedUUid = sessionStorage.getItem("uuid");
 //   console.log("cartListItem",cartListItem);
-  
+
 
 //   useEffect(() => {
 //     if (savedUUid) {
@@ -194,7 +194,7 @@
 //                 const image = item?.color?.primary_image_url;
 
 //                 console.log("hat_name",hatName);
-                
+
 
 //                 return (
 //                   <div
@@ -250,7 +250,7 @@
 
 
 import React, { useEffect } from "react";
-import { cartList } from "../reducers/CartSlice";
+import { cartList, deleteCartItem } from "../reducers/CartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 
@@ -269,6 +269,72 @@ const CartDropdown = ({ open, onClose }) => {
 
   const cartGroups = cartListItem?.data?.cart_groups || [];
   const charges = cartListItem?.data?.charges || [];
+
+  const removeFromLocalStorage = (cartItemId) => {
+  const cartItemMap =
+    JSON.parse(localStorage.getItem("cartItemMap")) || {};
+
+  const mapKey = Object.keys(cartItemMap).find(
+    (key) => String(cartItemMap[key]) === String(cartItemId)
+  );
+
+  if (mapKey) {
+    delete cartItemMap[mapKey];
+
+    if (Object.keys(cartItemMap).length === 0) {
+      localStorage.removeItem("cartItemMap");
+    } else {
+      localStorage.setItem("cartItemMap", JSON.stringify(cartItemMap));
+    }
+
+    const hatQuantities =
+      JSON.parse(localStorage.getItem("hatQuantities")) || {};
+
+    const [hatKey, color, size] = mapKey.split("-");
+
+    if (
+      hatQuantities[hatKey] &&
+      hatQuantities[hatKey][color] &&
+      hatQuantities[hatKey][color][size]
+    ) {
+      delete hatQuantities[hatKey][color][size];
+      if (Object.keys(hatQuantities[hatKey][color]).length === 0) {
+        delete hatQuantities[hatKey][color];
+      }
+
+      if (Object.keys(hatQuantities[hatKey]).length === 0) {
+        delete hatQuantities[hatKey];
+      }
+
+      if (Object.keys(hatQuantities).length === 0) {
+        localStorage.removeItem("hatQuantities");
+      } else {
+        localStorage.setItem(
+          "hatQuantities",
+          JSON.stringify(hatQuantities)
+        );
+      }
+    }
+  }
+};
+
+
+ const handleDeleteCartItem = (id) => {
+  dispatch(deleteCartItem(id))
+    .then((res) => {
+      if (res?.payload?.data?.status_code === 200) {
+        removeFromLocalStorage(id);
+        dispatch(cartList({ id: savedUUid }));
+      }
+    })
+    .catch((err) => {
+      console.error("Delete failed", err);
+    });
+};
+
+
+
+const totalItems = cartListItem?.data?.cart?.total_items || 0;
 
   return (
     <>
@@ -324,7 +390,18 @@ const CartDropdown = ({ open, onClose }) => {
                       </div>
                     </div>
 
-                    <p className="font-semibold">{qty}</p>
+                    <div className="flex items-center gap-3">
+                      <p className="font-semibold">{qty}</p>
+
+                      {/* <button
+                        onClick={() => handleDeleteCartItem(item.id)}
+                        className="text-gray-400 hover:text-red-500 text-lg font-bold cursor-pointer"
+                        title="Remove item"
+                      >
+                        ×
+                      </button> */}
+                    </div>
+
                   </div>
                 );
               })
@@ -335,7 +412,7 @@ const CartDropdown = ({ open, onClose }) => {
         </div>
 
         {/* CHARGES */}
-        {charges.length > 0 && (
+        {totalItems > 0 && charges.length > 0 && (
           <div className="px-3 py-2 border-t">
             <h3 className="text-sm font-semibold mb-2">Charges</h3>
             {charges.map((charge, idx) => (

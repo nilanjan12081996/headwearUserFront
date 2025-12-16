@@ -77,6 +77,7 @@ const page = () => {
   const { decorationList } = useSelector((state) => state?.cart)
   const { productList, allProList } = useSelector((state) => state?.prod)
   const [hatQuantities, setHatQuantities] = useState({});
+  const [open, setOpen] = useState(false);
 
 
 
@@ -150,27 +151,27 @@ const page = () => {
   // console.log('selectedOption', selectedOption)
 
 
-const totalItems = Object.values(hatQuantities)
-  .flatMap(h =>
-    Object.values(h).flatMap(c =>
-      Object.values(c)
+  const totalItems = Object.values(hatQuantities)
+    .flatMap(h =>
+      Object.values(h).flatMap(c =>
+        Object.values(c)
+      )
     )
-  )
-  .reduce((sum, qty) => sum + Number(qty || 0), 0);
+    .reduce((sum, qty) => sum + Number(qty || 0), 0);
 
-let progressPercent = 0;
-if (totalItems <= 12) {
-  progressPercent = (totalItems / 12) * 33.333;
-} 
-else if (totalItems <= 24) {
-  progressPercent = 33.333 + ((totalItems - 12) / 12) * 33.333;
-} 
-else if (totalItems <= 48) {
-  progressPercent = 66.666 + ((totalItems - 24) / 24) * 33.333;
-} 
-else {
-  progressPercent = 100;
-}
+  let progressPercent = 0;
+  if (totalItems <= 12) {
+    progressPercent = (totalItems / 12) * 33.333;
+  }
+  else if (totalItems <= 24) {
+    progressPercent = 33.333 + ((totalItems - 12) / 12) * 33.333;
+  }
+  else if (totalItems <= 48) {
+    progressPercent = 66.666 + ((totalItems - 24) / 24) * 33.333;
+  }
+  else {
+    progressPercent = 100;
+  }
 
 
 
@@ -190,6 +191,7 @@ else {
 
   console.log('cartListItem', cartListItem)
 
+  const totalCartItems = cartListItem?.data?.cart?.total_items || 0;
 
   return (
     <div>
@@ -216,7 +218,7 @@ else {
                 <li className='text-[#ED1C24] text-base'>Caps</li>
               </ul>
             </div>
-            <div className='w-[200px] mb-3 lg:mb-0 form_area'>
+            {/* <div className="w-[200px] mb-3 lg:mb-0 fixed top-[95px] left-1/2 -translate-x-1/2 z-50">
               <Select
                 required
                 value={selectedOption.id}
@@ -242,6 +244,66 @@ else {
               </Select>
 
 
+            </div> */}
+            <div className="w-[250px] mb-3 lg:mb-0 fixed top-[95px] left-1/2 -translate-x-1/2 z-50">
+              <button
+                type="button"
+                onClick={() => setOpen(prev => !prev)}
+                className="
+                  w-full
+                  bg-[#ff7379]
+                  text-white
+                  font-semibold
+                  text-center
+                  py-3
+                  rounded-b-md
+                  cursor-pointer
+                  flex
+                  justify-center
+                  items-center
+                  relative
+                "
+              >
+                {selectedOption?.name || "Select Decoration"}
+                <span className="absolute right-3">▼</span>
+              </button>
+              {open && (
+                <div className="bg-white shadow-lg rounded-b-md overflow-hidden">
+                  {decorationList?.data?.map((deco) => (
+                    <button
+                      key={deco.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedOption({
+                          id: deco.id,
+                          name: deco.name
+                        });
+
+                        dispatch(dropDownToggle({
+                          session_uuid: sessionStorage.getItem("uuid"),
+                          decoration_type_id: deco.id
+                        }));
+
+                        setOpen(false);
+                      }}
+                      className="
+                      w-full
+                      text-[#ff7379]
+                      font-medium
+                      py-4
+                      text-center
+                      border-b
+                      border-[#ff7379]
+                      hover:bg-[#fff1f2]
+                      last:border-b-0
+                      cursor-pointer
+                    "
+                    >
+                      {deco.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -384,7 +446,10 @@ else {
         </div>
         <div className='bg-[#ed1c24] py-3 text-center'>
           <p className='text-xl text-white font-bold pb-0'>
-            Current Total: {cartListItem?.data?.cart?.grand_total_amount ?? 0}
+            Current Total:{" "}
+            {totalCartItems > 0
+              ? cartListItem?.data?.cart?.grand_total_amount
+              : 0}
           </p>
           <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.cart?.total_items ? cartListItem?.data?.cart?.total_items : 0} items</p>
         </div>
