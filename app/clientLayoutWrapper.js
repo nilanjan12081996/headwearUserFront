@@ -111,7 +111,7 @@ export default function ClientLayoutWrapper({ children }) {
 
     // Public layout (not authenticated)
     return (
-        <main>
+        <main className="pt-[90px]">
             <Header />
             {children}
             <Footer />

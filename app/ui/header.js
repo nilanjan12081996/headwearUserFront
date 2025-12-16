@@ -72,7 +72,7 @@ const Header = () => {
   return (
     <div>
       <ToastContainer />
-      <div className="header_section w-full lg:pb-0 left-0 lg:top-0">
+      <div className="header_section w-full lg:pb-0 left-0 lg:top-0 fixed z-50 border-b top-0 border-gray-200 shadow-sm">
         <div className="pt-0 lg:pt-0 lg:py-0 px-4 lg:px-0 rounded-0 relative z-10 bg-white">
           <div className="w-full bg-white px-0 py-5 rounded-b-2xl max-w-6xl mx-auto ">
             <div className="header_top flex justify-between items-center">

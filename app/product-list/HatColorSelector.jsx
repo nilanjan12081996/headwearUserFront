@@ -118,7 +118,7 @@ const HatColorSelector = ({
                 <button
                   onClick={() => onDecrease(size)}
                   disabled={qty === 0}
-                  className={`w-10 h-10 flex items-center justify-center text-white text-xl rounded-md cursor-pointer
+                  className={`w-10 h-10 flex items-center justify-center text-white text-xl !rounded-md cursor-pointer
                     ${qty === 0
                       ? "bg-[#cccccc] cursor-not-allowed"
                       : "bg-[#ed1c24] hover:bg-black"
