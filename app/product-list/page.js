@@ -150,9 +150,17 @@ const page = () => {
   // console.log('selectedOption', selectedOption)
 
 
-  const totalItems = Object.values(hatQuantities).flatMap(h => Object.values(h)).reduce((a, b) => a + b, 0);
-  const maxItems = 40;
-  const progressPercent = Math.min((totalItems / maxItems) * 100, 100); // 0-100%
+ const totalItems = Object.values(hatQuantities)
+  .flatMap(hat =>
+    Object.values(hat).flatMap(color =>
+      Object.values(color)
+    )
+  )
+  .reduce((sum, qty) => sum + qty, 0);
+
+const maxItems = 40;
+const progressPercent = Math.min((totalItems / maxItems) * 100, 100);
+
 
   useEffect(() => {
     dispatch(getDecorationType())

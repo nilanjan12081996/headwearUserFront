@@ -4,9 +4,11 @@ import api from "./api";
 
 export const getHatBrandList = createAsyncThunk(
     "hatBrand/getHatBrandList",
-    async (_, { rejectWithValue }) => {
+    async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
         try {
-            const response = await api.get("postgresapi/user/brand/list?page=1&limit=10");
+            const response = await api.get(
+                `postgresapi/user/brand/list?page=${page}&limit=${limit}`
+            );
 
             if (response?.data?.status_code === 200) {
                 return response.data;
@@ -77,6 +79,12 @@ const initialState = {
     brandList: [],
     brandWiseHatList: {},
     singleHatDetail: null,
+    pagination: {
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+        totalCount: 0
+    }
 };
 
 const hatBrandSlice = createSlice({

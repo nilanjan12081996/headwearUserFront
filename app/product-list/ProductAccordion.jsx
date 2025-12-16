@@ -18,6 +18,7 @@ import { addCartGroup, addCartItem, cartList, updateCartItem } from '../reducers
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import { v4 as uuidv4 } from "uuid";
+import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 
 
 
@@ -35,8 +36,10 @@ function debounce(fn, delay = 300) {
 
 const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
     const dispatch = useDispatch();
-    const { brandList, brandWiseHatList, singleHatDetail, loading } = useSelector((state) => state.hatBrand);
+    const { brandList, brandWiseHatList, singleHatDetail, loading, pagination } = useSelector((state) => state.hatBrand);
     const { cartListItem } = useSelector((state) => state?.cart);
+    const [page, setPage] = useState(1);
+    const limit = 10;
     console.log('singleHatDetail', singleHatDetail)
     // Page load e restore kore first render e
     const [cartItemMap, setCartItemMap] = useState(() => {
@@ -94,8 +97,9 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
     let updateQueue = {};
     useEffect(() => {
-        dispatch(getHatBrandList());
-    }, []);
+        dispatch(getHatBrandList({ page, limit }));
+    }, [page]);
+
 
     useEffect(() => {
         if (!brandList || !brandList.data) return;
@@ -376,14 +380,14 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                 const newCartItemId =
                     res?.payload?.data?.cartGroups?.[0]?.cartItems?.[0]?.id;
-                    console.log("newCartItemId",newCartItemId);
-                const cart_id=res?.payload?.data?.id
+                console.log("newCartItemId", newCartItemId);
+                const cart_id = res?.payload?.data?.id
 
                 if (!newCartItemId) {
                     throw new Error("Cart item creation failed");
                 }
                 localStorage.setItem("cartId", newCartItemId);
-                localStorage.setItem("cart_id",cart_id)
+                localStorage.setItem("cart_id", cart_id)
                 setCartItemMap(prev => {
                     const updated = {
                         ...prev,
@@ -552,10 +556,6 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
     };
 
 
-
-
-
-
     const handleNextpage = () => {
         const totalQty = cartListItem?.data?.cart?.total_items;
 
@@ -565,6 +565,8 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         }
         router.push("/upload-artwork")
     }
+
+    console.log('pagination', pagination?.totalPages)
 
     return (
         <div className='product_details_area'>
@@ -806,6 +808,39 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     Next Step
                 </button>
             </div>
+            {/* PAGINATION BUTTON */}
+            {pagination?.totalPages && (
+                <div className="flex justify-center items-center gap-4 mt-10">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(prev => prev - 1)}
+                        className={`w-10 h-10 flex items-center justify-center rounded-full text-2xl font-bold
+        ${page === 1
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-[#ff7379] hover:bg-[#ee8d92] text-white"
+                            }`}
+                    >
+                         <IoIosArrowBack />
+                    </button>
+
+                    <span className="text-lg font-medium">
+                        Page {pagination.page} of {pagination.totalPages}
+                    </span>
+
+                    <button
+                        disabled={page === pagination.totalPages}
+                        onClick={() => setPage(prev => prev + 1)}
+                         className={`w-10 h-10 flex items-center justify-center rounded-full text-2xl font-bold
+        ${page === pagination.totalPages
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-[#ff7379] hover:bg-[#ee8d92] text-white"
+                            }`}
+                    >
+                        <IoIosArrowForward />
+                    </button>
+                </div>
+            )}
+
         </div>
     )
 }
