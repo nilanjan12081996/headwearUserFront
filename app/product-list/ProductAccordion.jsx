@@ -287,6 +287,11 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                     return updated;
                 });
+                  const cartId = res?.payload?.data?.id;
+                    if (cartId) {
+                    
+                    sessionStorage.setItem("cart_id", cartId); // optional if you also want sessionStorage
+                    }
 
                 // 🔁 Apply pending qty if exists
                 if (
