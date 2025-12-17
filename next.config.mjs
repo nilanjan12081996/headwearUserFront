@@ -9,26 +9,26 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'showmecustomheadwearuserapi.bestworks.cloud',
+        hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
         port: '',
         pathname: '/uploads/hats/**',
       },
  
       {
         protocol: 'https',
-        hostname: 'showmecustomheadwearuserapi.bestworks.cloud',
+        hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
         port: '',
         pathname: '/uploads/variant/**',
       },
        {
         protocol: 'https',
-        hostname: 'showmecustomheadwearuserapi.bestworks.cloud',
+        hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
         port: '',
-        pathname: '/uploads/hatColors/**',
+        pathname: '/uploads/**',
       },
          {
         protocol: 'https',
-        hostname: 'showmecustomheadwearuserapi.bestworks.cloud',
+        hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
         port: '',
         pathname: '/uploads/brand/**',
       },

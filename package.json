@@ -31,7 +31,8 @@
     "react-tabs": "^6.1.0",
     "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "yet-another-react-lightbox": "^3.27.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

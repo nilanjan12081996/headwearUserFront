@@ -269,72 +269,85 @@ const CartDropdown = ({ open, onClose }) => {
 
   const cartGroups = cartListItem?.data?.cart_groups || [];
   const charges = cartListItem?.data?.charges || [];
+  const totalItems = cartListItem?.data?.cart?.total_items || 0;
 
-  const removeFromLocalStorage = (cartItemId) => {
-  const cartItemMap =
-    JSON.parse(localStorage.getItem("cartItemMap")) || {};
+  // ================= DELETE HANDLER =================
+  const handleDelete = async (item) => {
+    try {
+      const cartItemId = Number(item.id);
 
-  const mapKey = Object.keys(cartItemMap).find(
-    (key) => String(cartItemMap[key]) === String(cartItemId)
-  );
+      // 1️⃣ DELETE FROM API
+      await dispatch(deleteCartItem(cartItemId));
+      await dispatch(cartList({ id: savedUUid }));
 
-  if (mapKey) {
-    delete cartItemMap[mapKey];
+      // 2️⃣ GET SESSION DATA
+      const cartItemMap = JSON.parse(
+        sessionStorage.getItem("cartItemMap") || "{}"
+      );
 
-    if (Object.keys(cartItemMap).length === 0) {
-      localStorage.removeItem("cartItemMap");
-    } else {
-      localStorage.setItem("cartItemMap", JSON.stringify(cartItemMap));
+      const hatQuantities = JSON.parse(
+        sessionStorage.getItem("hatQuantities") || "{}"
+      );
+
+      // 3️⃣ FIND MATCHING KEY FROM cartItemMap
+      let matchedKey = null;
+
+      Object.keys(cartItemMap).forEach((key) => {
+        if (Number(cartItemMap[key]) === cartItemId) {
+          matchedKey = key; // example: "1_1-YellowHat-9"
+        }
+      });
+
+      // 4️⃣ REMOVE FROM hatQuantities
+      if (matchedKey) {
+        const [groupKey, color, sizeId] = matchedKey.split("-");
+
+        if (
+          hatQuantities[groupKey] &&
+          hatQuantities[groupKey][color] &&
+          hatQuantities[groupKey][color][sizeId]
+        ) {
+          delete hatQuantities[groupKey][color][sizeId];
+        }
+
+        // clean empty color
+        if (
+          hatQuantities[groupKey] &&
+          hatQuantities[groupKey][color] &&
+          Object.keys(hatQuantities[groupKey][color]).length === 0
+        ) {
+          delete hatQuantities[groupKey][color];
+        }
+
+        // clean empty group
+        if (
+          hatQuantities[groupKey] &&
+          Object.keys(hatQuantities[groupKey]).length === 0
+        ) {
+          delete hatQuantities[groupKey];
+        }
+
+        // 5️⃣ REMOVE FROM cartItemMap
+        delete cartItemMap[matchedKey];
+      }
+
+      // 6️⃣ SAVE BACK TO SESSION
+      sessionStorage.setItem(
+        "hatQuantities",
+        JSON.stringify(hatQuantities)
+      );
+
+      sessionStorage.setItem(
+        "cartItemMap",
+        JSON.stringify(cartItemMap)
+      );
+      window.dispatchEvent(new Event("hatQuantitiesChanged"));
+
+    } catch (err) {
+      console.error("Cart delete failed", err);
     }
-
-    const hatQuantities =
-      JSON.parse(localStorage.getItem("hatQuantities")) || {};
-
-    const [hatKey, color, size] = mapKey.split("-");
-
-    if (
-      hatQuantities[hatKey] &&
-      hatQuantities[hatKey][color] &&
-      hatQuantities[hatKey][color][size]
-    ) {
-      delete hatQuantities[hatKey][color][size];
-      if (Object.keys(hatQuantities[hatKey][color]).length === 0) {
-        delete hatQuantities[hatKey][color];
-      }
-
-      if (Object.keys(hatQuantities[hatKey]).length === 0) {
-        delete hatQuantities[hatKey];
-      }
-
-      if (Object.keys(hatQuantities).length === 0) {
-        localStorage.removeItem("hatQuantities");
-      } else {
-        localStorage.setItem(
-          "hatQuantities",
-          JSON.stringify(hatQuantities)
-        );
-      }
-    }
-  }
-};
-
-
- const handleDeleteCartItem = (id) => {
-  dispatch(deleteCartItem(id))
-    .then((res) => {
-      if (res?.payload?.data?.status_code === 200) {
-        removeFromLocalStorage(id);
-        dispatch(cartList({ id: savedUUid }));
-      }
-    })
-    .catch((err) => {
-      console.error("Delete failed", err);
-    });
-};
-
-
-
-const totalItems = cartListItem?.data?.cart?.total_items || 0;
+  };
+  const base_url = "https://arsalaanrasulshowmeropi.bestworks.cloud";
 
   return (
     <>
@@ -362,7 +375,6 @@ const totalItems = cartListItem?.data?.cart?.total_items || 0;
                 const qty = item?.quantity;
                 const price = item?.unit_price;
                 const image = item?.color?.primary_image_url;
-
                 return (
                   <div
                     key={item.id}
@@ -371,7 +383,7 @@ const totalItems = cartListItem?.data?.cart?.total_items || 0;
                     <div className="flex items-center gap-2">
                       {image ? (
                         <Image
-                          src={image}
+                          src={base_url+image}
                           width={40}
                           height={40}
                           alt="hat"
@@ -393,13 +405,13 @@ const totalItems = cartListItem?.data?.cart?.total_items || 0;
                     <div className="flex items-center gap-3">
                       <p className="font-semibold">{qty}</p>
 
-                      {/* <button
-                        onClick={() => handleDeleteCartItem(item.id)}
+                      <button
+                        onClick={() => handleDelete(item)}
                         className="text-gray-400 hover:text-red-500 text-lg font-bold cursor-pointer"
-                        title="Remove item"
                       >
                         ×
-                      </button> */}
+                      </button>
+
                     </div>
 
                   </div>

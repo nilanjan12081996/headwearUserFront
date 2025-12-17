@@ -11,8 +11,8 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId }) => {
   const router = useRouter();
   const { cartListItem } = useSelector((state) => state?.cart);
 
-  const savedCardId = localStorage.getItem('cartId')
-  const cart_id = localStorage.getItem("cart_id")
+  const savedCardId = sessionStorage.getItem('cartId')
+  const cart_id = sessionStorage.getItem("cart_id")
   const handleOrderNow = () => {
     const orderData = {
       cart_id: cart_id,
@@ -25,10 +25,10 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId }) => {
     try {
       dispatch(saveOrder(orderData)).unwrap();
 
-      localStorage.removeItem("cartId");
-      localStorage.removeItem("cart_id");
-      localStorage.removeItem("cartItemMap");
-      localStorage.removeItem("hatQuantities");
+      sessionStorage.removeItem("cartId");
+      sessionStorage.removeItem("cart_id");
+      sessionStorage.removeItem("cartItemMap");
+      sessionStorage.removeItem("hatQuantities");
       sessionStorage.removeItem("uuid")
 
       toast.success("Order placed successfully!");

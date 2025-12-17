@@ -325,8 +325,8 @@ const page = () => {
 
 
 
-  const savedCardId = localStorage.getItem('cartId')
-  const cart_id = localStorage.getItem('cart_id')
+  const savedCardId = sessionStorage.getItem('cartId')
+  const cart_id = sessionStorage.getItem('cart_id')
   // Prepare final payload
   const preparePayload = () => {
     const selectedDecoration = decorationList?.data?.find(
@@ -471,7 +471,7 @@ const page = () => {
 
 
   const hatQuantities = JSON.parse(
-    localStorage.getItem("hatQuantities") || "{}"
+    sessionStorage.getItem("hatQuantities") || "{}"
   );
   const totalItems = Object.values(hatQuantities)
     .flatMap(h =>

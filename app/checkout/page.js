@@ -100,8 +100,8 @@ const page = () => {
   } = useForm();
 
   const savedUUid = sessionStorage.getItem("uuid")
-  const cartId = localStorage.getItem("cartId")
-  const cart_id = localStorage.getItem("cart_id")
+  const cartId = sessionStorage.getItem("cartId")
+  const cart_id = sessionStorage.getItem("cart_id")
 
   const billing = watch("billing");
 
