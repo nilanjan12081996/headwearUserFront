@@ -56,6 +56,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
     const [createLock, setCreateLock] = useState({});
     const router = useRouter()
     const [cartUUID, setCartUUID] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null)
 
 
 
@@ -567,7 +568,15 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         brandId
     ) => {
         const sizeId = size.id;
+        console.log('size', size)
+        const maxQty = size?.inventoryItems?.qty_available || 0;
         if (newQty < 0) return;
+        if (newQty > maxQty) {
+            alert(`Only ${maxQty} items available`);
+          //  setErrorMsg(`Only ${maxQty} items available`)
+            newQty = maxQty;
+        }
+
 
         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
 
@@ -903,6 +912,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                             colorName={color.name}
                                                                             colorImage={color.primary_image_url}
                                                                             sizeVariants={color.hatSizes}
+                                                                            
 
                                                                             quantities={
                                                                                 hatQuantities?.[uniqueHatId]?.[color.name] || {}

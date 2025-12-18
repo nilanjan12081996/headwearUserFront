@@ -12,6 +12,8 @@ import ClientLayoutWrapper from "./clientLayoutWrapper";
 
 import Sidebar from "./ui/sidebar";
 import Insideheader from "./ui/insideheader";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 const manrope = Manrope({
@@ -42,6 +44,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <ClientLayoutWrapper>
             {children}
+          
           </ClientLayoutWrapper>
         </Providers>
 

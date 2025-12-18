@@ -17,7 +17,8 @@ const HatColorSelector = ({
   quantities,
   onIncrease,
   onDecrease,
-  onChange
+  onChange,
+
 }) => {
   const [open, setOpen] = useState(false);
   const zoomRef = useRef(null);
