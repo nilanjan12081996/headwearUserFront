@@ -6,41 +6,48 @@ import { useDispatch, useSelector } from "react-redux";
 import { saveOrder } from "../reducers/CheckoutSlice";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-const OrderSummary = ({ cust_id, billingId, shippingId, artworkId }) => {
+
+const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading, setOrderLoading }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { cartListItem } = useSelector((state) => state?.cart);
 
   const savedCardId = sessionStorage.getItem('cartId')
   const cart_id = sessionStorage.getItem("cart_id")
-  const handleOrderNow = () => {
-    const orderData = {
-      cart_id: cart_id,
-      billing_address_id: billingId,
-      shipping_address_id: shippingId,
-      shipping_method_id: 1,
-      artwork_config_id: artworkId,
-    };
+  // const handleOrderNow = async () => {
+  //   if (orderLoading) return;
+  //   if (!billingId || !shippingId) {
+  //     toast.error("Please complete billing & shipping address");
+  //     return;
+  //   }
+  //   const orderData = {
+  //     cart_id: cart_id,
+  //     billing_address_id: billingId,
+  //     shipping_address_id: shippingId,
+  //     shipping_method_id: 1,
+  //     artwork_config_id: artworkId,
+  //   };
 
-    try {
-      dispatch(saveOrder(orderData)).unwrap();
+  //   try {
+  //     setOrderLoading(true);
+  //      await dispatch(saveOrder(orderData)).unwrap();
 
-      sessionStorage.removeItem("cartId");
-      sessionStorage.removeItem("cart_id");
-      sessionStorage.removeItem("cartItemMap");
-      sessionStorage.removeItem("hatQuantities");
-      sessionStorage.removeItem("uuid")
+  //     sessionStorage.removeItem("cartId");
+  //     sessionStorage.removeItem("cart_id");
+  //     sessionStorage.removeItem("cartItemMap");
+  //     sessionStorage.removeItem("hatQuantities");
+  //     sessionStorage.removeItem("uuid")
 
-      toast.success("Order placed successfully!");
-      setTimeout(() => {
-        router.push("/product-list");
-      }, 2500);
-    } catch (error) {
-      console.error("Order failed:", error);
-      toast.error("Failed to place order. Please try again.");
-    }
-  };
-  console.log("sp", cartListItem)
+  //     toast.success("Order placed successfully!");
+  //     setTimeout(() => {
+  //       router.push("/order-confirm");
+  //     }, 2500);
+  //   } catch (error) {
+  //     console.error("Order failed:", error);
+  //     toast.error("Failed to place order. Please try again.");
+  //   }
+  // };
+  const base_url = "https://arsalaanrasulshowmeropi.bestworks.cloud";
   return (
     <>
       <div className='lg:w-4/12 border border-[#E6E6E6] rounded-[10px] p-4'>
@@ -53,8 +60,10 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId }) => {
             <div key={i} className='mb-4 flex items-center gap-2'>
               <div className='w-10/12 flex items-center gap-1'>
                 <div className='w-3/12'>
-                  <img
-                    src={group?.hat?.primary_image_url}
+                  <Image
+                    src={base_url + group?.hat?.primary_image_url}
+                    width={40}
+                    height={40}
                     alt={group?.hat?.name}
                     className='w-full rounded-md'
                   />
@@ -137,16 +146,13 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId }) => {
         </div>
 
         <button
-          onClick={handleOrderNow}
-          disabled={!billingId || !shippingId}
-          className={`text-white text-base rounded-full w-full py-3 cursor-pointer 
-      ${!billingId || !shippingId
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-[#ED1C24] hover:bg-black"
-            }`}
+          type="submit"
+          className={`text-white text-base rounded-full w-full py-3 cursor-pointer ${orderLoading ? 'bg-gray-400' : 'bg-[#ED1C24] hover:bg-black'}`}
+          disabled={orderLoading}
         >
-          Order Now
+          {orderLoading ? "Placing Order..." : "Order Now"}
         </button>
+
       </div>
 
     </>

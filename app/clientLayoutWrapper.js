@@ -14,8 +14,10 @@ export default function ClientLayoutWrapper({ children }) {
     const router = useRouter();
 
     // Define public routes that don't require authentication
-    const publicRoutes = ['/', '/product-list', '/upload-artwork', '/checkout', '/product-details', '/about-us', '/awareness', '/terms-conditions', '/refund-cancellation-policy', '/mood-meters', '/mood-masters', '/moodz-matter', '/mood-equalisers', '/support', '/experts', '/therapies', '/mental-health-experts', '/packages', '/contact-us', '/pricing', '/how-it-works', '/features', '/privacy', '/dashboard', '/faqs', '/resume-templates', '/resume-history'];
+    const publicRoutes = ['/', '/product-list', '/upload-artwork', '/checkout', '/product-details', '/about-us', '/awareness', '/terms-conditions', '/refund-cancellation-policy', '/mood-meters', '/mood-masters', '/moodz-matter', '/mood-equalisers', '/support', '/experts', '/therapies', '/mental-health-experts', '/packages', '/contact-us', '/pricing', '/how-it-works', '/features', '/privacy', '/dashboard', '/faqs', '/resume-templates', '/resume-history','/order-confirm'];
     const isPublicRoute = publicRoutes.includes(pathname);
+    const hideHeaderFooterRoutes = ['/order-confirm'];
+    const hideHeaderFooter = hideHeaderFooterRoutes.includes(pathname);
 
     // Function to check token validity
     const checkTokenValidity = () => {
@@ -110,11 +112,21 @@ export default function ClientLayoutWrapper({ children }) {
     }
 
     // Public layout (not authenticated)
+    // return (
+    //     <main className="pt-[90px]">
+    //         <Header />
+    //         {children}
+    //         <Footer />
+    //     </main>
+    // );
+
     return (
-        <main className="pt-[90px]">
-            <Header />
+        <main className={hideHeaderFooter ? "" : "pt-[90px]"}>
+            {!hideHeaderFooter && <Header />}
+
             {children}
-            <Footer />
+
+            {!hideHeaderFooter && <Footer />}
         </main>
     );
 }

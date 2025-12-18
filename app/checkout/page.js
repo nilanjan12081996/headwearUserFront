@@ -60,6 +60,7 @@ import { GoHome } from "react-icons/go";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { HiMiniPlusCircle } from "react-icons/hi2";
 import { CgFileDocument } from "react-icons/cg";
+import { useRouter } from "next/navigation";
 
 
 
@@ -69,7 +70,7 @@ import Image from 'next/image';
 import { FaPlus } from "react-icons/fa";
 import { set, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { addAddress, updateCustomer } from '../reducers/CheckoutSlice';
+import { addAddress, saveOrder, updateCustomer } from '../reducers/CheckoutSlice';
 import OrderSummary from './OrderSummary';
 import { toast, ToastContainer } from 'react-toastify';
 import { useSearchParams } from 'next/navigation';
@@ -84,6 +85,8 @@ const page = () => {
   const [billingId, setBillingId] = useState()
   const [shippingId, setShippingId] = useState()
   const [sameAddress, setSameAddress] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const router = useRouter();
 
   const params = useSearchParams();
   const artworkId = params.get("artwork_id");
@@ -127,7 +130,84 @@ const page = () => {
 
 
 
-  const onSubmit = (data) => {
+  // const onSubmit = (data) => {
+  //   setOrderLoading(true);
+  //   const payload = {
+  //     customer: {
+  //       first_name: data.first_name,
+  //       last_name: data.last_name,
+  //       email: data.email,
+  //       phone: data.phone,
+  //       company_name: data.company_name,
+  //       session_uuid: savedUUid
+  //       //session_uuid: '7a7f3285-43fc-43c4-a03b-822c018dfb07'
+  //     },
+  //     billing: {
+  //       line1: data.billing.line1,
+  //       line2: data.billing.line2,
+  //       city: data.billing.city,
+  //       state: data.billing.state,
+  //       postal_code: data.billing.postal_code,
+  //       country: data.billing.country,
+  //       address_type: "BILLING",
+  //     },
+  //     shipping: {
+  //       line1: data.shipping.line1,
+  //       line2: data.shipping.line2,
+  //       city: data.shipping.city,
+  //       state: data.shipping.state,
+  //       postal_code: data.shipping.postal_code,
+  //       country: data.shipping.country,
+  //       address_type: "SHIPPING",
+  //     },
+  //   };
+
+  //   console.log("FINAL PAYLOAD:", payload);
+  //   dispatch(addAddress(payload)).then((res) => {
+  //     console.log("Res", res);
+  //     if (res?.payload?.status_code === 201) {
+  //       const customerId = res?.payload?.data?.customer?.id;
+  //       const shipping_id = res?.payload?.data?.addresses?.[0]?.data?.id;
+  //       const billing_id = res?.payload?.data?.addresses?.[1]?.data?.id;
+
+  //       setCust_id(customerId);
+  //       setShippingId(shipping_id);
+  //       setBillingId(billing_id);
+  //       dispatch(updateCustomer({
+  //         id: cart_id,
+  //         customer_id: res?.payload?.data?.customer?.id
+  //       }))
+  //         .then((res) => {
+  //           if (res?.payload.status_code === 200) {
+  //             const orderData = {
+  //               cart_id: cart_id,
+  //               billing_address_id: billing_id,
+  //               shipping_address_id: shipping_id,
+  //               shipping_method_id: 1,
+  //               artwork_config_id: artworkId,
+  //             };
+  //             dispatch(saveOrder(orderData)).unwrap();
+  //             sessionStorage.removeItem("cartId");
+  //             sessionStorage.removeItem("cart_id");
+  //             sessionStorage.removeItem("cartItemMap");
+  //             sessionStorage.removeItem("hatQuantities");
+  //             sessionStorage.removeItem("uuid")
+  //             toast.success("Order placed successfully!");
+  //             setTimeout(() => {
+  //               router.push("/order-confirm");
+  //             }, 1500);
+  //           }
+  //         }
+
+  //       )
+
+  //     }
+  //   })
+  // };
+
+  const onSubmit = async (data) => {
+    setOrderLoading(true);
+
     const payload = {
       customer: {
         first_name: data.first_name,
@@ -136,7 +216,6 @@ const page = () => {
         phone: data.phone,
         company_name: data.company_name,
         session_uuid: savedUUid
-        //session_uuid: '7a7f3285-43fc-43c4-a03b-822c018dfb07'
       },
       billing: {
         line1: data.billing.line1,
@@ -158,22 +237,53 @@ const page = () => {
       },
     };
 
-    console.log("FINAL PAYLOAD:", payload);
-    dispatch(addAddress(payload)).then((res) => {
-      console.log("Res", res);
-      if (res?.payload?.status_code === 201) {
-        setCust_id(res?.payload?.data?.customer?.id)
-        setShippingId(res?.payload?.data?.addresses?.[0]?.data?.id)
-        setBillingId(res?.payload?.data?.addresses?.[1]?.data?.id)
-        dispatch(updateCustomer({
-          id: cart_id,
-          customer_id: res?.payload?.data?.customer?.id
-        }))
-        toast.success(res?.payload?.message)
-      }
+    try {
+      const res = await dispatch(addAddress(payload)).unwrap();
+      if (res?.status_code === 201) {
+        const customerId = res?.data?.customer?.id;
+        const shipping_id = res?.data?.addresses?.[0]?.data?.id;
+        const billing_id = res?.data?.addresses?.[1]?.data?.id;
 
-    });
+        setCust_id(customerId);
+        setShippingId(shipping_id);
+        setBillingId(billing_id);
+
+        const updateRes = await dispatch(updateCustomer({
+          id: cart_id,
+          customer_id: customerId
+        })).unwrap();
+
+        if (updateRes.status_code === 200) {
+          const orderData = {
+            cart_id: cart_id,
+            billing_address_id: billing_id,
+            shipping_address_id: shipping_id,
+            shipping_method_id: 1,
+            artwork_config_id: artworkId,
+          };
+
+          await dispatch(saveOrder(orderData)).unwrap();
+
+          sessionStorage.removeItem("cartId");
+          sessionStorage.removeItem("cart_id");
+          sessionStorage.removeItem("cartItemMap");
+          sessionStorage.removeItem("hatQuantities");
+          sessionStorage.removeItem("uuid");
+
+          toast.success("Order placed successfully!");
+          setTimeout(() => {
+            router.push("/order-confirm");
+          }, 1500);
+        }
+      }
+    } catch (error) {
+      console.error("Order failed:", error);
+    } finally {
+      setOrderLoading(false);
+    }
   };
+
+
   return (
     <div>
       <ToastContainer />
@@ -214,9 +324,9 @@ const page = () => {
 
         <div className='max-w-6xl mx-auto px-5 lg:px-0'>
 
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className='lg:flex items-start justify-start gap-8'>
 
-          <div className='lg:flex items-start justify-start gap-8'>
-            <form onSubmit={handleSubmit(onSubmit)}>
               <div className='lg:w-10/12 form_area mb-4 lg:mb-0'>
 
                 <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Personal Information</h3>
@@ -436,27 +546,21 @@ const page = () => {
                 </div>
 
 
-                <div>
+                {/* <div>
                   <button type='submit' className='!bg-[#ED1C24] !w-auto !px-15 !py-3 hover:bg-[#000] hover:text-[#fff]'>{loading ? "Waiting.." : "Save"}</button>
-                </div>
+                </div> */}
               </div>
-            </form>
-            <OrderSummary
-              cust_id={cust_id}
-              billingId={billingId}
-              shippingId={shippingId}
-              artworkId={artworkId}
 
-            />
-          </div>
+              <OrderSummary
+                orderLoading={orderLoading}
+                setOrderLoading={setOrderLoading}
+              />
+            </div>
+          </form>
 
         </div>
       </div>
       {/* Who We Are section ends here */}
-
-
-
-
 
     </div>
   )

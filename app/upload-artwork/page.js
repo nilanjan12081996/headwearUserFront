@@ -83,6 +83,7 @@ import { addArtWork, addOnPrice, setUpPlanList, updateAddOn } from '../reducers/
 import { useRef } from "react";
 import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+import CartProgressBar from '../components/CartProgressBar';
 
 
 
@@ -280,17 +281,17 @@ const page = () => {
     dispatch(getDecorationType())
   }, [])
 
-  useEffect(() => {
-    if (decorationList?.data?.length > 0) {
-      const first = decorationList.data[0];
+  // useEffect(() => {
+  //   if (decorationList?.data?.length > 0) {
+  //     const first = decorationList.data[0];
 
-      setSelectedOption({
-        id: first.id,
-        name: first.name
-      });
-    }
-  }, [decorationList]);
-  console.log("selectedOption", selectedOption)
+  //     setSelectedOption({
+  //       id: first.id,
+  //       name: first.name
+  //     });
+  //   }
+  // }, [decorationList]);
+
 
 
   const handleStitchingFileUpload = async (event, type) => {
@@ -495,6 +496,57 @@ const page = () => {
     progressPercent = 100;
   }
 
+  const handleDecorationClick = async (deco) => {
+    const sessionUUID = sessionStorage.getItem("uuid");
+    sessionStorage.setItem("selectedDecorationId", deco.id);
+    setSelectedOption({ id: deco.id, name: deco.name });
+    setSelectedDecorationId(deco.id);
+
+    if (deco.name === "Embroidery") {
+      setSelectedStyle("Embroidery");
+    } else if (deco.name === "Leather Patch") {
+      setSelectedStyle("Leather Patch");
+    }
+
+    setOpen(false);
+
+    const res = await dispatch(
+      dropDownToggle({
+        session_uuid: sessionUUID,
+        decoration_type_id: deco.id,
+      })
+    );
+
+    if (res?.payload?.status_code === 200) {
+      dispatch(
+        cartList({
+          id: sessionUUID,
+        })
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (decorationList?.data?.length > 0) {
+      const savedId = sessionStorage.getItem("selectedDecorationId");
+
+      const selected = savedId
+        ? decorationList.data.find(item => item.id == savedId)
+        : decorationList.data[0];
+
+      if (selected) {
+        setSelectedOption({
+          id: selected.id,
+          name: selected.name,
+        });
+
+        setSelectedDecorationId(selected.id);
+        setSelectedStyle(selected.name);
+      }
+    }
+  }, [decorationList]);
+
+
 
   return (
     <div>
@@ -645,23 +697,24 @@ const page = () => {
                   <button
                     key={deco.id}
                     type="button"
-                    onClick={() => {
-                      setSelectedOption({ id: deco.id, name: deco.name });
-                      setSelectedDecorationId(deco.id);
+                    onClick={() => handleDecorationClick(deco)}
+                    // onClick={() => {
+                    //   setSelectedOption({ id: deco.id, name: deco.name });
+                    //   setSelectedDecorationId(deco.id);
 
-                      dispatch(dropDownToggle({
-                        session_uuid: sessionStorage.getItem("uuid"),
-                        decoration_type_id: deco.id
-                      }));
+                    //   dispatch(dropDownToggle({
+                    //     session_uuid: sessionStorage.getItem("uuid"),
+                    //     decoration_type_id: deco.id
+                    //   }));
 
-                      if (deco.name === "Embroidery") {
-                        setSelectedStyle("Embroidery");
-                      } else if (deco.name === "Leather Patch") {
-                        setSelectedStyle("Leather Patch");
-                      }
+                    //   if (deco.name === "Embroidery") {
+                    //     setSelectedStyle("Embroidery");
+                    //   } else if (deco.name === "Leather Patch") {
+                    //     setSelectedStyle("Leather Patch");
+                    //   }
 
-                      setOpen(false);
-                    }}
+                    //   setOpen(false);
+                    // }}
                     className="
                       w-full
                       text-[#ff7379]
@@ -707,12 +760,13 @@ const page = () => {
                   name="embroideryType"
                   value={decorationList?.data?.[0]?.name}
                   checked={selectedStyle === decorationList?.data?.[0]?.name}
-                  onChange={() => {
-                    const selected = decorationList?.data?.[0];
-                    setSelectedStyle(selected?.name);
-                    setSelectedOption({ id: selected?.id, name: selected?.name });
-                    setSelectedDecorationId(selected?.id);
-                  }}
+                  // onChange={() => {
+                  //   const selected = decorationList?.data?.[0];
+                  //   setSelectedStyle(selected?.name);
+                  //   setSelectedOption({ id: selected?.id, name: selected?.name });
+                  //   setSelectedDecorationId(selected?.id);
+                  // }}
+                  onChange={() => handleDecorationClick(decorationList?.data?.[0])}
                   className="hidden"
                 />
 
@@ -768,12 +822,13 @@ const page = () => {
                   name="embroideryType"
                   value={decorationList?.data?.[1]?.name}
                   checked={selectedStyle === decorationList?.data?.[1]?.name}
-                  onChange={() => {
-                    const selected = decorationList?.data?.[1];
-                    setSelectedStyle(selected?.name);
-                    setSelectedOption({ id: selected?.id, name: selected?.name });
-                    setSelectedDecorationId(selected?.id);
-                  }}
+                  // onChange={() => {
+                  //   const selected = decorationList?.data?.[1];
+                  //   setSelectedStyle(selected?.name);
+                  //   setSelectedOption({ id: selected?.id, name: selected?.name });
+                  //   setSelectedDecorationId(selected?.id);
+                  // }}
+                   onChange={() => handleDecorationClick(decorationList?.data?.[1])}
                   className="hidden"
                 />
 
@@ -1360,54 +1415,11 @@ const page = () => {
 
         </div>
       </div>
-
-      <div className='fixed bottom-0 w-full'>
-        <div className='grid grid-cols-3 gap-0 bg-[#9f9f9f] relative'>
-          <div
-            className='absolute top-0 left-0 h-full bg-[#ff7379] z-0'
-            style={{ width: `${progressPercent}%`, transition: 'width 0.3s' }}
-          />
-          <div className='py-3 flex justify-center items-center border-r-2 z-20 border-[#000000] item_area relative'>
-            <div className='flex items-center gap-2 relative z-20'>
-              <div>
-                <IoIosColorPalette className='text-white text-2xl  md:text-2xl lg:text-5xl' />
-              </div>
-              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
-                <p className='text-white'>12+ Items</p>
-                <p className='text-white'>Free Artwork Setup</p>
-              </div>
-            </div>
-          </div>
-          <div className='py-3 flex justify-center items-center border-r-2 border-[#000000] z-20'>
-            <div className='flex items-center gap-2 relative '>
-              <div>
-                <TbTruckDelivery className='text-white text-2xl  md:text-2xl lg:text-5xl' />
-              </div>
-              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
-                <p className='text-white'>24+ Items</p>
-                <p className='text-white'>Free Shipping</p>
-              </div>
-            </div>
-          </div>
-          <div className='py-3 flex justify-center items-center'>
-            <div className='flex items-center gap-2 relative z-20'>
-              <div>
-                <IoMdTrophy className='text-white text-2xl  md:text-3xl lg:text-5xl' />
-              </div>
-              <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
-                <p className='text-white'>48+ Items</p>
-                <p className='text-white'>Free Premium Setup</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='bg-[#ed1c24] py-3 text-center'>
-          <p className='text-xl text-white font-bold pb-0'>
-            Current Total: {cartListItem?.data?.cart?.grand_total_amount ?? 0}
-          </p>
-          <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.cart?.total_items ? cartListItem?.data?.cart?.total_items : 0} items</p>
-        </div>
-      </div>
+      <CartProgressBar
+        progressPercent={progressPercent}
+        totalCartItems={cartListItem?.data?.cart?.total_items}
+        grandTotal={cartListItem?.data?.cart?.grand_total_amount}
+      />
     </div>
   )
 }

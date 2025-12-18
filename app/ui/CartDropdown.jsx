@@ -378,12 +378,12 @@ const CartDropdown = ({ open, onClose }) => {
                 return (
                   <div
                     key={item.id}
-                    className="flex justify-between items-center py-2 border-b last:border-b-0"
+                    className="flex justify-between items-center py-2 last:border-b-0"
                   >
                     <div className="flex items-center gap-2">
                       {image ? (
                         <Image
-                          src={base_url+image}
+                          src={base_url + image}
                           width={40}
                           height={40}
                           alt="hat"
@@ -407,10 +407,23 @@ const CartDropdown = ({ open, onClose }) => {
 
                       <button
                         onClick={() => handleDelete(item)}
-                        className="text-gray-400 hover:text-red-500 text-lg font-bold cursor-pointer"
+                        className="
+                          w-5 h-5
+                          flex items-center justify-center
+                          rounded-full
+                          bg-red-500
+                          text-white
+                          text-sm
+                          hover:bg-red-600
+                          transition
+                          duration-200
+                          shadow-md
+                          cursor-pointer
+                        "
                       >
                         ×
                       </button>
+
 
                     </div>
 
@@ -425,7 +438,7 @@ const CartDropdown = ({ open, onClose }) => {
 
         {/* CHARGES */}
         {totalItems > 0 && charges.length > 0 && (
-          <div className="px-3 py-2 border-t">
+          <div className="px-3 py-2">
             <h3 className="text-sm font-semibold mb-2">Charges</h3>
             {charges.map((charge, idx) => (
               <div

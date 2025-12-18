@@ -287,11 +287,11 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                     return updated;
                 });
-                  const cartId = res?.payload?.data?.id;
-                    if (cartId) {
-                    
+                const cartId = res?.payload?.data?.id;
+                if (cartId) {
+
                     sessionStorage.setItem("cart_id", cartId); // optional if you also want sessionStorage
-                    }
+                }
 
                 // 🔁 Apply pending qty if exists
                 if (
@@ -428,36 +428,136 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
 
 
-    // const handleManualChange = (uniqueHatId, colorName, newQty, hatId, brandId, variantId, inventoryRecordId) => {
+
+    // const handleManualChange = async (
+    //     uniqueHatId,
+    //     colorName,
+    //     size,
+    //     newQty,
+    //     hatId,
+    //     brandId
+    // ) => {
+    //     const sizeId = size.id;
     //     if (newQty < 0) return;
 
-    //     // Always update UI
+    //     const key = `${uniqueHatId}-${colorName}-${sizeId}`;
+    //     const currentQty =
+    //         hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
+
     //     setHatQuantities(prev => ({
     //         ...prev,
     //         [uniqueHatId]: {
     //             ...prev[uniqueHatId],
-    //             [colorName]: newQty
+    //             [colorName]: {
+    //                 ...prev[uniqueHatId]?.[colorName],
+    //                 [sizeId]: newQty
+    //             }
     //         }
     //     }));
 
-    //     const cartItemId = cartItemMap?.[uniqueHatId]?.[colorName];
-    //     const key = `${uniqueHatId}-${colorName}`;
+    //     const cartItemId = cartItemMap?.[key];
 
-    //     // If no cartItemId exists, DON'T call API (it will give 404)
-    //     if (!cartItemId) {
-    //         console.log("No cart item exists yet - skipping API call");
-    //         return;
-    //     }
 
-    //     // If creation is in progress, queue the change
     //     if (createLock[key]) {
     //         pendingDesiredQty[key] = newQty;
     //         return;
     //     }
 
-    //     // Update existing cart item
-    //     queueCartUpdate(uniqueHatId, colorName, cartItemId, newQty);
+
+    //     if (!cartItemId) {
+    //         setCreateLock(prev => ({ ...prev, [key]: true }));
+
+    //         try {
+    //             const res = await dispatch(
+    //                 addCartItem({
+    //                     session_uuid: cartUUID,
+    //                     hat_id: hatId,
+    //                     brand_id: brandId,
+    //                     hat_size_variant_id: sizeId,
+    //                     decoration_type_id: selectedDecoId,
+    //                     quantity: newQty
+    //                 })
+    //             );
+
+    //             const cartGroups = res?.payload?.data?.cartGroups || [];
+    //             const createdItem = cartGroups
+    //                 .flatMap(g => g.cartItems)
+    //                 .find(i => String(i.hat_size_variant_id) === String(sizeId));
+
+    //             const newCartItemId = createdItem?.id;
+    //             if (!newCartItemId) throw new Error("Create failed");
+
+    //             setCartItemMap(prev => {
+    //                 const updated = { ...prev, [key]: newCartItemId };
+    //                 sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
+    //                 return updated;
+    //             });
+
+    //             if (
+    //                 pendingDesiredQty[key] !== undefined &&
+    //                 pendingDesiredQty[key] !== newQty
+    //             ) {
+    //                 await dispatch(
+    //                     updateCartItem({
+    //                         id: newCartItemId,
+    //                         quantity: pendingDesiredQty[key]
+    //                     })
+    //                 );
+    //                 delete pendingDesiredQty[key];
+    //             }
+
+    //             await dispatch(cartList({ id: cartUUID }));
+
+    //         } catch (err) {
+    //             console.error("Manual create error", err);
+
+    //             setHatQuantities(prev => ({
+    //                 ...prev,
+    //                 [uniqueHatId]: {
+    //                     ...prev[uniqueHatId],
+    //                     [colorName]: {
+    //                         ...prev[uniqueHatId]?.[colorName],
+    //                         [sizeId]: currentQty
+    //                     }
+    //                 }
+    //             }));
+    //         } finally {
+    //             setCreateLock(prev => {
+    //                 const copy = { ...prev };
+    //                 delete copy[key];
+    //                 return copy;
+    //             });
+    //         }
+
+    //         return;
+    //     }
+
+    //     try {
+    //         await dispatch(
+    //             updateCartItem({
+    //                 id: cartItemId,
+    //                 quantity: newQty
+    //             })
+    //         );
+    //         await dispatch(cartList({ id: cartUUID }));
+    //     } catch (err) {
+    //         console.error("Manual update error", err);
+
+    //         // rollback UI
+    //         setHatQuantities(prev => ({
+    //             ...prev,
+    //             [uniqueHatId]: {
+    //                 ...prev[uniqueHatId],
+    //                 [colorName]: {
+    //                     ...prev[uniqueHatId]?.[colorName],
+    //                     [sizeId]: currentQty
+    //                 }
+    //             }
+    //         }));
+    //     }
     // };
+
+
     const handleManualChange = async (
         uniqueHatId,
         colorName,
@@ -470,9 +570,11 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         if (newQty < 0) return;
 
         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
+
         const currentQty =
             hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
 
+        // 🔹 Optimistic UI
         setHatQuantities(prev => ({
             ...prev,
             [uniqueHatId]: {
@@ -484,15 +586,26 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
             }
         }));
 
-        const cartItemId = cartItemMap?.[key];
+        let cartItemId = cartItemMap?.[key];
 
+        // 🔥 STALE ID PROTECTION (same as increase)
+        if (cartItemId && currentQty === 0) {
+            cartItemId = undefined;
+            setCartItemMap(prev => {
+                const updated = { ...prev };
+                delete updated[key];
+                sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
+                return updated;
+            });
+        }
 
+        // 🔒 Create in progress
         if (createLock[key]) {
             pendingDesiredQty[key] = newQty;
             return;
         }
 
-
+        // 🆕 CREATE (same as increase)
         if (!cartItemId) {
             setCreateLock(prev => ({ ...prev, [key]: true }));
 
@@ -508,27 +621,39 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     })
                 );
 
+                const cartId = res?.payload?.data?.id;
+                if (cartId) {
+                    sessionStorage.setItem("cart_id", cartId);
+                }
+
                 const cartGroups = res?.payload?.data?.cartGroups || [];
+
                 const createdItem = cartGroups
                     .flatMap(g => g.cartItems)
-                    .find(i => String(i.hat_size_variant_id) === String(sizeId));
+                    .find(
+                        i =>
+                            String(i.hat_size_variant_id) === String(sizeId) &&
+                            i.is_active === 1 &&
+                            i.quantity > 0
+                    );
 
-                const newCartItemId = createdItem?.id;
-                if (!newCartItemId) throw new Error("Create failed");
+                if (!createdItem?.id) throw new Error("Create failed");
 
+                // ✅ SAVE NEW ID
                 setCartItemMap(prev => {
-                    const updated = { ...prev, [key]: newCartItemId };
+                    const updated = { ...prev, [key]: createdItem.id };
                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                     return updated;
                 });
 
+                // 🔁 Apply pending qty if exists
                 if (
                     pendingDesiredQty[key] !== undefined &&
                     pendingDesiredQty[key] !== newQty
                 ) {
                     await dispatch(
                         updateCartItem({
-                            id: newCartItemId,
+                            id: createdItem.id,
                             quantity: pendingDesiredQty[key]
                         })
                     );
@@ -536,10 +661,10 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                 }
 
                 await dispatch(cartList({ id: cartUUID }));
-
             } catch (err) {
                 console.error("Manual create error", err);
 
+                // rollback UI
                 setHatQuantities(prev => ({
                     ...prev,
                     [uniqueHatId]: {
@@ -561,6 +686,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
             return;
         }
 
+        // 🔁 UPDATE (safe)
         try {
             await dispatch(
                 updateCartItem({

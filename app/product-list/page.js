@@ -65,6 +65,7 @@ import { getAllProduct, getProduct } from '../reducers/ProductSlice';
 import ProductAccordion from './ProductAccordion';
 import { addCartUUID, cartList, dropDownToggle, getDecorationType } from '../reducers/CartSlice';
 import { v4 as uuidv4 } from "uuid";
+import CartProgressBar from '../components/CartProgressBar';
 
 
 
@@ -174,22 +175,63 @@ const page = () => {
   }
 
 
-
   useEffect(() => {
     dispatch(getDecorationType())
   }, [])
-  useEffect(() => {
-    if (decorationList?.data?.length > 0) {
-      const first = decorationList.data[0];
+  // useEffect(() => {
+  //   if (decorationList?.data?.length > 0) {
+  //     const first = decorationList.data[0];
 
+  //     setSelectedOption({
+  //       id: first.id,
+  //       name: first.name
+  //     });
+  //   }
+  // }, [decorationList]);
+
+  const handleDecorationSelect = async (deco) => {
+    const sessionUUID = sessionStorage.getItem("uuid");
+    sessionStorage.setItem("selectedDecorationId", deco.id);
+    const res = await dispatch(
+      dropDownToggle({
+        session_uuid: sessionUUID,
+        decoration_type_id: deco.id,
+      })
+    );
+    setSelectedOption({
+      id: deco.id,
+      name: deco.name,
+    });
+
+    setOpen(false);
+
+    if (res?.payload?.status_code === 200) {
+      dispatch(
+        cartList({
+          id: sessionUUID,
+        })
+      );
+    }
+  };
+
+  useEffect(() => {
+  if (decorationList?.data?.length > 0) {
+    const savedId = sessionStorage.getItem("selectedDecorationId");
+
+    const selected = savedId
+      ? decorationList.data.find(item => item.id == savedId)
+      : decorationList.data[0];
+
+    if (selected) {
       setSelectedOption({
-        id: first.id,
-        name: first.name
+        id: selected.id,
+        name: selected.name,
       });
     }
-  }, [decorationList]);
+  }
+}, [decorationList]);
 
-  console.log('cartListItem', cartListItem)
+
 
   const totalCartItems = cartListItem?.data?.cart?.total_items || 0;
 
@@ -273,19 +315,7 @@ const page = () => {
                     <button
                       key={deco.id}
                       type="button"
-                      onClick={() => {
-                        setSelectedOption({
-                          id: deco.id,
-                          name: deco.name
-                        });
-
-                        dispatch(dropDownToggle({
-                          session_uuid: sessionStorage.getItem("uuid"),
-                          decoration_type_id: deco.id
-                        }));
-
-                        setOpen(false);
-                      }}
+                      onClick={() => handleDecorationSelect(deco)}
                       className="
                       w-full
                       text-[#ff7379]
@@ -403,8 +433,13 @@ const page = () => {
       {/* End:: Product Accordion section  */}
 
 
+      <CartProgressBar
+        progressPercent={progressPercent}
+        totalCartItems={cartListItem?.data?.cart?.total_items}
+        grandTotal={cartListItem?.data?.cart?.grand_total_amount}
+      />
 
-      <div className='fixed bottom-0 w-full'>
+      {/* <div className='fixed bottom-0 w-full'>
         <div className='grid grid-cols-3 gap-0 bg-[#9f9f9f] relative'>
           <div
             className='absolute top-0 left-0 h-full bg-[#ff7379] z-0'
@@ -453,7 +488,7 @@ const page = () => {
           </p>
           <p className='text-[18px] text-white font-medium pb-0'>{cartListItem?.data?.cart?.total_items ? cartListItem?.data?.cart?.total_items : 0} items</p>
         </div>
-      </div>
+      </div> */}
 
 
 
