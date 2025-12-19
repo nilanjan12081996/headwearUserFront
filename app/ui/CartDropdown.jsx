@@ -353,7 +353,7 @@ const CartDropdown = ({ open, onClose }) => {
     <>
       <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
 
-      <div className="absolute right-0 mt-15 w-80 bg-white shadow-xl border rounded-md z-50">
+      <div className="absolute right-[-40px] md:right-0 mt-15 w-80 bg-white shadow-xl border rounded-md z-50">
         <div className="flex justify-between items-center px-4 py-3 border-b">
           <h2 className="text-lg font-semibold">Your Cart</h2>
           <button

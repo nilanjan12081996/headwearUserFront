@@ -573,7 +573,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         if (newQty < 0) return;
         if (newQty > maxQty) {
             alert(`Only ${maxQty} items available`);
-          //  setErrorMsg(`Only ${maxQty} items available`)
+            //  setErrorMsg(`Only ${maxQty} items available`)
             newQty = maxQty;
         }
 
@@ -740,7 +740,8 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     brandWiseHatList?.[brand.id]?.data?.map((item) => ({
                         id: item.id,
                         name: item.name,
-                        description: item.description
+                        description: item.description,
+                        hatImages: item.hatImages
                     })) || [];
 
                 console.log('hats', hats)
@@ -749,8 +750,8 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     <div key={brand.id}>
 
                         <div className='bg-[#efefef] p-4 my-2'>
-                            {/* <Image src={base_url + brand?.image_url} width={100} height={50} /> */}
-                            <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.name}</h2>
+                            <Image src={base_url + brand?.image_url} width={200} height={50} />
+                            {/* <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.name}</h2> */}
                         </div>
 
                         <div className='product_details_area_box'>
@@ -764,13 +765,23 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                                         // ---------- FIX: Single unique hat ID ----------
                                         const uniqueHatId = `${brand.id}_${hat.id}`;
-
+                                        const imageSrc = hat?.hatImages?.[0]?.image_url
+                                            ? base_url + hat.hatImages[0].image_url
+                                            : preview_01;
                                         return (
                                             <AccordionPanel key={hat.id}>
                                                 <div onClick={() => handleHatClick(hat.id)}>
                                                     <AccordionTitle>
                                                         <div className='flex items-center gap-3' >
-                                                            <Image src={preview_01} alt='preview_01' className="w-[80px]" />
+
+                                                            {/* <Image src={preview_01} alt='preview_01' className="w-[80px]" /> */}
+                                                            <Image
+                                                                src={imageSrc}
+                                                                alt={hat?.hatImages?.[0]?.alt_text || hat.name}
+                                                                width={60}
+                                                                height={60}
+                                                                className="w-[60px] h-[60px] object-contain rounded"
+                                                            />
                                                             <p className='text-xl text-[#ff7379] font-semibold'>{hat.name}</p>
                                                         </div>
                                                     </AccordionTitle>
@@ -782,14 +793,32 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                     )} */}
                                                     {singleHatDetail?.data && (
                                                         <>
-                                                            <div className='flex justify-center items-center'>
-                                                                <Image src={preview_01} alt='preview_01' className="w-[400px]" />
+                                                            <div className="flex justify-center items-center">
+                                                                {singleHatDetail?.data?.data?.hatImages?.map((img) => (
+                                                                    <Image
+                                                                        key={img.id}
+                                                                        src={base_url + img.image_url}
+                                                                        alt="Hat Image"
+                                                                        width={300}
+                                                                        height={300}
+                                                                        className="rounded-lg object-contain"
+                                                                    />
+                                                                ))}
                                                             </div>
-
                                                             <div className='w-[full] md:w-8/12 mx-auto my-6'>
-                                                                <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
+                                                                {/* <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
                                                                     <p className='text-base text-black'>{singleHatDetail?.data?.data?.description}</p>
+                                                                </div> */}
+                                                                <div className="bg-[#eeeeee] rounded-[10px] p-5 mb-4 text-left">
+                                                                    <ul className="list-disc list-inside space-y-2 text-base text-black">
+                                                                        {singleHatDetail?.data?.data?.description
+                                                                            ?.split("\n")
+                                                                            ?.map((item, index) => (
+                                                                                <li key={index}>{item.trim()}</li>
+                                                                            ))}
+                                                                    </ul>
                                                                 </div>
+
                                                                 <div className="bg-[#ff7379] text-center font-bold text-base py-2 text-white">
                                                                     Size Chart
                                                                 </div>
@@ -851,7 +880,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                                     return (
                                                                                         <div key={index} className="text-center">
                                                                                             <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                                {tier.min_qty}
+                                                                                                {tier.max_qty}
                                                                                             </p>
                                                                                             <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
                                                                                                 ${Number(tier.unit_price)}
@@ -881,7 +910,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                                     return (
                                                                                         <div key={index} className="text-center">
                                                                                             <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                                {tier.min_qty}
+                                                                                                {tier.max_qty}
                                                                                             </p>
                                                                                             <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
                                                                                                 ${Number(tier.unit_price)}
@@ -897,12 +926,9 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                     <div className='bg-[#eeeeee] mb-4 font-medium text-sm py-2 pr-2 text-black text-right'>Price includes item & decoration.</div>
                                                                 </div>
                                                             </div>
-                                                            <div
-                                                                className="grid gap-4"
-                                                                style={{
-                                                                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))"
-                                                                }}
-                                                            >
+                                                            <div className="flex flex-wrap gap-2">
+
+
                                                                 {singleHatDetail?.data?.data?.hatColors?.map((color, index) => {
 
                                                                     const sizeVariants = color?.hatSizes || []
@@ -912,7 +938,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                             colorName={color.name}
                                                                             colorImage={color.primary_image_url}
                                                                             sizeVariants={color.hatSizes}
-                                                                            
+
 
                                                                             quantities={
                                                                                 hatQuantities?.[uniqueHatId]?.[color.name] || {}

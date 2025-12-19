@@ -37,7 +37,8 @@ const HatColorSelector = ({
     }, 250);
   };
   return (
-    <div className="border-2 border-[#dddddd] rounded-[15px] p-4 text-center">
+    <div className="border-2 border-[#dddddd] rounded-[15px] p-4 text-center inline-flex flex-col">
+
 
       {/* IMAGE */}
       <div className="relative w-[120px] mx-auto mb-2">
@@ -58,7 +59,7 @@ const HatColorSelector = ({
       <p className="font-bold text-sm mb-3 uppercase text-black">
         {colorName}
       </p>
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="flex justify-center gap-3 flex-wrap lg:flex-nowrap overflow-visible">
         {sizeVariants.map(size => {
           const qty = quantities?.[size.id] || 0;
           const maxQty = size.inventoryItems?.qty_available ?? 0;
@@ -73,7 +74,12 @@ const HatColorSelector = ({
           }, [qty, isFocused]);
 
           return (
-            <div key={size.id} className={`border rounded-[10px] p-2 ${qty > 0 ? "border-[#ed1c24]" : "border-[#dddddd]"}`}>
+            <div
+              key={size.id}
+              className={`border rounded-[10px] p-2 min-w-[150px] flex-shrink-0 ${qty > 0 ? "border-[#ed1c24]" : "border-[#dddddd]"
+                }`}
+            >
+
               <p className="text-sm font-medium mb-2 text-black">{size.size_label}</p>
               <div className="flex items-center justify-center gap-2">
                 <button onClick={() => { onDecrease(size); setInputValue(prev => Math.max(prev - 1, 0)); }} disabled={qty === 0} className={`w-10 h-10 flex items-center justify-center text-white text-xl !rounded-md cursor-pointer ${qty === 0 ? "bg-[#cccccc] cursor-not-allowed" : "bg-[#ed1c24] hover:bg-black"}`}>

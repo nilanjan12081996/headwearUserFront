@@ -670,7 +670,7 @@ const page = () => {
           </div> */}
 
           {/* Decoration Method Dropdown */}
-          <div className="decoration_type_area w-[250px] mb-3 lg:mb-0 fixed top-[95px] left-1/2 -translate-x-1/2 z-50 ">
+          <div className="decoration_type_area w-[250px] mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 -translate-x-1/2 z-49 ">
 
             {/* Selected Button */}
             <button
