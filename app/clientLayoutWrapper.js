@@ -102,7 +102,10 @@ export default function ClientLayoutWrapper({ children }) {
                     <div className="content_area w-full lg:w-[80%]">
                         <Insideheader />
                         <div className="px-5 lg:px-10 lg:py-2">
+                         
                             {children}
+                       
+                            
                         </div>
 
                     </div>
