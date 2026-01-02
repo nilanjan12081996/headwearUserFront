@@ -93,6 +93,54 @@ export const detectIccid = createAsyncThunk(
     }
 );
 
+/* ================= SEND SECURITY CODE ================= */
+
+export const sendSecurityCode = createAsyncThunk(
+    'auth/sendSecurityCode',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.post(
+                '/postgresapi/user/address/send-code',
+                userInput
+            );
+
+            if (response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(
+                    response?.data?.errors || 'Failed to send security code'
+                );
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+);
+
+/* ================= VERIFY SECURITY CODE ================= */
+
+export const verifySecurityCode = createAsyncThunk(
+    'auth/verifySecurityCode',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await api.post(
+                '/postgresapi/user/address/verify-code',
+                userInput
+            );
+
+            if (response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(
+                    response?.data?.errors || 'Security code verification failed'
+                );
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+);
+
 
 const initialState = {
     message: null,
@@ -100,6 +148,7 @@ const initialState = {
     loading: false,
     isLoggedIn: false,
     loadingIccid: false,
+    loadingSendCode: false,
 };
 
 const authSlice = createSlice({
@@ -218,6 +267,41 @@ const authSlice = createSlice({
                         ? payload.message
                         : 'Something went wrong. Try again later.';
             })
+
+            /* -------- SEND SECURITY CODE -------- */
+            .addCase(sendSecurityCode.pending, (state) => {
+                state.loadingSendCode = true;
+                state.error = null;
+                state.message = null;
+            })
+            .addCase(sendSecurityCode.fulfilled, (state, { payload }) => {
+                state.loadingSendCode = false;
+                state.message = payload;
+                state.error = false;
+            })
+            .addCase(sendSecurityCode.rejected, (state, { payload }) => {
+                state.loadingSendCode = false;
+                state.error = true;
+                state.message =
+                    payload?.message || 'Failed to send security code';
+            })
+
+            /* -------- VERIFY SECURITY CODE -------- */
+            .addCase(verifySecurityCode.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(verifySecurityCode.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.message = payload;
+                state.error = false;
+            })
+            .addCase(verifySecurityCode.rejected, (state, { payload }) => {
+                state.loading = false;
+                state.error = true;
+                state.message =
+                    payload?.message || 'Security code verification failed';
+            });
 
     },
 });

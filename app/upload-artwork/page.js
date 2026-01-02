@@ -85,6 +85,31 @@ import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import CartProgressBar from '../components/CartProgressBar';
 
+// color 
+import c1 from "../assets/imagesource/c1.jpg";
+import c2 from "../assets/imagesource/c2.jpg";
+import c3 from "../assets/imagesource/c3.jpg";
+import c4 from "../assets/imagesource/c4.jpg";
+import c5 from "../assets/imagesource/c5.jpg";
+import c6 from "../assets/imagesource/c6.jpg";
+import c7 from "../assets/imagesource/c7.jpg";
+import c8 from "../assets/imagesource/c8.jpg";
+import c9 from "../assets/imagesource/c9.jpg";
+import c10 from "../assets/imagesource/c10.jpg";
+import c11 from "../assets/imagesource/c11.jpg";
+import c12 from "../assets/imagesource/c12.jpg";
+import c13 from "../assets/imagesource/c13.jpg";
+import c14 from "../assets/imagesource/c14.jpg";
+import c15 from "../assets/imagesource/c15.jpg";
+import c16 from "../assets/imagesource/c16.jpg";
+import c17 from "../assets/imagesource/c17.jpg";
+import c18 from "../assets/imagesource/c18.jpg";
+import c19 from "../assets/imagesource/c19.jpg";
+import c20 from "../assets/imagesource/c20.jpg";
+import c21 from "../assets/imagesource/c21.jpg";
+import c22 from "../assets/imagesource/c22.jpg";
+
+
 
 
 
@@ -161,6 +186,30 @@ const page = () => {
   console.log("adonPriceData", adonPriceData);
   console.log("setUpPlanListData", setUpPlanListData);
 
+  const logoColors = [
+    { img: c1, name: "Black" },
+    { img: c2, name: "White" },
+    { img: c3, name: "Silver" },
+    { img: c4, name: "Gray" },
+    { img: c5, name: "Light Blue" },
+    { img: c6, name: "Neon Blue" },
+    { img: c7, name: "Blue" },
+    { img: c8, name: "Navy" },
+    { img: c9, name: "Purple" },
+    { img: c10, name: "Neon Green" },
+    { img: c11, name: "Green" },
+    { img: c12, name: "Olive Green" },
+    { img: c13, name: "Neon Yellow" },
+    { img: c14, name: "Yellow" },
+    { img: c15, name: "Neon Orange" },
+    { img: c16, name: "Gold" },
+    { img: c17, name: "Tan" },
+    { img: c18, name: "Brown" },
+    { img: c19, name: "Dark Brown" },
+    { img: c20, name: "Neon Pink" },
+    { img: c21, name: "Red" },
+    { img: c22, name: "Dark Red" },
+  ];
 
   const stitchingOptions = [
     {
@@ -185,9 +234,9 @@ const page = () => {
 
 
   const placements = [
-    { id: "left", label: "right_side", img: cap_left, heading: "Right Side" },
-    { id: "front", label: "front_center", img: cap_front, heading: "Front Center" },
-    { id: "right", label: "left_side", img: cap_right, heading: "Left Side" },
+    { id: "left", label: "right_side", img: cap_left, heading: "Right Eye" },
+    { id: "front", label: "front_center", img: cap_front, heading: "Centered" },
+    { id: "right", label: "left_side", img: cap_right, heading: "Left Eye" },
 
   ];
 
@@ -828,7 +877,7 @@ const page = () => {
                   //   setSelectedOption({ id: selected?.id, name: selected?.name });
                   //   setSelectedDecorationId(selected?.id);
                   // }}
-                   onChange={() => handleDecorationClick(decorationList?.data?.[1])}
+                  onChange={() => handleDecorationClick(decorationList?.data?.[1])}
                   className="hidden"
                 />
 
@@ -902,8 +951,17 @@ const page = () => {
                   className="text-2xl font-bold"
                   style={{ fontFamily: "Arial, sans-serif" }}
                 >
-                  Standard<br /><s>+$50</s>FREE
+                  Standard <br />
+
+                  {totalQty >= 12 ? (
+                    <>
+                      <s>+$50</s> FREE
+                    </>
+                  ) : (
+                    <>+$50</>
+                  )}
                 </h2>
+
 
 
                 <input
@@ -1179,7 +1237,10 @@ const page = () => {
           {/* Leather Patch Options */}
           {selectedOption?.name === "Leather Patch" && (
             <div className='mb-8 mt-4'>
-              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3>
+              <div className='p-4 bg-[#ff0000] mb-4'>
+                <h2 className='text-2xl font-bold text-white'>Patch Options</h2>
+              </div>
+              {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3> */}
               <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mb-4'>
                 <h2 className='text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
                 <p className='text-[15px]'>We will convert your artwork and send you mockups.</p>
@@ -1215,7 +1276,10 @@ const page = () => {
           {/* Logo Placement */}
           <div className='flex justify-center'>
             <div className='team_wrap mb-8'>
-              <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3>
+               <div className='p-4 bg-[#ff0000] mb-4'>
+                <h2 className='text-2xl font-bold text-white'>Logo Placement</h2>
+              </div>
+              {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3> */}
 
               <div className='grid grid-cols-3 gap-2'>
                 {placements.map((item) => (
@@ -1248,9 +1312,30 @@ const page = () => {
 
 
           <div className="mt-8">
-            <div className='p-4 bg-[#ff0000]'>
+            <div className='p-4 bg-[#ff0000] mb-4'>
               <h2 className='text-2xl font-bold text-white'>Logo Colors</h2>
             </div>
+            <div>
+              <h3 className="text-lg font-semibold">These are the thread colors we use:</h3>
+              <p className='text-sm font-normal pb-2'>Designs can have up to 15 different colors in them. We recommend keeping designs to the fewest numbers of colors possible.</p>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-4">
+              {logoColors.map((color, index) => (
+                <div key={index} className="text-center">
+                  <div className="w-14 h-14 mx-auto rounded-md overflow-hidden">
+                    <Image
+                      src={color.img}
+                      alt={color.name}
+                      width={64}
+                      height={64}
+                      className="object-cover"
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-700">{color.name}</p>
+                </div>
+              ))}
+            </div>
+
             <div className='my-8  form_area'>
               <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Optional:</strong> Let us know in the color notes below any specific colors you would like us to use in your design.</p>
               <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Note:</strong> Color can only change 1 time for every 6 or more hats ordered.</p>
