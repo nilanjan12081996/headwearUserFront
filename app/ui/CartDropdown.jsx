@@ -97,7 +97,7 @@ const CartDropdown = ({ open, onClose }) => {
       console.error("Cart delete failed", err);
     }
   };
-  const base_url = "https://arsalaanrasulshowmeropi.bestworks.cloud";
+  const base_url = "https://showmecustomheadwearapi.bestworks.cloud";
 
   return (
     <>

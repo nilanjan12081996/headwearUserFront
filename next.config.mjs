@@ -28,9 +28,28 @@ const nextConfig = {
       },
          {
         protocol: 'https',
-        hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
+        hostname: 'showmecustomheadwearapi.bestworks.cloud',
         port: '',
         pathname: '/uploads/brand/**',
+      },
+       {
+        protocol: 'https',
+        hostname: 'showmecustomheadwearapi.bestworks.cloud',
+        port: '',
+        pathname: '/uploads/hats/**',
+      },
+ 
+      {
+        protocol: 'https',
+        hostname: 'showmecustomheadwearapi.bestworks.cloud',
+        port: '',
+        pathname: '/uploads/variant/**',
+      },
+       {
+        protocol: 'https',
+        hostname: 'showmecustomheadwearapi.bestworks.cloud',
+        port: '',
+        pathname: '/uploads/**',
       },
      
     ],

@@ -24,7 +24,7 @@ const HatColorSelector = ({
   const zoomRef = useRef(null);
 
 
-  const base_url = "https://arsalaanrasulshowmeropi.bestworks.cloud";
+  const base_url = "https://showmecustomheadwearapi.bestworks.cloud";
   const imageSrc = `${base_url}${colorImage}`;
 
 
@@ -42,13 +42,13 @@ const HatColorSelector = ({
 
       {/* IMAGE */}
       <div className="relative w-[120px] mx-auto mb-2">
-        <Image
+        {/* <Image
           src={base_url + colorImage}
           width={80}
           height={80}
           alt={colorName}
           className="mx-auto"
-        />
+        /> */}
         <button
           onClick={handleOpenLightbox}
           className="absolute left-0 bottom-[-6px] text-[#ed1c24] hover:text-[#ff7379]"
