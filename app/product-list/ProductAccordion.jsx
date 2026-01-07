@@ -766,7 +766,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                         // ---------- FIX: Single unique hat ID ----------
                                         const uniqueHatId = `${brand.id}_${hat.id}`;
                                         const imageSrc = hat?.hatImages?.[0]?.image_url
-                                            ? base_url + hat.hatImages[0].image_url
+                                            ? base_url + '/' + hat.hatImages[0].image_url
                                             : preview_01;
                                         return (
                                             <AccordionPanel key={hat.id}>
@@ -794,16 +794,28 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                     {singleHatDetail?.data && (
                                                         <>
                                                             <div className="flex justify-center items-center">
-                                                                {singleHatDetail?.data?.data?.hatImages?.map((img) => (
+                                                                {/* {singleHatDetail?.data?.data?.hatImages?.map((img) => (
                                                                     <Image
                                                                         key={img.id}
-                                                                        src={base_url + img.image_url}
+                                                                        src={base_url +'/'+ img.image_url}
                                                                         alt="Hat Image"
                                                                         width={300}
                                                                         height={300}
                                                                         className="rounded-lg object-contain"
                                                                     />
-                                                                ))}
+                                                                ))} */}
+                                                                <div className="flex justify-center items-center">
+                                                                    {singleHatDetail?.data?.data?.hatImages?.[0] && (
+                                                                        <Image
+                                                                            src={`${base_url}/${singleHatDetail.data.data.hatImages[0].image_url}`}
+                                                                            alt="Hat Image"
+                                                                            width={300}
+                                                                            height={300}
+                                                                            className="rounded-lg object-contain"
+                                                                        />
+                                                                    )}
+                                                                </div>
+
                                                             </div>
                                                             <div className='w-[full] md:w-8/12 mx-auto my-6'>
                                                                 {/* <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
