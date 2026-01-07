@@ -59,7 +59,7 @@ const Header = () => {
     };
   }, [isNavbarOpen]);
 
-   const savedUUid = sessionStorage.getItem("uuid")
+  const savedUUid = sessionStorage.getItem("uuid")
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -141,11 +141,22 @@ const Header = () => {
 
                     {/* Quantity Badge */}
                     {totalQty > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold 
-      w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+                      <span
+                        className="
+      absolute -top-1 -right-1
+      bg-red-500 text-white
+      text-[10px] font-bold
+      min-w-[20px] h-[20px]
+      px-1
+      flex items-center justify-center
+      rounded-full
+      shadow-md
+    "
+                      >
                         {totalQty}
                       </span>
                     )}
+
 
                     <span className="hidden lg:inline">View Cart</span>
                   </button>

@@ -880,7 +880,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                                     return (
                                                                                         <div key={index} className="text-center">
                                                                                             <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                                {tier.max_qty}
+                                                                                                {tier.min_qty}
                                                                                             </p>
                                                                                             <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
                                                                                                 ${Number(tier.unit_price)}
@@ -910,7 +910,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                                     return (
                                                                                         <div key={index} className="text-center">
                                                                                             <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                                {tier.max_qty}
+                                                                                                {tier.min_qty}
                                                                                             </p>
                                                                                             <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
                                                                                                 ${Number(tier.unit_price)}

@@ -27,6 +27,10 @@ const HatColorSelector = ({
   const base_url = "https://showmecustomheadwearapi.bestworks.cloud";
   const imageSrc = `${base_url}${colorImage}`;
 
+  const isValidImage =
+    colorImage &&
+    colorImage !== "null" &&
+    colorImage !== "undefined";
 
   const handleOpenLightbox = () => {
     setOpen(true);
@@ -49,6 +53,27 @@ const HatColorSelector = ({
           alt={colorName}
           className="mx-auto"
         /> */}
+
+
+        {isValidImage ? (
+          <Image
+            src={`${base_url}${colorImage}`}
+            width={80}
+            height={80}
+            alt={colorName}
+            className="mx-auto"
+          />
+        ) : (
+          <Image
+            src={black_cap}
+            width={80}
+            height={80}
+            alt={colorName}
+            className="mx-auto"
+          />
+        )}
+
+
         <button
           onClick={handleOpenLightbox}
           className="absolute left-0 bottom-[-6px] text-[#ed1c24] hover:text-[#ff7379]"

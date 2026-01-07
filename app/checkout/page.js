@@ -71,6 +71,8 @@ import OrderSummary from './OrderSummary';
 import { toast, ToastContainer } from 'react-toastify';
 import { useSearchParams } from 'next/navigation';
 import LoginModal from '../modal/LoginModal';
+import { sendSecurityCode, verifySecurityCode } from '../reducers/AuthSlice';
+import { IoClose } from "react-icons/io5";
 
 
 
@@ -85,6 +87,9 @@ const page = () => {
   const [orderLoading, setOrderLoading] = useState(false);
   const [showExistingCustomerModal, setShowExistingCustomerModal] = useState(false);
   const [isExistingCustomer, setIsExistingCustomer] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState("EMAIL");
   const router = useRouter();
 
   const params = useSearchParams();
@@ -100,6 +105,12 @@ const page = () => {
     setValue,
     formState: { errors },
   } = useForm();
+
+  const {
+    loadingSendCode,
+    loading: authLoading,
+  } = useSelector((state) => state.auth);
+
 
 
   useEffect(() => {
@@ -221,7 +232,97 @@ const page = () => {
   const closeLoginModal = () => {
     setShowExistingCustomerModal(false);
     setIsExistingCustomer(false);
+    setStep("EMAIL");
+    setLoginEmail("");
+    setOtp("");
   };
+
+  const handleSendCode = async () => {
+    if (!loginEmail) {
+      toast.error("Email required");
+      return;
+    }
+
+    try {
+      const res = await dispatch(
+        sendSecurityCode({
+          email: loginEmail,
+          session_uuid: savedUUid,
+        })
+      ).unwrap();
+      toast.success(res?.message || "Security code sent");
+
+      setStep("OTP");
+    } catch (err) {
+      console.log('hii', err)
+      toast.error(
+        err?.response?.data?.message ||
+        "Failed to send security code"
+      );
+    }
+  };
+
+
+  const handleVerifyCode = async () => {
+    if (!otp) {
+      toast.error("Enter security code");
+      return;
+    }
+
+    try {
+      const res = await dispatch(
+        verifySecurityCode({
+          email: loginEmail,
+          security_code: otp,
+          session_uuid: savedUUid,
+        })
+      ).unwrap();
+
+      toast.success(res?.message || "Login successful");
+
+      const customer = res?.data?.customer;
+
+      const billing =
+        res?.data?.addresses?.billing?.[0]?.address || null;
+
+      const shipping =
+        res?.data?.addresses?.shipping?.[0]?.address || null;
+
+      setCust_id(customer?.id);
+
+      setValue("first_name", customer?.first_name || "");
+      setValue("last_name", customer?.last_name || "");
+      setValue("email", customer?.email || "");
+      setValue("phone", customer?.phone || "");
+      setValue("company_name", customer?.company_name || "");
+
+      if (billing) {
+        setValue("billing.line1", billing.line1);
+        setValue("billing.line2", billing.line2);
+        setValue("billing.city", billing.city);
+        setValue("billing.state", billing.state);
+        setValue("billing.postal_code", billing.postal_code);
+        setValue("billing.country", billing.country);
+      }
+
+      if (shipping) {
+        setValue("shipping.line1", shipping.line1);
+        setValue("shipping.line2", shipping.line2);
+        setValue("shipping.city", shipping.city);
+        setValue("shipping.state", shipping.state);
+        setValue("shipping.postal_code", shipping.postal_code);
+        setValue("shipping.country", shipping.country);
+      }
+
+      setShowExistingCustomerModal(false);
+      setIsExistingCustomer(true);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Invalid security code");
+    }
+  };
+
+
+
   return (
     <>
 
@@ -543,75 +644,83 @@ const page = () => {
           )
           
         } */}
-      {
-        showExistingCustomerModal && (
-          <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              {/* Overlay with Blur Effect */}
-              <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-                //onClick={() => setShowExistingCustomerModal(false)}
-                onClick={closeLoginModal}
-              />
+      {showExistingCustomerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 cursor-pointer"
+            onClick={closeLoginModal}
+          />
 
-              {/* Modal box */}
-              <div className="relative z-50 w-full max-w-md bg-white rounded-xl shadow-2xl p-8 transform transition-all">
-                {/* Close Button */}
+          <div className="relative bg-white p-6 rounded-xl w-full max-w-md z-50">
+            <button
+              onClick={closeLoginModal}
+              className="absolute top-3 right-3 text-gray-500 hover:text-black text-2xl cursor-pointer"
+              aria-label="Close modal"
+            >
+              <IoClose />
+            </button>
+            <h3 className="text-xl font-semibold mb-4 text-center">
+              Existing Customer Login
+            </h3>
+
+            {step === "EMAIL" && (
+              <>
+                <input
+                  type="email"
+                  placeholder="Enter email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full border p-3 rounded mb-4"
+                />
+
                 <button
-                  // onClick={() => setShowExistingCustomerModal(false)}
-                  onClick={closeLoginModal}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
+                  onClick={handleSendCode}
+                  disabled={loadingSendCode}
+                  className="w-full bg-red-600 text-white py-3 rounded cursor-pointer"
                 >
-                  &times;
+                  {loadingSendCode ? "Sending..." : "Send Security Code"}
                 </button>
+              </>
+            )}
 
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">Welcome Back</h3>
-                  <p className="text-gray-500 text-sm">Please enter your details to login</p>
-                </div>
+            {step === "OTP" && (
+              <>
+                <p className="text-sm text-gray-600 mb-2">
+                  Security code has been sent to{" "}
+                  <span className="font-semibold text-black">
+                    {loginEmail}
+                  </span>
+                </p>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input
-                      type="email"
-                      placeholder="name@company.com"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
+                <input
+                  type="text"
+                  placeholder="Enter security code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full border p-3 rounded mb-4"
+                />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3 mt-8">
-                  <button
+                <button
+                  onClick={handleVerifyCode}
+                  disabled={authLoading}
+                  className="w-full bg-green-600 text-white py-3 rounded cursor-pointer"
+                >
+                  {authLoading ? "Verifying..." : "Verify Code"}
+                </button>
+              </>
+            )}
 
 
-                    className="w-full px-4 py-3 rounded-lg bg-[#ED1C24] text-white font-semibold hover:bg-black transition-colors disabled:opacity-50"
-                  >
-                    {loading ? "Signing in..." : "Login"}
-                  </button>
+            <button
+              onClick={closeLoginModal}
+              className="w-full text-sm text-gray-500 mt-4 cursor-pointer"
+            >
+              Continue as Guest
+            </button>
+          </div>
+        </div>
+      )}
 
-                  <button
-                    // onClick={() => setShowExistingCustomerModal(false)}
-                    onClick={closeLoginModal}
-                    className="w-full px-4 py-2 rounded-lg text-gray-500 hover:text-gray-700 text-sm font-medium"
-                  >
-                    Continue as Guest
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>
-        )
-      }
 
     </>
   )
