@@ -7,7 +7,8 @@ export const chats=createAsyncThunk(
     'chats',
      async (userInput, { rejectWithValue }) => {
         try {
-            const response = await axios.post('https://arsalaanrasulcap.bestworks.cloud/chat/agent', userInput);
+            // const response = await axios.post('https://arsalaanrasulcap.bestworks.cloud/chat/agent', userInput);
+            const response = await axios.post('https://capmcp.bestworks.cloud/chat/agent', userInput);
             console.log("response",response);
             
             if (response?.data?.status_code === 200) {
