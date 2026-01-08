@@ -452,7 +452,7 @@ const page = () => {
                   </div>
 
                   <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Billing Information</h3>
-                  <div className='flex gap-4 mb-4'>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Address Line 1</Label>
@@ -476,8 +476,8 @@ const page = () => {
                       )}
                     </div>
                   </div>
-                  <div className='lg:flex gap-4 mb-4'>
-                    <div className='lg:w-5/12'>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Country / Region</Label>
                       </div>
@@ -488,7 +488,7 @@ const page = () => {
                         </small>
                       )}
                     </div>
-                    <div className='lg:w-5/12'>
+                    <div>
                       <div className="mb-2 block">
                         <Label htmlFor="base">States</Label>
                       </div>
@@ -501,8 +501,8 @@ const page = () => {
                     </div>
                   </div>
 
-                  <div className='flex gap-4 mb-4'>
-                    <div className='w-6/12'>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className='full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Postal Code</Label>
                       </div>
@@ -513,7 +513,7 @@ const page = () => {
                         </small>
                       )}
                     </div>
-                    <div className='w-6/12'>
+                    <div className='full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">City</Label>
                       </div>
@@ -536,7 +536,7 @@ const page = () => {
 
 
                   <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Shipping Information</h3>
-                  <div className='flex gap-4 mb-4'>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Address Line 1</Label>
@@ -560,8 +560,8 @@ const page = () => {
                       )}
                     </div>
                   </div>
-                  <div className='lg:flex gap-4 mb-4'>
-                    <div className='lg:w-5/12'>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Country / Region</Label>
                       </div>
@@ -572,7 +572,7 @@ const page = () => {
                         </small>
                       )}
                     </div>
-                    <div className='lg:w-5/12'>
+                    <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">States</Label>
                       </div>
@@ -585,8 +585,8 @@ const page = () => {
                     </div>
                   </div>
 
-                  <div className='flex gap-4 mb-4'>
-                    <div className='w-6/12'>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Postal Code</Label>
                       </div>
@@ -597,7 +597,7 @@ const page = () => {
                         </small>
                       )}
                     </div>
-                    <div className='w-6/12'>
+                    <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">City</Label>
                       </div>
