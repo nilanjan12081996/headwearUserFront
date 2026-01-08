@@ -1500,3 +1500,7 @@ body {
 .no-spinner {
   -moz-appearance: textfield;
 }
+
+.pagi-prev-btn{
+  border-radius: 100% !important;
+}

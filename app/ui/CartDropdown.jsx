@@ -3,9 +3,15 @@ import React, { useEffect } from "react";
 import { cartList, deleteCartItem } from "../reducers/CartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
+import { useRouter, usePathname } from "next/navigation";
 
 const CartDropdown = ({ open, onClose }) => {
   if (!open) return null;
+
+
+  const router = useRouter();
+  const pathname = usePathname();
+
 
   const dispatch = useDispatch();
   const { cartListItem } = useSelector((state) => state?.cart);
@@ -97,7 +103,20 @@ const CartDropdown = ({ open, onClose }) => {
       console.error("Cart delete failed", err);
     }
   };
-  const base_url = "https://showmecustomheadwearapi.bestworks.cloud";
+  const base_url = "https://showmecustomheadwearapi.bestworks.cloud/";
+
+  const isUploadPage = pathname === "/upload-artwork";
+
+  const handleAction = () => {
+    onClose()
+    if (!isUploadPage) {
+      // Step 1
+      router.push("/upload-artwork");
+    } else {
+      // Step 2
+      router.push("/checkout");
+    }
+  };
 
   return (
     <>
@@ -121,10 +140,12 @@ const CartDropdown = ({ open, onClose }) => {
               group.items.map((item) => {
                 const hatName = item?.hat?.name;
                 const size = item?.variant?.size_label;
+                const colorName = item?.color?.name;
                 const variantName = item?.variant?.variant_name;
                 const qty = item?.quantity;
                 const price = item?.unit_price;
                 const image = item?.color?.primary_image_url;
+                console.log('item', item)
                 return (
                   <div
                     key={item.id}
@@ -145,7 +166,7 @@ const CartDropdown = ({ open, onClose }) => {
 
                       <div>
                         <p className="text-sm font-medium">
-                          {hatName} ({variantName})
+                          {hatName} ({colorName})
                         </p>
                         <p className="text-xs text-gray-500">Size: {size}</p>
                         <p className="text-xs text-gray-700">${price}</p>
@@ -205,14 +226,23 @@ const CartDropdown = ({ open, onClose }) => {
         )}
 
         {/* CONTINUE ORDER BUTTON */}
-        <div className="p-3 border-t">
+        {/* <div className="p-3 border-t">
           <button
             onClick={onClose}
             className="w-full bg-[#ed6c27] text-white py-2 rounded-md hover:bg-[#f47b3e] cursor-pointer"
           >
             Continue Order
           </button>
+        </div> */}
+        <div className="p-3 border-t">
+          <button
+            onClick={handleAction}
+            className="w-full bg-[#ed6c27] text-white py-2 rounded-md hover:bg-[#f47b3e] cursor-pointer"
+          >
+            {isUploadPage ? "Checkout" : "Continue Order"}
+          </button>
         </div>
+
       </div>
     </>
   );

@@ -22,8 +22,8 @@ import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 
 
 
-let updateQueue = {};               // batch queue for processUpdateQueue
-let pendingDesiredQty = {};         // holds latest desired qty while create is in progress
+
+let pendingDesiredQty = {};
 
 function debounce(fn, delay = 300) {
     let timer;
@@ -36,10 +36,8 @@ function debounce(fn, delay = 300) {
 
 const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
     const dispatch = useDispatch();
-    const { brandList, brandWiseHatList, singleHatDetail, loading, pagination } = useSelector((state) => state.hatBrand);
+    const { brandList, brandWiseHatList, singleHatDetail, loading } = useSelector((state) => state.hatBrand);
     const { cartListItem } = useSelector((state) => state?.cart);
-    const [page, setPage] = useState(1);
-    const limit = 10;
     console.log('singleHatDetail', singleHatDetail)
     // Page load e restore kore first render e
     const [cartItemMap, setCartItemMap] = useState(() => {
@@ -118,19 +116,24 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
     let updateQueue = {};
     useEffect(() => {
-        dispatch(getHatBrandList({ page, limit }));
-    }, [page]);
+        dispatch(getHatBrandList());
+    }, []);
 
 
     useEffect(() => {
-        if (!brandList || !brandList.data) return;
+        if (!brandList?.data?.length) return;
 
         brandList.data.forEach((brand) => {
-            dispatch(getHatListDetail({ brandId: brand.id })
-            )
+            dispatch(
+                getHatListDetail({
+                    brandId: brand.id,
+                    page: 1,
+                    limit: 10,
+                })
+            );
         });
+    }, [brandList, dispatch]);
 
-    }, [brandList]);
 
     const handleHatClick = (hatId) => {
         console.log("Hello");
@@ -737,14 +740,14 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
             <ToastContainer />
             {brandList?.data?.map((brand) => {
                 const hats =
-                    brandWiseHatList?.[brand.id]?.data?.map((item) => ({
+                    brandWiseHatList?.[brand.id]?.list?.map((item) => ({
                         id: item.id,
                         name: item.name,
                         description: item.description,
                         hatImages: item.hatImages
                     })) || [];
 
-                console.log('hats', hats)
+                const pagination = brandWiseHatList?.[brand.id]?.pagination;
 
                 return (
                     <div key={brand.id}>
@@ -755,14 +758,14 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                         </div>
 
                         <div className='product_details_area_box'>
-                            <Accordion collapseAll>
+                            <Accordion collapseAll key={`${brand.id}-${pagination?.page || 1}`}>
                                 {hats.length === 0 ? (
                                     <p className='text-center text-gray-500 py-5'>
                                         No records
                                     </p>
                                 ) : (
                                     hats.map((hat) => {
-
+                                        console.log("myHats", hat)
                                         // ---------- FIX: Single unique hat ID ----------
                                         const uniqueHatId = `${brand.id}_${hat.id}`;
                                         const imageSrc = hat?.hatImages?.[0]?.image_url
@@ -944,11 +947,16 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                 {singleHatDetail?.data?.data?.hatColors?.map((color, index) => {
 
                                                                     const sizeVariants = color?.hatSizes || []
+                                                                    const colorImage =
+                                                                        color?.colorImages?.length > 0
+                                                                            ? color.colorImages[0].image_url
+                                                                            : null;
                                                                     return (
                                                                         <HatColorSelector
                                                                             key={color.id}
                                                                             colorName={color.name}
-                                                                            colorImage={color.primary_image_url}
+                                                                            // colorImage={color.primary_image_url}
+                                                                            colorImage={colorImage}
                                                                             sizeVariants={color.hatSizes}
 
 
@@ -996,47 +1004,60 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                     })
                                 )}
                             </Accordion>
+                            {pagination && pagination.totalPages > 1 && (
+                                <div className="flex items-center justify-center gap-4 mt-6">
+                                    <button
+                                        disabled={pagination.page === 1}
+                                        onClick={() =>
+                                            dispatch(
+                                                getHatListDetail({
+                                                    brandId: brand.id,
+                                                    page: pagination.page - 1,
+                                                    limit: 10
+                                                })
+                                            )
+                                        }
+                                        className={`pagi-prev-btn p-2 rounded-full border ${pagination.page === 1
+                                            ? "opacity-40 cursor-not-allowed"
+                                            : "hover:bg-[#ff7379] hover:text-white"}`}
+                                    >
+                                        <IoIosArrowBack size={22} />
+                                    </button>
+                                    <span className="text-sm font-semibold text-gray-700">
+                                        Page {pagination.page} of {pagination.totalPages}
+                                    </span>
+                                    <button
+                                        disabled={pagination.page === pagination.totalPages}
+                                        onClick={() =>
+                                            dispatch(
+                                                getHatListDetail({
+                                                    brandId: brand.id,
+                                                    page: pagination.page + 1,
+                                                    limit: 10
+                                                })
+                                            )
+                                        }
+                                        className={`p-2 rounded-full border
+                                        ${pagination.page === pagination.totalPages
+                                                ? "opacity-40 cursor-not-allowed"
+                                                : "hover:bg-[#ff7379] hover:text-white"}`}
+                                    >
+                                        <IoIosArrowForward size={22} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )
             })}
-            <div className='flex justify-center mt-6'>
-                <button onClick={() => handleNextpage()} className='text-xl cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300'>
+            <div className='mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 z-49 '>
+                <button onClick={() => handleNextpage()} className='text-xl cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-6 rounded-b-md shadow-md transition duration-300 min-h-[47px]'>
                     Next Step
                 </button>
             </div>
-            {/* PAGINATION BUTTON */}
-            {pagination?.totalPages && (
-                <div className="flex justify-center items-center gap-4 mt-10">
-                    <button
-                        disabled={page === 1}
-                        onClick={() => setPage(prev => prev - 1)}
-                        className={`w-10 h-10 flex items-center justify-center rounded-full text-2xl font-bold
-        ${page === 1
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-[#ff7379] hover:bg-[#ee8d92] text-white"
-                            }`}
-                    >
-                        <IoIosArrowBack />
-                    </button>
 
-                    <span className="text-lg font-medium">
-                        Page {pagination.page} of {pagination.totalPages}
-                    </span>
 
-                    <button
-                        disabled={page === pagination.totalPages}
-                        onClick={() => setPage(prev => prev + 1)}
-                        className={`w-10 h-10 flex items-center justify-center rounded-full text-2xl font-bold
-        ${page === pagination.totalPages
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-[#ff7379] hover:bg-[#ee8d92] text-white"
-                            }`}
-                    >
-                        <IoIosArrowForward />
-                    </button>
-                </div>
-            )}
+
 
         </div>
     )

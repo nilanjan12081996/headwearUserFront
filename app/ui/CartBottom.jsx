@@ -65,7 +65,7 @@ const CartBottom = ({ open, onClose }) => {
 
                       <div>
                         <p className="text-sm font-medium">
-                          {item?.hat?.name} - {item?.variant?.variant_name}
+                          {item?.hat?.name} - {item?.color?.name}
                         </p>
                         <p className="text-xs text-gray-500">
                           {item?.variant?.size_label}
