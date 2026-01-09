@@ -350,11 +350,11 @@ const page = () => {
                     <Link href="/" passHref><GoHome className='text-[#666666] text-2xl' /></Link>
                   </li>
                   <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                  <li className='text-[#666666] text-base'>Caps</li>
+                  <li className='text-[#666666] text-base'><Link href="/product-list" passHref>Caps</Link></li>
+                  {/* <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+                  <li className='text-[#666666] text-base'>Wooly Combed Flexifit</li> */}
                   <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                  <li className='text-[#666666] text-base'>Wooly Combed Flexifit</li>
-                  <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-                  <li className='text-[#666666] text-base'>Artwork</li>
+                  <li className='text-[#666666] text-base'><Link href="/upload-artwork" passHref>Artwork</Link></li>
                   <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
                   <li className='text-[#ED1C24] text-base'>Checkout</li>
                 </ul>

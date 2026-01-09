@@ -19,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import { v4 as uuidv4 } from "uuid";
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
+import { FaSearch } from 'react-icons/fa';
+
 
 
 
@@ -54,7 +56,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
     const [createLock, setCreateLock] = useState({});
     const router = useRouter()
     const [cartUUID, setCartUUID] = useState(null);
-    const [errorMsg, setErrorMsg] = useState(null)
+    const [errorMsg, setErrorMsg] = useState(null);
 
 
 
@@ -427,141 +429,6 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
     };
 
 
-
-
-
-
-
-
-    // const handleManualChange = async (
-    //     uniqueHatId,
-    //     colorName,
-    //     size,
-    //     newQty,
-    //     hatId,
-    //     brandId
-    // ) => {
-    //     const sizeId = size.id;
-    //     if (newQty < 0) return;
-
-    //     const key = `${uniqueHatId}-${colorName}-${sizeId}`;
-    //     const currentQty =
-    //         hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
-
-    //     setHatQuantities(prev => ({
-    //         ...prev,
-    //         [uniqueHatId]: {
-    //             ...prev[uniqueHatId],
-    //             [colorName]: {
-    //                 ...prev[uniqueHatId]?.[colorName],
-    //                 [sizeId]: newQty
-    //             }
-    //         }
-    //     }));
-
-    //     const cartItemId = cartItemMap?.[key];
-
-
-    //     if (createLock[key]) {
-    //         pendingDesiredQty[key] = newQty;
-    //         return;
-    //     }
-
-
-    //     if (!cartItemId) {
-    //         setCreateLock(prev => ({ ...prev, [key]: true }));
-
-    //         try {
-    //             const res = await dispatch(
-    //                 addCartItem({
-    //                     session_uuid: cartUUID,
-    //                     hat_id: hatId,
-    //                     brand_id: brandId,
-    //                     hat_size_variant_id: sizeId,
-    //                     decoration_type_id: selectedDecoId,
-    //                     quantity: newQty
-    //                 })
-    //             );
-
-    //             const cartGroups = res?.payload?.data?.cartGroups || [];
-    //             const createdItem = cartGroups
-    //                 .flatMap(g => g.cartItems)
-    //                 .find(i => String(i.hat_size_variant_id) === String(sizeId));
-
-    //             const newCartItemId = createdItem?.id;
-    //             if (!newCartItemId) throw new Error("Create failed");
-
-    //             setCartItemMap(prev => {
-    //                 const updated = { ...prev, [key]: newCartItemId };
-    //                 sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
-    //                 return updated;
-    //             });
-
-    //             if (
-    //                 pendingDesiredQty[key] !== undefined &&
-    //                 pendingDesiredQty[key] !== newQty
-    //             ) {
-    //                 await dispatch(
-    //                     updateCartItem({
-    //                         id: newCartItemId,
-    //                         quantity: pendingDesiredQty[key]
-    //                     })
-    //                 );
-    //                 delete pendingDesiredQty[key];
-    //             }
-
-    //             await dispatch(cartList({ id: cartUUID }));
-
-    //         } catch (err) {
-    //             console.error("Manual create error", err);
-
-    //             setHatQuantities(prev => ({
-    //                 ...prev,
-    //                 [uniqueHatId]: {
-    //                     ...prev[uniqueHatId],
-    //                     [colorName]: {
-    //                         ...prev[uniqueHatId]?.[colorName],
-    //                         [sizeId]: currentQty
-    //                     }
-    //                 }
-    //             }));
-    //         } finally {
-    //             setCreateLock(prev => {
-    //                 const copy = { ...prev };
-    //                 delete copy[key];
-    //                 return copy;
-    //             });
-    //         }
-
-    //         return;
-    //     }
-
-    //     try {
-    //         await dispatch(
-    //             updateCartItem({
-    //                 id: cartItemId,
-    //                 quantity: newQty
-    //             })
-    //         );
-    //         await dispatch(cartList({ id: cartUUID }));
-    //     } catch (err) {
-    //         console.error("Manual update error", err);
-
-    //         // rollback UI
-    //         setHatQuantities(prev => ({
-    //             ...prev,
-    //             [uniqueHatId]: {
-    //                 ...prev[uniqueHatId],
-    //                 [colorName]: {
-    //                     ...prev[uniqueHatId]?.[colorName],
-    //                     [sizeId]: currentQty
-    //                 }
-    //             }
-    //         }));
-    //     }
-    // };
-
-
     const handleManualChange = async (
         uniqueHatId,
         colorName,
@@ -738,6 +605,23 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
     return (
         <div className='product_details_area'>
             <ToastContainer />
+            {/* <div className="w-full max-w-md mx-auto">
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="Search here..."
+                        className="w-full pl-4 pr-12 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2focus:ring-pink-400"
+                    />
+
+                    <button
+                        type="button"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#ff7379] p-2.5 rounded-full text-white hover:bg-[#ff5a61] transition cursor-pointer"
+                        onClick={() => alert("Search clicked")}
+                    >
+                        <FaSearch size={16} />
+                    </button>
+                </div>
+            </div> */}
             {brandList?.data?.map((brand) => {
                 const hats =
                     brandWiseHatList?.[brand.id]?.list?.map((item) => ({
@@ -1050,8 +934,8 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     </div>
                 )
             })}
-            <div className='mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 z-49 '>
-                <button onClick={() => handleNextpage()} className='text-xl cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-6 rounded-b-md shadow-md transition duration-300 min-h-[47px]'>
+            <div className='mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 z-49 ml-[30px] md:ml-0 '>
+                <button onClick={() => handleNextpage()} className='text-md cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-3 rounded-b-md shadow-md transition duration-300 min-h-[47px]'>
                     Next Step
                 </button>
             </div>

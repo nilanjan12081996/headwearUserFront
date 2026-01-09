@@ -287,7 +287,7 @@ const page = () => {
 
 
             </div> */}
-            <div className="w-[200px] mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 -translate-x-full -ml-3 z-49">
+            <div className="w-[167px] mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 -translate-x-full ml-[25px] md:-ml-1 z-49">
               <button
                 type="button"
                 onClick={() => setOpen(prev => !prev)}

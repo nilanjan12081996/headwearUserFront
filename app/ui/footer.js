@@ -172,7 +172,7 @@ useEffect(() => {
     <div className='footer_area'>
 
 
-         <div className="fixed bottom-6 right-6 z-49 bg-[#ed1c24] rounded-full w-[59px] h-[59px] flex items-center justify-center">
+         <div className="fixed bottom-3 right-6 z-49 bg-[#ff7379] rounded-full w-[59px] h-[59px] flex items-center justify-center">
         <button
           onClick={openChat}
           aria-expanded={isOpen}

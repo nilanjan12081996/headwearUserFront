@@ -612,11 +612,11 @@ const page = () => {
             <ul className='flex items-center gap-2'>
               <li><Link href="/"><GoHome className='text-[#666666] text-2xl' /></Link></li>
               <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-              <li className='text-[#666666] text-base'>Caps</li>
+              <li className='text-[#666666] text-base'><Link href="/product-list" passHref>Caps</Link></li>
+              {/* <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
+              <li className='text-[#666666] text-base'>{supName}</li> */}
               <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-              <li className='text-[#666666] text-base'>{supName}</li>
-              <li><MdOutlineArrowForwardIos className='text-[#666666] text-sm' /></li>
-              <li className='text-[#ED1C24] text-base'>Artwork</li>
+              <li className='text-[#ED1C24] text-base'><Link href="/upload-artwork" passHref>Artwork</Link></li>
             </ul>
           </div>
         </div>
@@ -1038,7 +1038,7 @@ const page = () => {
                   className="text-2xl font-bold"
                   style={{ fontFamily: "Arial, sans-serif" }}
                 >
-                  Premimum<br />+$50</h2>
+                  Premimum<br />+$100</h2>
 
                 <input
                   type="radio"
