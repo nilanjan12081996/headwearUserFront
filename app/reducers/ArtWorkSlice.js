@@ -89,7 +89,32 @@ export const updateAddOn = createAsyncThunk(
     }
 );
 
+export const getPatchOptions = createAsyncThunk(
+    "patchOption/getPatchOptions",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get(
+                "postgresapi/user/cart/patch/options"
+            );
 
+            console.log("Patch Options Response", response);
+
+            if (response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(
+                    response?.data?.errors || "Something went wrong."
+                );
+            }
+        } catch (err) {
+            const errorMessage =
+                err?.response?.data?.message ||
+                err?.message ||
+                "Failed to fetch patch options";
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
 
 
 
@@ -100,7 +125,8 @@ const initialState = {
     adonPriceData: [],
     setUpPlanListData: [],
     // updateArtWorkData: [],
-    updateAddOnData: {}
+    updateAddOnData: {},
+    patchOptionsData: [],
 
 }
 
@@ -160,6 +186,20 @@ const ArtWorkSlice = createSlice(
                     state.loading = false;
                     state.error = payload;
                 })
+
+                .addCase(getPatchOptions.pending, (state) => {
+                    state.loading = true;
+                    state.error = false;
+                })
+                .addCase(getPatchOptions.fulfilled, (state, { payload }) => {
+                    state.loading = false;
+                    state.patchOptionsData = payload?.data || [];
+                    state.error = false;
+                })
+                .addCase(getPatchOptions.rejected, (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                });
         }
     }
 )

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 
-import { Avatar, AvatarGroup, AvatarGroupCounter, Label, Select, FileInput, Checkbox, Textarea } from "flowbite-react";
+import { Avatar, AvatarGroup, AvatarGroupCounter, Label, FileInput, Checkbox, Textarea } from "flowbite-react";
 
 import app_store from "../assets/imagesource/app_store.png";
 
@@ -79,7 +79,7 @@ import { FaCheck, FaPlus } from "react-icons/fa";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { cartList, dropDownToggle, getDecorationType, uploadLogo } from '../reducers/CartSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { addArtWork, addOnPrice, setUpPlanList, updateAddOn } from '../reducers/ArtWorkSlice';
+import { addArtWork, addOnPrice, getPatchOptions, setUpPlanList, updateAddOn } from '../reducers/ArtWorkSlice';
 import { useRef } from "react";
 import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
@@ -118,7 +118,7 @@ const page = () => {
   const router = useRouter();
   const { cartListItem } = useSelector((state) => state?.cart);
   const { decorationList } = useSelector((state) => state?.cart)
-  const { loading, adonPriceData, setUpPlanListData } = useSelector((state) => state?.art)
+  const { loading, adonPriceData, setUpPlanListData, patchOptionsData } = useSelector((state) => state?.art)
   const searchParams = useSearchParams();
   const supName = atob(searchParams.get('name'))
   const [logoId, setLogoId] = useState()
@@ -136,6 +136,7 @@ const page = () => {
   const [rightFile, setRightFile] = useState(null);
   const [logoNotes, setLogoNotes] = useState()
   const [open, setOpen] = useState(false);
+  const [patchOption, setPatchOption] = useState(null);
 
 
   const toggleStitch = (id) => {
@@ -182,6 +183,7 @@ const page = () => {
   useEffect(() => {
     dispatch(addOnPrice())
     dispatch(setUpPlanList())
+    dispatch(getPatchOptions())
   }, [])
   console.log("adonPriceData", adonPriceData);
   console.log("setUpPlanListData", setUpPlanListData);
@@ -1240,43 +1242,103 @@ const page = () => {
               <div className='p-4 bg-[#ff0000] mb-4'>
                 <h2 className='text-2xl font-bold text-white'>Patch Options</h2>
               </div>
-              {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Patch Options</h3> */}
               <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mb-4'>
                 <h2 className='text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
                 <p className='text-[15px]'>We will convert your artwork and send you mockups.</p>
               </div>
-              <div className='border-1 border-[#ed1c24] px-5 py-7 rounded-xl'>
-                <h2 className='mb-3 text-[#1A1A1A] text-[20px] font-semibold'>Leather Patch</h2>
-                <ul className='flex items-center gap-4 mb-4'>
-                  <li className='flex items-center gap-1'><FaCheck /> Synthetic Leather</li>
-                  <li className='flex items-center gap-1'><FaCheck /> Very Classy Look</li>
-                  <li className='flex items-center gap-1'><FaCheck /> Best For Simple Designs</li>
+              <div className="rounded-2xl border border-[#ed1c24] bg-gradient-to-br from-[#fff5f5] to-[#ffffff] p-6 shadow-md">
+
+                {/* Header */}
+                <h2 className="mb-4 text-[22px] font-semibold text-[#1A1A1A]">
+                  Leather Patch
+                </h2>
+
+                {/* Features */}
+                <ul className="mb-6 flex flex-wrap gap-4 text-sm text-gray-700">
+                  <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                    <FaCheck className="text-green-600" /> Synthetic Leather
+                  </li>
+                  <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                    <FaCheck className="text-green-600" /> Very Classy Look
+                  </li>
+                  <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                    <FaCheck className="text-green-600" /> Best for Simple Designs
+                  </li>
                 </ul>
-                <div className='mb-3'>
-                  <Select value={patchShape} onChange={(e) => setPatchShape(e.target.value)}>
-                    <option value="">Select Patch Shape</option>
-                    <option value="Circle">Circle</option>
-                    <option value="Rectangle">Rectangle</option>
-                    <option value="Shield">Shield</option>
-                  </Select>
-                </div>
-                <div>
-                  <Select value={patchColor} onChange={(e) => setPatchColor(e.target.value)}>
-                    <option value="">Select Patch Color</option>
-                    <option value="Brown">Brown</option>
-                    <option value="Black">Black</option>
-                    <option value="Red">Red</option>
-                    <option value="Blue">Blue</option>
-                  </Select>
+
+                {/* Selects side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                  {/* Patch Shape */}
+                  <div className="rounded-xl bg-white p-4 shadow-sm">
+                    <label className="mb-1 block text-sm font-medium text-gray-600">
+                      Patch Shape
+                    </label>
+                    <select
+                      value={patchShape}
+                      onChange={(e) => setPatchShape(e.target.value)}
+                      className="bg-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 cursor-pointer w-full">
+                      <option value="">Select Shape</option>
+                      <option value="Circle">Circle</option>
+                      <option value="Rectangle">Rectangle</option>
+                      <option value="Shield">Shield</option>
+                    </select>
+                  </div>
+
+                  {/* Patch Color */}
+                  <div className="rounded-xl bg-white p-4 shadow-sm">
+                    <label className="mb-1 block text-sm font-medium text-gray-600">
+                      Patch Color
+                    </label>
+                    <select
+                      value={patchColor}
+                      onChange={(e) => setPatchColor(e.target.value)}
+                      className="bg-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 cursor-pointer w-full">
+                      <option value="">Select Color</option>
+                      <option value="Brown">Brown</option>
+                      <option value="Black">Black</option>
+                      <option value="Red">Red</option>
+                      <option value="Blue">Blue</option>
+                    </select>
+                  </div>
+
+                  {/* Patch Option */}
+                  <div className="rounded-xl bg-white p-4 shadow-sm">
+                    <label className="mb-1 block text-sm font-medium text-gray-600">
+                      Patch Option
+                    </label>
+                    <select
+                      value={patchOption}
+                      className="bg-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 cursor-pointer w-full"
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        setPatchOption(selectedId);
+
+                        handleArtworkUpdate({
+                          addonId: selectedId,
+                          enabled: true,
+                        });
+                      }}
+                    >
+                      <option value="">Select Option</option>
+                      {patchOptionsData.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name} — ${item.unit_price}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                 </div>
               </div>
+
             </div>
           )}
 
           {/* Logo Placement */}
           <div className='flex justify-center'>
             <div className='team_wrap mb-8'>
-               <div className='p-4 bg-[#ff0000] mb-4'>
+              <div className='p-4 bg-[#ff0000] mb-4'>
                 <h2 className='text-2xl font-bold text-white'>Logo Placement</h2>
               </div>
               {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3> */}
