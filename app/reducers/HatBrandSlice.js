@@ -51,7 +51,7 @@ export const getHatBrandList = createAsyncThunk(
 export const getHatListDetail = createAsyncThunk(
     "hatBrand/getHatListDetail",
     async (
-        { brandId, page = 1, limit = 10 },
+        { brandId, page = 1, limit = 5 },
         { rejectWithValue }
     ) => {
         try {
@@ -139,18 +139,35 @@ const hatBrandSlice = createSlice({
             .addCase(getHatListDetail.pending, (state) => {
                 state.loading = true;
             })
+            // .addCase(getHatListDetail.fulfilled, (state, { payload }) => {
+            //     state.loading = false;
+
+            //     const { brandId, hats, pagination } = payload;
+
+            //     state.brandWiseHatList[brandId] = {
+            //         list: hats,
+            //         pagination: pagination,
+            //     };
+
+            //     state.error = null;
+            // })
             .addCase(getHatListDetail.fulfilled, (state, { payload }) => {
                 state.loading = false;
 
                 const { brandId, hats, pagination } = payload;
 
+                const prev = state.brandWiseHatList[brandId];
+
                 state.brandWiseHatList[brandId] = {
-                    list: hats,
-                    pagination: pagination,
+                    list: prev ? [...prev.list, ...hats] : hats,
+                    pagination,
+                    page: pagination.page,
+                    hasMore: pagination.page < pagination.totalPages
                 };
 
                 state.error = null;
             })
+
             .addCase(getHatListDetail.rejected, (state, { payload }) => {
                 state.loading = false;
                 state.error = payload;

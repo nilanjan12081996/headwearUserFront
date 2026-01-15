@@ -20,6 +20,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { v4 as uuidv4 } from "uuid";
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { FaSearch } from 'react-icons/fa';
+import { useRef } from "react";
 
 
 
@@ -38,6 +39,8 @@ function debounce(fn, delay = 300) {
 
 const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
     const dispatch = useDispatch();
+    const loadMoreRef = useRef(null);
+
     const { brandList, brandWiseHatList, singleHatDetail, loading } = useSelector((state) => state.hatBrand);
     const { cartListItem } = useSelector((state) => state?.cart);
     console.log('singleHatDetail', singleHatDetail)
@@ -57,6 +60,8 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
     const router = useRouter()
     const [cartUUID, setCartUUID] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
+    const [showLoader, setShowLoader] = useState(false);
+
 
 
 
@@ -130,11 +135,93 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                 getHatListDetail({
                     brandId: brand.id,
                     page: 1,
-                    limit: 10,
+                    limit: 5,
                 })
             );
         });
     }, [brandList, dispatch]);
+
+    // useEffect(() => {
+    //     const observer = new IntersectionObserver(
+    //         (entries) => {
+    //             if (!entries[0].isIntersecting || loading) return;
+
+    //             setShowLoader(true);
+
+    //             setTimeout(() => {
+    //                 brandList?.data?.forEach((brand) => {
+    //                     const brandData = brandWiseHatList?.[brand.id];
+
+    //                     if (brandData?.hasMore) {
+    //                         dispatch(
+    //                             getHatListDetail({
+    //                                 brandId: brand.id,
+    //                                 page: brandData.page + 1,
+    //                                 limit: 5
+    //                             })
+    //                         );
+    //                     }
+    //                 });
+
+    //                 setShowLoader(false);
+    //             }, 2000);
+    //         },
+    //         {
+    //             threshold: 0.2,
+    //             rootMargin: "150px"
+    //         }
+    //     );
+
+    //     if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+
+    //     return () => observer.disconnect();
+    // }, [brandWiseHatList, brandList, loading]);
+
+    const hasAnyMoreData = () => {
+        return brandList?.data?.some((brand) => {
+            return brandWiseHatList?.[brand.id]?.hasMore;
+        });
+    };
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (!entries[0].isIntersecting || loading) return;
+
+                // ✅ IMPORTANT: no more data → do nothing
+                if (!hasAnyMoreData()) return;
+
+                setShowLoader(true);
+
+                setTimeout(() => {
+                    brandList?.data?.forEach((brand) => {
+                        const brandData = brandWiseHatList?.[brand.id];
+
+                        if (brandData?.hasMore) {
+                            dispatch(
+                                getHatListDetail({
+                                    brandId: brand.id,
+                                    page: brandData.page + 1,
+                                    limit: 5
+                                })
+                            );
+                        }
+                    });
+
+                    setShowLoader(false);
+                }, 2000);
+            },
+            {
+                threshold: 0.2,
+                rootMargin: "150px"
+            }
+        );
+
+        if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+
+        return () => observer.disconnect();
+    }, [brandWiseHatList, brandList, loading]);
+
 
 
     const handleHatClick = (hatId) => {
@@ -642,7 +729,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                         </div>
 
                         <div className='product_details_area_box'>
-                            <Accordion collapseAll key={`${brand.id}-${pagination?.page || 1}`}>
+                            <Accordion collapseAll key={brand.id}>
                                 {hats.length === 0 ? (
                                     <p className='text-center text-gray-500 py-5'>
                                         No records
@@ -888,48 +975,27 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                     })
                                 )}
                             </Accordion>
-                            {pagination && pagination.totalPages > 1 && (
-                                <div className="flex items-center justify-center gap-4 mt-6">
-                                    <button
-                                        disabled={pagination.page === 1}
-                                        onClick={() =>
-                                            dispatch(
-                                                getHatListDetail({
-                                                    brandId: brand.id,
-                                                    page: pagination.page - 1,
-                                                    limit: 10
-                                                })
-                                            )
-                                        }
-                                        className={`pagi-prev-btn p-2 rounded-full border ${pagination.page === 1
-                                            ? "opacity-40 cursor-not-allowed"
-                                            : "hover:bg-[#ff7379] hover:text-white"}`}
-                                    >
-                                        <IoIosArrowBack size={22} />
-                                    </button>
-                                    <span className="text-sm font-semibold text-gray-700">
-                                        Page {pagination.page} of {pagination.totalPages}
-                                    </span>
-                                    <button
-                                        disabled={pagination.page === pagination.totalPages}
-                                        onClick={() =>
-                                            dispatch(
-                                                getHatListDetail({
-                                                    brandId: brand.id,
-                                                    page: pagination.page + 1,
-                                                    limit: 10
-                                                })
-                                            )
-                                        }
-                                        className={`p-2 rounded-full border
-                                        ${pagination.page === pagination.totalPages
-                                                ? "opacity-40 cursor-not-allowed"
-                                                : "hover:bg-[#ff7379] hover:text-white"}`}
-                                    >
-                                        <IoIosArrowForward size={22} />
-                                    </button>
-                                </div>
-                            )}
+                            <div
+                                ref={loadMoreRef}
+                                className="h-14 flex items-center justify-center"
+                            >
+                                {showLoader && (
+                                    <div className="flex items-center gap-3 py-4">
+                                        <span className="w-5 h-5 border-2 border-[#ff7379] border-t-transparent rounded-full animate-spin"></span>
+                                        <span className="text-[#ff7379] text-sm font-medium tracking-wide">
+                                            Loading more hats...
+                                        </span>
+                                    </div>
+                                )}
+                                {!hasAnyMoreData() && (
+                                    <p className="text-center text-gray-400 text-sm py-6 mt-2">
+                                        No more hats available
+                                    </p>
+                                )}
+
+
+                            </div>
+
                         </div>
                     </div>
                 )
