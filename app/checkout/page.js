@@ -468,12 +468,7 @@ const page = () => {
                       <div className="mb-2 block">
                         <Label htmlFor="base">Address Line 2</Label>
                       </div>
-                      <TextInput {...register("billing.line2", { required: true })} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
-                      {errors?.billing?.line2 && (
-                        <small className="text-red-500">
-                          Address Line2 is Required
-                        </small>
-                      )}
+                      <TextInput {...register("billing.line2")} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -552,12 +547,7 @@ const page = () => {
                       <div className="mb-2 block">
                         <Label htmlFor="base">Address Line 2</Label>
                       </div>
-                      <TextInput {...register("shipping.line2", { required: true })} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
-                      {errors?.shipping?.line2 && (
-                        <small className="text-red-500">
-                          Address Line 2 is Required
-                        </small>
-                      )}
+                      <TextInput {...register("shipping.line2")} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
                     </div>
                   </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

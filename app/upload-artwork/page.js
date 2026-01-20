@@ -44,9 +44,9 @@ import print_02 from "../assets/imagesource/print_02.png";
 import print_03 from "../assets/imagesource/print_03.png";
 import print_04 from "../assets/imagesource/print_04.png";
 
-import cap_left from "../assets/imagesource/cap_left.png";
-import cap_front from "../assets/imagesource/cap_front.png";
-import cap_right from "../assets/imagesource/cap_right.png";
+import cap_left from "../assets/imagesource/hat-logo2.jpg";
+import cap_front from "../assets/imagesource/hat-logo1.jpg";
+import cap_right from "../assets/imagesource/hat-logo3.jpg";
 import cap_back from "../assets/imagesource/cap_back.png";
 
 import on_progress from "../assets/imagesource/on_progress.png";
@@ -151,7 +151,7 @@ const page = () => {
   const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState("right_side");
+  const [logoPlacement, setLogoPlacement] = useState("front_center");
 
   // Additional options
   const [placementSizeNotes, setPlacementSizeNotes] = useState("");
@@ -1027,7 +1027,7 @@ const page = () => {
                 </button>
 
 
-                <p>Included FREE for orders of 12+ hats</p>
+                <p>Included FREE for orders of 24+ hats</p>
 
               </label>
 
@@ -1048,8 +1048,8 @@ const page = () => {
                   value="puff"
                   checked={selectedPrice === "puff"}
                   onChange={() => {
-                    if (totalQty < 12) {
-                      toast.error("Premium Setup not is only available for orders of 12 hats or more.", {
+                    if (totalQty < 48) {
+                      toast.error("Premium Setup not is only available for orders of 48 hats or more.", {
                         duration: 2000
                       });
                       return;
@@ -1111,7 +1111,7 @@ const page = () => {
                 </button>
 
 
-                <p> Only Available for orders of 12+ hats</p>
+                <p> Only Available for orders of 48+ hats</p>
 
               </label>
 
@@ -1196,36 +1196,40 @@ const page = () => {
                     <div className="mt-3">
                       {/* Header Row (Quantities) */}
                       <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t mb-1">
-                        {threeDPuffTiers.map((tier) => {
-                          const isActive = activeTier?.id === tier.id;
+                        {threeDPuffTiers
+                          .filter(tier => tier.min_qty >= 24)
+                          .map((tier) => {
+                            const isActive = activeTier?.id === tier.id;
 
-                          return (
-                            <div
-                              key={tier.id}
-                              className={`py-2 font-bold text-sm mr-1
+                            return (
+                              <div
+                                key={tier.id}
+                                className={`py-2 font-bold text-sm mr-1
           ${isActive ? 'bg-red-500 text-white' : 'bg-[#eee]'}`}
-                            >
-                              {tier.min_qty}
-                            </div>
-                          );
-                        })}
+                              >
+                                {tier.min_qty}
+                              </div>
+                            );
+                          })}
                       </div>
 
                       {/* Price Row */}
                       <div className="grid grid-cols-6 text-center bg-white rounded-b">
-                        {threeDPuffTiers.map((tier) => {
-                          const isActive = activeTier?.id === tier.id;
+                        {threeDPuffTiers
+                          .filter(tier => tier.min_qty >= 24)
+                          .map((tier) => {
+                            const isActive = activeTier?.id === tier.id;
 
-                          return (
-                            <div
-                              key={tier.id}
-                              className={`py-2 text-sm font-semibold mr-1
+                            return (
+                              <div
+                                key={tier.id}
+                                className={`py-2 text-sm font-semibold mr-1
           ${isActive ? 'bg-red-500 text-white' : 'text-black'}`}
-                            >
-                              ${Number(tier.unit_price)}
-                            </div>
-                          );
-                        })}
+                              >
+                                ${Number(tier.unit_price)}
+                              </div>
+                            );
+                          })}
                       </div>
                     </div>
                   </div>

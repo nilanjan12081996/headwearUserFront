@@ -199,7 +199,7 @@ useEffect(() => {
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#ed1c24] to-[#ed1c24] text-white">
               <div className="flex items-center gap-3">
                 <div>
-                  <div className="font-semibold">HeadWare Chat</div>
+                  <div className="font-semibold">HeadWear Chat</div>
                   <div className="text-xs opacity-80 flex items-center gap-[3px]">
                     <div className='w-[8px] h-[8px] rounded-full bg-green-400'>&nbsp;</div>Online
                   </div>

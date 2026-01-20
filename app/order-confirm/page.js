@@ -5,7 +5,7 @@ import { FaCheckCircle } from "react-icons/fa"
 
 
 const page = () => {
-    
+
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-[#f0e2e2] px-4">
             <div className="bg-white max-w-md w-full rounded-2xl shadow-xl p-8 text-center">
@@ -44,12 +44,14 @@ const page = () => {
                 </div>
 
 
-                <h1 className="text-2xl md:text-5xl font-bold text-gray-800 mb-3 tracking-[8px]">
-                    Thank You
+                <h1 className="text-2xl md:text-5xl font-bold text-gray-800 mb-3 tracking-[2px]">
+                    Order Received!
                 </h1>
 
-                <p className="text-gray-600 mb-6 text-sm md:text-base">
-                    Thank you for ordering with us. Your order has been placed successfully.
+                <p className="text-gray-600 mb-6 text-sm md:text-base leading-relaxed">
+                    We’ll review and email your invoice shortly.
+                    <br />
+                    Production starts once it’s paid.
                 </p>
                 <div className="flex flex-col gap-3">
                     <Link

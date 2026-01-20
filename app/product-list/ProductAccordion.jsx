@@ -680,14 +680,18 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
 
     const handleNextpage = () => {
-        const totalQty = cartListItem?.data?.cart?.total_items;
+        const totalQty = cartListItem?.data?.cart?.total_items || 0;
 
-        if (!totalQty || totalQty === 0) {
-            toast.error("You need to select some hats from the expandable regions before continuing to the next step.");
+        if (totalQty < 24) {
+            toast.error(
+                "A minimum of 24 hats is required to proceed. Please add more hats to continue."
+            );
             return;
         }
-        router.push("/upload-artwork")
-    }
+
+        router.push("/upload-artwork");
+    };
+
 
     return (
         <div className='product_details_area'>
@@ -855,25 +859,27 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                             </div>
 
                                                                             <div className='w-9/12 grid grid-cols-8 gap-1'>
-                                                                                {singleHatDetail?.data?.embroideryPrices?.map((tier, index) => {
+                                                                                {singleHatDetail?.data?.embroideryPrices
+                                                                                    ?.filter(tier => tier.min_qty >= 24)
+                                                                                    .map((tier, index) => {
 
-                                                                                    const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
-                                                                                        .flatMap(colorObj => Object.values(colorObj || {}))
-                                                                                        .reduce((sum, qty) => sum + qty, 0);
+                                                                                        const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
+                                                                                            .flatMap(colorObj => Object.values(colorObj || {}))
+                                                                                            .reduce((sum, qty) => sum + qty, 0);
 
-                                                                                    const meetsQty = totalQty >= tier.min_qty;
+                                                                                        const meetsQty = totalQty >= tier.min_qty;
 
-                                                                                    return (
-                                                                                        <div key={index} className="text-center">
-                                                                                            <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                                {tier.min_qty}
-                                                                                            </p>
-                                                                                            <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
-                                                                                                ${Number(tier.unit_price)}
+                                                                                        return (
+                                                                                            <div key={index} className="text-center">
+                                                                                                <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                                    {tier.min_qty}
+                                                                                                </p>
+                                                                                                <div className={`p-1 text-[10px] sm:text-sm font-bold ${selectedDecoName === "Embroidery" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                                    ${Number(tier.unit_price)}
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    );
-                                                                                })}
+                                                                                        );
+                                                                                    })}
                                                                             </div>
                                                                         </div>
 
@@ -885,25 +891,27 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                             </div>
 
                                                                             <div className='w-9/12 grid grid-cols-8 gap-1'>
-                                                                                {singleHatDetail?.data?.leatherPatchPrices?.map((tier, index) => {
+                                                                                {singleHatDetail?.data?.leatherPatchPrices
+                                                                                    ?.filter(tier => tier.min_qty >= 24)
+                                                                                    .map((tier, index) => {
 
-                                                                                    const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
-                                                                                        .flatMap(colorObj => Object.values(colorObj || {}))
-                                                                                        .reduce((sum, qty) => sum + qty, 0);
+                                                                                        const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
+                                                                                            .flatMap(colorObj => Object.values(colorObj || {}))
+                                                                                            .reduce((sum, qty) => sum + qty, 0);
 
-                                                                                    const meetsQty = totalQty >= tier.min_qty;
+                                                                                        const meetsQty = totalQty >= tier.min_qty;
 
-                                                                                    return (
-                                                                                        <div key={index} className="text-center">
-                                                                                            <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
-                                                                                                {tier.min_qty}
-                                                                                            </p>
-                                                                                            <div className={`p-1 text-[10px] sm:text-sm ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
-                                                                                                ${Number(tier.unit_price)}
+                                                                                        return (
+                                                                                            <div key={index} className="text-center">
+                                                                                                <p className={`p-1 text-[10px] sm:text-sm ${meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#eeeeee]'}`}>
+                                                                                                    {tier.min_qty}
+                                                                                                </p>
+                                                                                                <div className={`p-1 text-[10px] sm:text-sm  font-bold ${selectedDecoName === "Leather Patch" && meetsQty ? 'bg-[#ff7379] text-white font-bold' : 'bg-[#ffffff]'}`}>
+                                                                                                    ${Number(tier.unit_price)}
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    );
-                                                                                })}
+                                                                                        );
+                                                                                    })}
                                                                             </div>
                                                                         </div>
 
