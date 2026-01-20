@@ -1025,10 +1025,7 @@ const page = () => {
                 >
                   Standard Setup
                 </button>
-
-
                 <p>Included FREE for orders of 24+ hats</p>
-
               </label>
 
               <label
