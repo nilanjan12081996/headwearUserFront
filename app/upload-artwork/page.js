@@ -151,7 +151,9 @@ const page = () => {
   const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState("front_center");
+  const [logoPlacement, setLogoPlacement] = useState(["front_center"]);
+  const logoPlacementString = logoPlacement.join(",");
+
 
   // Additional options
   const [placementSizeNotes, setPlacementSizeNotes] = useState("");
@@ -394,7 +396,7 @@ const page = () => {
       embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
       patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
       patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
-      logo_placement: logoPlacement,
+      logo_placement: logoPlacement.join(","),
       placement_size_notes: placementSizeNotes,
       order_notes: orderNotes,
       color_notes: colorNotes,
@@ -481,7 +483,8 @@ const page = () => {
     setupPlanId = null,
     addonId = null,
     enabled = null,
-    notes = ""
+    notes = "",
+    logoPlacement = null,
   }) => {
     const payload = {
       session_uuid: sessionUUid,
@@ -502,6 +505,12 @@ const page = () => {
       };
     }
 
+    if (logoPlacement && logoPlacement.length > 0) {
+      payload.logo_placement = logoPlacement.join(",");
+      const cart_id = sessionStorage.getItem("cart_id");
+      if (cart_id) payload.cart_id = cart_id;
+    }
+
     console.log("Final Payload", payload);
 
     try {
@@ -520,6 +529,15 @@ const page = () => {
       console.error(err);
     }
   };
+
+useEffect(() => {
+    if (!logoPlacement.length || !selectedOption.id) return;
+
+    handleArtworkUpdate({
+      logoPlacement: logoPlacement,
+    });
+  }, [logoPlacement, selectedOption.id]);
+
 
 
   const hatQuantities = JSON.parse(
@@ -597,6 +615,16 @@ const page = () => {
     }
   }, [decorationList]);
 
+ const handleLogoPlacement = (label) => {
+  setLogoPlacement((prev) => {
+    if (prev.includes(label)) {
+      if (prev.length === 1) return prev;
+      return prev.filter((item) => item !== label);
+    } else {
+      return [...prev, label];
+    }
+  });
+};
 
 
   return (
@@ -1194,7 +1222,6 @@ const page = () => {
                       {/* Header Row (Quantities) */}
                       <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t mb-1">
                         {threeDPuffTiers
-                          .filter(tier => tier.min_qty >= 24)
                           .map((tier) => {
                             const isActive = activeTier?.id === tier.id;
 
@@ -1213,7 +1240,6 @@ const page = () => {
                       {/* Price Row */}
                       <div className="grid grid-cols-6 text-center bg-white rounded-b">
                         {threeDPuffTiers
-                          .filter(tier => tier.min_qty >= 24)
                           .map((tier) => {
                             const isActive = activeTier?.id === tier.id;
 
@@ -1344,7 +1370,7 @@ const page = () => {
               </div>
               {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3> */}
 
-              <div className='grid grid-cols-3 gap-2'>
+              {/* <div className='grid grid-cols-3 gap-2'>
                 {placements.map((item) => (
                   <div
                     key={item.id}
@@ -1361,7 +1387,31 @@ const page = () => {
                     <p className='text-[18px] text-[#353535] font-medium'>{item.heading}</p>
                   </div>
                 ))}
+              </div> */}
+              <div className='grid grid-cols-3 gap-2'>
+                {placements.map((item) => (
+                  <div
+                    key={item.id}
+                    className='product_list_box text-center cursor-pointer'
+                    onClick={() => handleLogoPlacement(item.label)}
+                  >
+                    <div
+                      className={`mb-3 border-4 rounded-[8px] overflow-hidden 
+          ${logoPlacement.includes(item.label)
+                          ? "border-[#ed1c24]"
+                          : "border-[#E2E2E2]"
+                        }`}
+                    >
+                      <Image src={item.img} alt={item.label} />
+                    </div>
+
+                    <p className='text-[18px] text-[#353535] font-medium'>
+                      {item.heading}
+                    </p>
+                  </div>
+                ))}
               </div>
+
             </div>
           </div>
 
