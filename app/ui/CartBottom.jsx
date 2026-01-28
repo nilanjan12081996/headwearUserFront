@@ -116,10 +116,12 @@ const CartBottom = ({ open, onClose }) => {
             ))}
           </div>
         )}
-        <div className="flex justify-between items-center text-sm font-semibold text-gray-900 p-2">
-          <span>Grand Total</span>
-          <span>${cartListItem?.data?.cart?.grand_total_amount}</span>
-        </div>
+        {cartGroups.length > 0 && (
+          <div className="flex justify-between items-center text-sm font-semibold text-gray-900 p-2">
+            <span>Grand Total</span>
+            <span>${cartListItem?.data?.cart?.grand_total_amount}</span>
+          </div>
+        )}
       </div>
     </>
   );

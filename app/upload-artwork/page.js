@@ -151,8 +151,7 @@ const page = () => {
   const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState(["FRONT_CENTER"]);
-  const logoPlacementString = logoPlacement.join(",");
+  const [logoPlacement, setLogoPlacement] = useState(["front_center"]);
 
 
   // Additional options
@@ -238,9 +237,9 @@ const page = () => {
 
 
   const placements = [
-    { id: "left", label: "RIGHT_SIDE", img: cap_left, heading: "Right Eye" },
-    { id: "front", label: "FRONT_CENTER", img: cap_front, heading: "Centered" },
-    { id: "right", label: "LEFT_SIDE", img: cap_right, heading: "Left Eye" },
+    { id: "left", label: "right_side", img: cap_left, heading: "Right Eye" },
+    { id: "front", label: "front_center", img: cap_front, heading: "Centered" },
+    { id: "right", label: "left_side", img: cap_right, heading: "Left Eye" },
 
   ];
 
@@ -396,7 +395,7 @@ const page = () => {
       embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
       patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
       patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
-      logo_placements: logoPlacement,
+      logo_placement: logoPlacement.join(","),
       placement_size_notes: placementSizeNotes,
       order_notes: orderNotes,
       color_notes: colorNotes,
@@ -506,8 +505,7 @@ const page = () => {
     }
 
     if (logoPlacement && logoPlacement.length > 0) {
-      // payload.logo_placement = logoPlacement.join(",");
-      payload.logo_placements = logoPlacement;
+     payload.logo_placements = logoPlacement.map(p => p.toUpperCase());
       const cart_id = sessionStorage.getItem("cart_id");
       if (cart_id) payload.cart_id = cart_id;
     }
