@@ -4,6 +4,7 @@ import { cartList, deleteCartItem } from "../reducers/CartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
+import { toast } from "react-toastify";
 
 const CartDropdown = ({ open, onClose }) => {
   if (!open) return null;
@@ -108,14 +109,21 @@ const CartDropdown = ({ open, onClose }) => {
   const isUploadPage = pathname === "/upload-artwork";
 
   const handleAction = () => {
-    onClose()
+    onClose();
+    const totalQty = cartListItem?.data?.cart?.total_items || 0;
+
     if (!isUploadPage) {
-      // Step 1
+      if (totalQty < 24) {
+        toast.error(
+          "A minimum of 24 hats is required to proceed. Please add more hats to continue."
+        );
+        return;
+      }
+
       router.push("/upload-artwork");
-    } else {
-      // Step 2
-      router.push("/checkout");
+      return;
     }
+    router.push("/checkout");
   };
 
   return (
@@ -218,16 +226,12 @@ const CartDropdown = ({ open, onClose }) => {
               <span>Add-ons</span>
               <span>${cartListItem?.data?.cart?.addons_amount}</span>
             </div> */}
-            <div className="flex justify-between items-center text-sm font-semibold text-gray-900 py-1">
-              <span>Grand Total</span>
-              <span>${cartListItem?.data?.cart?.grand_total_amount}</span>
-            </div>
           </div>
         )}
 
 
         {/* CHARGES */}
-         {totalItems > 0 && charges.length > 0 && (
+        {totalItems > 0 && charges.length > 0 && (
           <div className="px-3 py-2">
             <h3 className="text-sm font-semibold mb-1">Charges</h3>
             {charges.map((charge, idx) => (
@@ -241,8 +245,14 @@ const CartDropdown = ({ open, onClose }) => {
                 <span>${charge.line_total}</span>
               </div>
             ))}
+            <div className="flex justify-between items-center text-sm font-semibold text-gray-900 py-1">
+              <span>Grand Total</span>
+              <span>${cartListItem?.data?.cart?.grand_total_amount}</span>
+            </div>
           </div>
-        )} 
+        )}
+
+
 
         {/* CONTINUE ORDER BUTTON */}
         {/* <div className="p-3 border-t">
