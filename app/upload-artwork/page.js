@@ -151,7 +151,7 @@ const page = () => {
   const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState(["front_center"]);
+  const [logoPlacement, setLogoPlacement] = useState(["FRONT_CENTER"]);
   const logoPlacementString = logoPlacement.join(",");
 
 
@@ -238,9 +238,9 @@ const page = () => {
 
 
   const placements = [
-    { id: "left", label: "right_side", img: cap_left, heading: "Right Eye" },
-    { id: "front", label: "front_center", img: cap_front, heading: "Centered" },
-    { id: "right", label: "left_side", img: cap_right, heading: "Left Eye" },
+    { id: "left", label: "RIGHT_SIDE", img: cap_left, heading: "Right Eye" },
+    { id: "front", label: "FRONT_CENTER", img: cap_front, heading: "Centered" },
+    { id: "right", label: "LEFT_SIDE", img: cap_right, heading: "Left Eye" },
 
   ];
 
@@ -396,7 +396,7 @@ const page = () => {
       embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
       patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
       patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
-      logo_placement: logoPlacement.join(","),
+      logo_placements: logoPlacement,
       placement_size_notes: placementSizeNotes,
       order_notes: orderNotes,
       color_notes: colorNotes,
@@ -506,7 +506,8 @@ const page = () => {
     }
 
     if (logoPlacement && logoPlacement.length > 0) {
-      payload.logo_placement = logoPlacement.join(",");
+      // payload.logo_placement = logoPlacement.join(",");
+      payload.logo_placements = logoPlacement;
       const cart_id = sessionStorage.getItem("cart_id");
       if (cart_id) payload.cart_id = cart_id;
     }
@@ -530,7 +531,7 @@ const page = () => {
     }
   };
 
-useEffect(() => {
+  useEffect(() => {
     if (!logoPlacement.length || !selectedOption.id) return;
 
     handleArtworkUpdate({
@@ -615,16 +616,16 @@ useEffect(() => {
     }
   }, [decorationList]);
 
- const handleLogoPlacement = (label) => {
-  setLogoPlacement((prev) => {
-    if (prev.includes(label)) {
-      if (prev.length === 1) return prev;
-      return prev.filter((item) => item !== label);
-    } else {
-      return [...prev, label];
-    }
-  });
-};
+  const handleLogoPlacement = (label) => {
+    setLogoPlacement((prev) => {
+      if (prev.includes(label)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((item) => item !== label);
+      } else {
+        return [...prev, label];
+      }
+    });
+  };
 
 
   return (
@@ -1218,8 +1219,7 @@ useEffect(() => {
                     </h3>
 
                     {/* The Table */}
-                    <div className="mt-3">
-                      {/* Header Row (Quantities) */}
+                    {/* <div className="mt-3">
                       <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t mb-1">
                         {threeDPuffTiers
                           .map((tier) => {
@@ -1236,8 +1236,6 @@ useEffect(() => {
                             );
                           })}
                       </div>
-
-                      {/* Price Row */}
                       <div className="grid grid-cols-6 text-center bg-white rounded-b">
                         {threeDPuffTiers
                           .map((tier) => {
@@ -1253,6 +1251,14 @@ useEffect(() => {
                               </div>
                             );
                           })}
+                      </div>
+                    </div> */}
+                    <div className="mt-3 flex justify-center items-center space-x-4">
+                      <div className="text-center bg-[#f5f5f5] rounded px-4 py-2 font-semibold">
+                        Quantity: {threeDPuffTiers[0]?.min_qty}+
+                      </div>
+                      <div className="text-center bg-[#fff3cd] rounded px-6 py-2 font-bold text-yellow-800 border border-yellow-500">
+                        ${Number(threeDPuffTiers[0]?.unit_price)}
                       </div>
                     </div>
                   </div>

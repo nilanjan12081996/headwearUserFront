@@ -60,13 +60,21 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading,
             <div key={i} className='mb-4 flex items-center gap-2'>
               <div className='w-10/12 flex items-center gap-1'>
                 <div className='w-3/12'>
-                  <Image
+                  {/* <Image
                     src={base_url + group?.hat?.primary_image_url}
                     width={40}
                     height={40}
                     alt={group?.hat?.name}
                     className='w-full rounded-md'
-                  />
+                  /> */}
+                  {group?.hat?.primary_image_url ? (
+                    <Image
+                      src={base_url + group?.hat?.primary_image_url}
+                      width={40}
+                      height={40}
+                      alt="Hat"
+                    />
+                  ) : null}
                 </div>
 
                 <div className='w-9/12'>
@@ -128,7 +136,7 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading,
           <div className='flex items-center justify-between border-b border-[#e9e9e9] py-2 mb-2'>
             <p className='text-[14px] text-[#1A1A1A] pb-1 font-normal'>Add-ons:</p>
             <p className='text-[14px] text-[#1A1A1A] pb-1 font-medium'>
-               <span>${cartListItem?.data?.cart?.addons_amount}</span>
+              <span>${cartListItem?.data?.cart?.addons_amount}</span>
             </p>
           </div>
 

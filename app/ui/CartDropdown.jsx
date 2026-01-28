@@ -214,10 +214,10 @@ const CartDropdown = ({ open, onClose }) => {
               <span>Subtotal</span>
               <span>${cartListItem?.data?.cart?.subtotal_amount}</span>
             </div>
-            <div className="flex justify-between items-center text-sm text-gray-800 py-1">
+            {/* <div className="flex justify-between items-center text-sm text-gray-800 py-1">
               <span>Add-ons</span>
               <span>${cartListItem?.data?.cart?.addons_amount}</span>
-            </div>
+            </div> */}
             <div className="flex justify-between items-center text-sm font-semibold text-gray-900 py-1">
               <span>Grand Total</span>
               <span>${cartListItem?.data?.cart?.grand_total_amount}</span>
@@ -227,7 +227,7 @@ const CartDropdown = ({ open, onClose }) => {
 
 
         {/* CHARGES */}
-        {/* {totalItems > 0 && charges.length > 0 && (
+         {totalItems > 0 && charges.length > 0 && (
           <div className="px-3 py-2">
             <h3 className="text-sm font-semibold mb-1">Charges</h3>
             {charges.map((charge, idx) => (
@@ -242,7 +242,7 @@ const CartDropdown = ({ open, onClose }) => {
               </div>
             ))}
           </div>
-        )} */}
+        )} 
 
         {/* CONTINUE ORDER BUTTON */}
         {/* <div className="p-3 border-t">
