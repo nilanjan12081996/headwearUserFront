@@ -24,7 +24,7 @@ const HatColorSelector = ({
   const zoomRef = useRef(null);
 
 
-  const base_url = "https://showmecustomheadwearapi.bestworks.cloud/";
+  const base_url =  process.env.NEXT_PUBLIC_API_BASE_URL;
   const imageSrc = `${base_url}${colorImage}`;
 
   const isValidImage =
