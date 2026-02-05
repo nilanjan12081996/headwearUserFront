@@ -151,7 +151,7 @@ const page = () => {
   const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState(["front_center"]);
+ const [logoPlacement, setLogoPlacement] = useState("front_center");
 
 
   // Additional options
@@ -529,13 +529,15 @@ const page = () => {
     }
   };
 
-  useEffect(() => {
-    if (!logoPlacement.length || !selectedOption.id) return;
+useEffect(() => {
+  // logoPlacement ekhon string, tai length check korar dorkar nei
+  if (!logoPlacement || !selectedOption.id) return;
 
-    handleArtworkUpdate({
-      logoPlacement: logoPlacement,
-    });
-  }, [logoPlacement, selectedOption.id]);
+  handleArtworkUpdate({
+    // Backend-er jonno string-ke array-te convert kore pathano hoche
+    logoPlacement: [logoPlacement], 
+  });
+}, [logoPlacement, selectedOption.id]);
 
 
 
@@ -614,16 +616,9 @@ const page = () => {
     }
   }, [decorationList]);
 
-  const handleLogoPlacement = (label) => {
-    setLogoPlacement((prev) => {
-      if (prev.includes(label)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((item) => item !== label);
-      } else {
-        return [...prev, label];
-      }
-    });
-  };
+const handleLogoPlacement = (label) => {
+  setLogoPlacement(label); // Sudhu ekta value select hobe
+};
 
 
   return (
@@ -1391,30 +1386,29 @@ const page = () => {
                   </div>
                 ))}
               </div> */}
-              <div className='grid grid-cols-3 gap-2'>
-                {placements.map((item) => (
-                  <div
-                    key={item.id}
-                    className='product_list_box text-center cursor-pointer'
-                    onClick={() => handleLogoPlacement(item.label)}
-                  >
-                    <div
-                      className={`mb-3 border-4 rounded-[8px] overflow-hidden 
-          ${logoPlacement.includes(item.label)
-                          ? "border-[#ed1c24]"
-                          : "border-[#E2E2E2]"
-                        }`}
-                    >
-                      <Image src={item.img} alt={item.label} />
-                    </div>
+             <div className='grid grid-cols-3 gap-2'>
+  {placements.map((item) => (
+    <div
+      key={item.id}
+      className='product_list_box text-center cursor-pointer'
+      onClick={() => handleLogoPlacement(item.label)}
+    >
+      <div
+        className={`mb-3 border-4 rounded-[8px] overflow-hidden 
+          ${logoPlacement === item.label // Ekhane direct comparison hobe
+            ? "border-[#ed1c24]" 
+            : "border-[#E2E2E2]"
+          }`}
+      >
+        <Image src={item.img} alt={item.label} />
+      </div>
 
-                    <p className='text-[18px] text-[#353535] font-medium'>
-                      {item.heading}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
+      <p className='text-[18px] text-[#353535] font-medium'>
+        {item.heading}
+      </p>
+    </div>
+  ))}
+</div>
             </div>
           </div>
 
