@@ -25,7 +25,9 @@ const HatColorSelector = ({
 
 
   const base_url =  process.env.NEXT_PUBLIC_API_BASE_URL;
-  const imageSrc = `${base_url}${colorImage}`;
+  const imageSrc = `${base_url}/${colorImage}`;
+  
+  
 
   const isValidImage =
     colorImage &&
@@ -57,7 +59,7 @@ const HatColorSelector = ({
 
         {isValidImage ? (
           <Image
-            src={`${base_url}${colorImage}`}
+            src={`${base_url}/${colorImage}`}
             width={80}
             height={80}
             alt={colorName}
