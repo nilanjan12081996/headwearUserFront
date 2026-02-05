@@ -6,63 +6,40 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/',           // Mukhkhu URL mane http://localhost:3001/
-        destination: '/product-list', // Jekhane pathate chan
-        permanent: true,       // Search engine optimized redirect (301)
+        source: '/',                 // http://localhost:3001/
+        destination: '/product-list',
+        permanent: true,
       },
     ];
   },
   // --- Redirect Logic End ---
+
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   images: {
     remotePatterns: [
+      // arsalaanrasulshowmeropi
       {
         protocol: 'https',
         hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
-        port: '',
-        pathname: '/uploads/hats/**',
-      },
-
-      {
-        protocol: 'https',
-        hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
-        port: '',
-        pathname: '/uploads/variant/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'arsalaanrasulshowmeropi.bestworks.cloud',
-        port: '',
-        pathname: '/uploads/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'showmecustomheadwearapi.bestworks.cloud',
-        port: '',
-        pathname: '/uploads/brand/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'showmecustomheadwearapi.bestworks.cloud',
-        port: '',
-        pathname: '/uploads/hats/**',
-      },
-
-      {
-        protocol: 'https',
-        hostname: 'showmecustomheadwearapi.bestworks.cloud',
-        port: '',
-        pathname: '/uploads/variant/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'showmecustomheadwearapi.bestworks.cloud',
-        port: '',
         pathname: '/uploads/**',
       },
 
+      // showmecustomheadwearapi (cloud)
+      {
+        protocol: 'https',
+        hostname: 'showmecustomheadwearapi.bestworks.cloud',
+        pathname: '/uploads/**',
+      },
+
+      // 🔥 showmecustomheadwearapi (clouduploads) – THIS FIXES YOUR ERROR
+      {
+        protocol: 'https',
+        hostname: 'showmecustomheadwearapi.bestworks.clouduploads',
+        pathname: '/**',
+      },
     ],
   },
 };

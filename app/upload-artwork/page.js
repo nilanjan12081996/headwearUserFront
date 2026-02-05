@@ -505,7 +505,7 @@ const page = () => {
     }
 
     if (logoPlacement && logoPlacement.length > 0) {
-     payload.logo_placements = logoPlacement.map(p => p.toUpperCase());
+      payload.logo_placements = logoPlacement.map(p => p.toUpperCase());
       const cart_id = sessionStorage.getItem("cart_id");
       if (cart_id) payload.cart_id = cart_id;
     }
@@ -854,7 +854,7 @@ const page = () => {
                     <Image src={right_icon} width={20} height={20}
                       className={`${selectedStyle === decorationList?.data?.[0]?.name ? "opacity-100" : "opacity-40"}`}
                     />
-                    No Minimum Order
+                    24 Minimum Order
                   </li>
 
                   <li className="flex gap-2 items-center">
@@ -916,7 +916,7 @@ const page = () => {
                     <Image src={right_icon} width={20} height={20}
                       className={`${selectedStyle === decorationList?.data?.[1]?.name ? "opacity-100" : "opacity-40"}`}
                     />
-                    No Minimum Order
+                    24 Minimum Order
                   </li>
                   <li className="flex gap-2 items-center">
                     <Image src={right_icon} width={20} height={20}
@@ -1160,9 +1160,9 @@ const page = () => {
                     className="hidden" />
                   <h3 className="text-lg font-semibold mb-2">Standard Flat Embroidery</h3>
                   <p className="text-sm text-gray-600 mb-4">Most common embroidery type. Works well for smaller details.</p>
-                  <button type="button" className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium">
+                  <div className="w-full py-2 rounded-full bg-[#ed1c24] text-white font-medium text-center">
                     Flat Embroidery
-                  </button>
+                  </div>
                 </label>
 
                 <label
@@ -1190,12 +1190,11 @@ const page = () => {
                     Creates a raised 3D look. Only certain designs can be puffed.
                   </p>
 
-                  <button
-                    type="button"
-                    className="w-full py-2 rounded-full bg-[#ed1c24] hover:bg-black text-white font-medium"
+                  <div
+                    className="w-full py-2 rounded-full bg-[#ed1c24] text-white font-medium text-center"
                   >
                     3D Puff Embroidery
-                  </button>
+                  </div>
 
                   {/* 🔥 Loop Price List */}
                   {/* {adonPriceData?.data?.threeDPuff?.[0]?.price_tiers?.map((tier, i) => (
@@ -1472,60 +1471,21 @@ const page = () => {
               </div>
 
               <div className="bg-white rounded-xl shadow p-4 mt-4">
-
                 <h3 className="text-center bg-[#e0e0e0] font-semibold p-2 rounded">
-                  Back & Side Stitching Price Breaks
+                  Back & Side Stitching Price
                 </h3>
 
-                {/* The Table */}
-                <div className="mt-3">
-                  {/* Header Row (Quantities) */}
-                  <div className="grid grid-cols-6 text-center bg-[#f5f5f5] rounded-t mb-1">
-                    {backStitchingTiers.map((tier) => {
-                      const isActive = activeBackStitchingTier?.id === tier.id;
-
-                      return (
-                        <div
-                          key={tier.id}
-                          className={`py-2 font-bold text-sm mr-1
-          ${isActive ? 'bg-red-500 text-white' : 'bg-[#eee]'}`}
-                        >
-                          {tier.min_qty}
-                        </div>
-                      );
-                    })}
+                <div className="mt-3 flex justify-center items-center space-x-4">
+                  <div className="text-center bg-[#f5f5f5] rounded px-4 py-2 font-semibold">
+                    Quantity: {backStitchingTiers?.[0]?.min_qty}+
                   </div>
 
-
-                  {/* Price Row */}
-                  {/* <div className="grid grid-cols-6 text-center bg-white rounded-b">
-                    {adonPriceData?.data?.backStitching?.[0]?.price_tiers?.map((tier) => (
-                      <div
-                        key={tier.id}
-                        className="py-2 text-sm font-semibold text-[#000]"
-                      >
-                        ${Number(tier.unit_price)}
-                      </div>
-                    ))}
-                  </div> */}
-                  <div className="grid grid-cols-6 text-center bg-white rounded-b">
-                    {backStitchingTiers.map((tier) => {
-                      const isActive = activeBackStitchingTier?.id === tier.id;
-
-                      return (
-                        <div
-                          key={tier.id}
-                          className={`py-2 text-sm font-semibold mr-1
-          ${isActive ? 'bg-red-500 text-white' : 'text-black'}`}
-                        >
-                          ${Number(tier.unit_price)}
-                        </div>
-                      );
-                    })}
+                  <div className="text-center bg-[#fff3cd] rounded px-6 py-2 font-bold text-yellow-800 border border-yellow-500">
+                    ${Number(backStitchingTiers?.[0]?.unit_price)}
                   </div>
-
                 </div>
               </div>
+
 
 
               <div className="mt-4 grid grid-cols-3 gap-3">
