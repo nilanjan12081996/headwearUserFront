@@ -104,7 +104,7 @@ const CartDropdown = ({ open, onClose }) => {
       console.error("Cart delete failed", err);
     }
   };
-  const base_url =  process.env.NEXT_PUBLIC_API_BASE_URL;
+  const base_url =  process.env.NEXT_PUBLIC_API_IMAGE_URL;
 
   const isUploadPage = pathname === "/upload-artwork";
 

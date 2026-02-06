@@ -47,7 +47,7 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading,
   //     toast.error("Failed to place order. Please try again.");
   //   }
   // };
-  const base_url =  process.env.NEXT_PUBLIC_API_BASE_URL;
+  const base_url =  process.env.NEXT_PUBLIC_IMAGE_BASE_URL;
   return (
     <>
       <div className='lg:w-4/12 border border-[#E6E6E6] rounded-[10px] p-4'>

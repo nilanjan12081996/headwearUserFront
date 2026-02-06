@@ -19,7 +19,7 @@ const CartBottom = ({ open, onClose }) => {
 
   const cartGroups = cartListItem?.data?.cart_groups || [];
   const charges = cartListItem?.data?.charges || [];
-  const base_url =  process.env.NEXT_PUBLIC_API_BASE_URL;
+  const base_url =  process.env.NEXT_PUBLIC_API_IMAGE_URL;
 
   return (
     <>
