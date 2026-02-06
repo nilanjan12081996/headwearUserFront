@@ -809,37 +809,44 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                     </ul>
                                                                 </div>
 
-                                                                <div className="bg-[#ff7379] text-center font-bold text-base py-2 text-white">
-                                                                    Size Chart
-                                                                </div>
+                                                                {singleHatDetail?.data?.data?.size_chart_json?.size_chart?.length > 0 && (
+                                                                    <div className="mt-4 border border-gray-200 rounded-md overflow-hidden">
+                                                                        {/* Data thakle heading show korbe */}
+                                                                        <div className="bg-[#ff7379] text-center font-bold text-base py-2 text-white">
+                                                                            Size Chart
+                                                                        </div>
 
-                                                                <div>
-                                                                    <div
-                                                                        className="grid text-center font-semibold border-gray-300 bg-[#eeeeee] my-1"
-                                                                        style={{
-                                                                            gridTemplateColumns: `repeat(${singleHatDetail?.data?.data?.size_chart_json?.size_chart?.length || 1}, 1fr)`
-                                                                        }}
-                                                                    >
-                                                                        {singleHatDetail?.data?.data?.size_chart_json?.size_chart?.map((item, index) => (
-                                                                            <div key={index} className="py-2">
-                                                                                {item.size}
+                                                                        <div>
+                                                                            {/* Sizes Row */}
+                                                                            <div
+                                                                                className="grid text-center font-semibold border-b border-gray-300 bg-[#eeeeee]"
+                                                                                style={{
+                                                                                    gridTemplateColumns: `repeat(${singleHatDetail.data.data.size_chart_json.size_chart.length}, 1fr)`
+                                                                                }}
+                                                                            >
+                                                                                {singleHatDetail.data.data.size_chart_json.size_chart.map((item, index) => (
+                                                                                    <div key={index} className="py-2 border-r last:border-r-0 border-gray-300">
+                                                                                        {item.size}
+                                                                                    </div>
+                                                                                ))}
                                                                             </div>
-                                                                        ))}
-                                                                    </div>
 
-                                                                    <div
-                                                                        className="grid text-center text-sm"
-                                                                        style={{
-                                                                            gridTemplateColumns: `repeat(${singleHatDetail?.data?.data?.size_chart_json?.size_chart?.length || 1}, 1fr)`
-                                                                        }}
-                                                                    >
-                                                                        {singleHatDetail?.data?.data?.size_chart_json?.size_chart?.map((item, index) => (
-                                                                            <div key={index} className="py-2">
-                                                                                {item.value}
+                                                                            {/* Values Row */}
+                                                                            <div
+                                                                                className="grid text-center text-sm"
+                                                                                style={{
+                                                                                    gridTemplateColumns: `repeat(${singleHatDetail.data.data.size_chart_json.size_chart.length}, 1fr)`
+                                                                                }}
+                                                                            >
+                                                                                {singleHatDetail.data.data.size_chart_json.size_chart.map((item, index) => (
+                                                                                    <div key={index} className="py-2 border-r last:border-r-0 border-gray-200">
+                                                                                        {item.value}
+                                                                                    </div>
+                                                                                ))}
                                                                             </div>
-                                                                        ))}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                )}
 
 
                                                                 {/* PRICE TABLE */}
@@ -853,9 +860,9 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
 
                                                                         {/* EMBROIDERY */}
                                                                         <div className='flex gap-2 mb-1'>
-                                                                            <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base 
+                                                                            <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base text-center
                                                                         ${selectedDecoName === "Embroidery" ? "bg-[#ff7379] text-white" : "bg-[#eeeeee]"}`}>
-                                                                                EMBROIDERY
+                                                                                STANDARD <br/>EMBROIDERY
                                                                             </div>
 
                                                                             <div className='w-9/12 grid grid-cols-8 gap-1'>
@@ -884,7 +891,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                         </div>
 
                                                                         {/* PATCH */}
-                                                                        <div className='flex gap-2'>
+                                                                        {/* <div className='flex gap-2'>
                                                                             <div className={`w-3/12 flex items-center justify-center text-black font-medium text-[12px] md:text-base
                                                                         ${selectedDecoName === "Leather Patch" ? "bg-[#ff7379] text-white" : "bg-[#eeeeee]"}`}>
                                                                                 PATCH
@@ -913,7 +920,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                                         );
                                                                                     })}
                                                                             </div>
-                                                                        </div>
+                                                                        </div> */}
 
                                                                     </div>
 
@@ -1008,13 +1015,31 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     </div>
                 )
             })}
-            <div className='mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 z-49 ml-[30px] md:ml-0 '>
+            {/* <div className='mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 z-49 ml-[30px] md:ml-0 '>
                 <button onClick={() => handleNextpage()} className='text-md cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-3 rounded-b-md shadow-md transition duration-300 min-h-[47px]'>
                     Next Step
                 </button>
+            </div> */}
+            <div className='fixed top-[80px] md:top-[90px] left-1/2 -translate-x-1/2 z-50 w-max'>
+                <button
+                    onClick={() => handleNextpage()}
+                    className='group flex items-center gap-2 text-lg md:text-xl bg-[#ff7379] hover:bg-[#ff5a62] text-white font-bold py-3 px-6 md:px-8 rounded-b-lg cursor-pointer shadow-[0_4px_15px_rgba(255,115,121,0.4)] transition-all duration-300 active:scale-95'
+                >
+                    <span>Next Step</span>
+
+                    {/* Right Arrow Icon */}
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2.5}
+                        stroke="currentColor"
+                        className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform duration-200"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
             </div>
-
-
 
 
         </div>

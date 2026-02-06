@@ -395,7 +395,7 @@ const page = () => {
       embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
       patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
       patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
-      logo_placement: logoPlacement.join(","),
+      logo_placement: Array.isArray(logoPlacement) ? logoPlacement.join(",") : logoPlacement,
       placement_size_notes: placementSizeNotes,
       order_notes: orderNotes,
       color_notes: colorNotes,
@@ -711,41 +711,7 @@ const handleLogoPlacement = (label) => {
           </div>
 
           {/* Decoration Method Dropdown */}
-          {/* <div className='mt-5 mb-8 decoration_type_area'>
-            <Label className='text-[#615E5E] text-base mb-2 block'>Decoration Method</Label>
-            <Select
-              required
-              value={selectedOption.id}
-              onChange={(e) => {
-                const selected = decorationList?.data?.find(d => d.id === e.target.value);
-                if (selected) {
-                  setSelectedOption({ id: selected.id, name: selected.name });
-                  setSelectedDecorationId(selected.id);
-                  dispatch(dropDownToggle({
-                    session_uuid: sessionStorage.getItem("uuid"),
-                    decoration_type_id: selected?.id
-                  }));
-
-                  if (selected.name === "Embroidery") {
-                    setSelectedStyle("Embroidery");
-                  } else if (selected.name === "Leather Patch") {
-                    setSelectedStyle("Leather Patch");
-                  }
-                }
-              }}
-            >
-              <option value="">Select Decoration Type</option>
-              {decorationList?.data?.map((deco) => (
-                <option key={deco.id} value={deco.id}>{deco.name}</option>
-              ))}
-            </Select>
-
-          </div> */}
-
-          {/* Decoration Method Dropdown */}
-          <div className="decoration_type_area w-[250px] mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 -translate-x-1/2 z-49 ">
-
-            {/* Selected Button */}
+          {/* <div className="decoration_type_area w-[250px] mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 -translate-x-1/2 z-49 ">
             <button
               type="button"
               onClick={() => setOpen(prev => !prev)}
@@ -771,23 +737,6 @@ const handleLogoPlacement = (label) => {
                     key={deco.id}
                     type="button"
                     onClick={() => handleDecorationClick(deco)}
-                    // onClick={() => {
-                    //   setSelectedOption({ id: deco.id, name: deco.name });
-                    //   setSelectedDecorationId(deco.id);
-
-                    //   dispatch(dropDownToggle({
-                    //     session_uuid: sessionStorage.getItem("uuid"),
-                    //     decoration_type_id: deco.id
-                    //   }));
-
-                    //   if (deco.name === "Embroidery") {
-                    //     setSelectedStyle("Embroidery");
-                    //   } else if (deco.name === "Leather Patch") {
-                    //     setSelectedStyle("Leather Patch");
-                    //   }
-
-                    //   setOpen(false);
-                    // }}
                     className="
                       w-full
                       text-[#ff7379]
@@ -806,20 +755,19 @@ const handleLogoPlacement = (label) => {
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
 
 
           {/* Hat selector Section */}
-          <div className="my-8">
+          {/* <div className="my-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-              {/* BOX 1 — decorationList.data[0] */}
               <label
                 className={`relative border rounded-xl cursor-pointer transition overflow-hidden min-h-[300px]
         ${selectedStyle === decorationList?.data?.[0]?.name ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
       `}
               >
-                {/* Dynamic Title */}
+
                 <div
                   className={`absolute top-0 left-0 w-full px-4 py-2 text-white font-semibold text-2xl
           ${selectedStyle === decorationList?.data?.[0]?.name ? "bg-[#ff0000]" : "bg-black/70"}
@@ -833,12 +781,6 @@ const handleLogoPlacement = (label) => {
                   name="embroideryType"
                   value={decorationList?.data?.[0]?.name}
                   checked={selectedStyle === decorationList?.data?.[0]?.name}
-                  // onChange={() => {
-                  //   const selected = decorationList?.data?.[0];
-                  //   setSelectedStyle(selected?.name);
-                  //   setSelectedOption({ id: selected?.id, name: selected?.name });
-                  //   setSelectedDecorationId(selected?.id);
-                  // }}
                   onChange={() => handleDecorationClick(decorationList?.data?.[0])}
                   className="hidden"
                 />
@@ -874,9 +816,6 @@ const handleLogoPlacement = (label) => {
                 )}
               </label>
 
-
-
-              {/* BOX 2 — decorationList.data[1] */}
               <label
                 className={`relative border rounded-xl cursor-pointer transition overflow-hidden min-h-[300px]
         ${selectedStyle === decorationList?.data?.[1]?.name ? "border-[#ff0000] shadow-lg" : "border-gray-300"}
@@ -895,12 +834,6 @@ const handleLogoPlacement = (label) => {
                   name="embroideryType"
                   value={decorationList?.data?.[1]?.name}
                   checked={selectedStyle === decorationList?.data?.[1]?.name}
-                  // onChange={() => {
-                  //   const selected = decorationList?.data?.[1];
-                  //   setSelectedStyle(selected?.name);
-                  //   setSelectedOption({ id: selected?.id, name: selected?.name });
-                  //   setSelectedDecorationId(selected?.id);
-                  // }}
                   onChange={() => handleDecorationClick(decorationList?.data?.[1])}
                   className="hidden"
                 />
@@ -935,7 +868,7 @@ const handleLogoPlacement = (label) => {
               </label>
 
             </div>
-          </div>
+          </div> */}
 
           {/* Artwork Setup section */}
           <div className="mt-8">
@@ -1262,7 +1195,6 @@ const handleLogoPlacement = (label) => {
           )}
 
           {/* Leather Patch Options */}
-          {selectedOption?.name === "Leather Patch" && (
             <div className='mb-8 mt-4'>
               <div className='p-4 bg-[#ff0000] mb-4'>
                 <h2 className='text-2xl font-bold text-white'>Patch Options</h2>
@@ -1295,7 +1227,7 @@ const handleLogoPlacement = (label) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                   {/* Patch Shape */}
-                  <div className="rounded-xl bg-white p-4 shadow-sm">
+                  {/* <div className="rounded-xl bg-white p-4 shadow-sm">
                     <label className="mb-1 block text-sm font-medium text-gray-600">
                       Patch Shape
                     </label>
@@ -1308,10 +1240,10 @@ const handleLogoPlacement = (label) => {
                       <option value="Rectangle">Rectangle</option>
                       <option value="Shield">Shield</option>
                     </select>
-                  </div>
+                  </div> */}
 
                   {/* Patch Color */}
-                  <div className="rounded-xl bg-white p-4 shadow-sm">
+                  {/* <div className="rounded-xl bg-white p-4 shadow-sm">
                     <label className="mb-1 block text-sm font-medium text-gray-600">
                       Patch Color
                     </label>
@@ -1325,7 +1257,7 @@ const handleLogoPlacement = (label) => {
                       <option value="Red">Red</option>
                       <option value="Blue">Blue</option>
                     </select>
-                  </div>
+                  </div> */}
 
                   {/* Patch Option */}
                   <div className="rounded-xl bg-white p-4 shadow-sm">
@@ -1340,7 +1272,7 @@ const handleLogoPlacement = (label) => {
                         setPatchOption(selectedId);
 
                         handleArtworkUpdate({
-                          addonId: selectedId,
+                          addonId: selectedId || 2,
                           enabled: true,
                         });
                       }}
@@ -1358,7 +1290,6 @@ const handleLogoPlacement = (label) => {
               </div>
 
             </div>
-          )}
 
           {/* Logo Placement */}
           <div className='flex justify-center'>
