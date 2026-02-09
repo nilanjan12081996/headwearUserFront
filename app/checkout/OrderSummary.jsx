@@ -47,7 +47,7 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading,
   //     toast.error("Failed to place order. Please try again.");
   //   }
   // };
-  const base_url =  process.env.NEXT_PUBLIC_IMAGE_BASE_URL;
+  const base_url =  process.env.NEXT_PUBLIC_API_BASE_URL;
   return (
     <>
       <div className='lg:w-4/12 border border-[#E6E6E6] rounded-[10px] p-4'>
@@ -67,14 +67,12 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading,
                     alt={group?.hat?.name}
                     className='w-full rounded-md'
                   /> */}
-                  {group?.hat?.primary_image_url ? (
                     <Image
-                      src={base_url + group?.hat?.primary_image_url}
+                     src={`${base_url}${group?.items?.[0]?.hat?.primary_image_url}`}
                       width={40}
                       height={40}
                       alt="Hat"
                     />
-                  ) : null}
                 </div>
 
                 <div className='w-9/12'>
