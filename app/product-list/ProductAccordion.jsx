@@ -1020,7 +1020,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                     Next Step
                 </button>
             </div> */}
-            <div className='fixed top-[80px] md:top-[90px] left-1/2 -translate-x-1/2 z-50 w-max'>
+            <div className='fixed top-[80px] md:top-[70px] left-1/2 -translate-x-1/2 z-50 w-max'>
                 <button
                     onClick={() => handleNextpage()}
                     className='group flex items-center gap-2 text-lg md:text-xl bg-[#ff7379] hover:bg-[#ff5a62] text-white font-bold py-3 px-6 md:px-8 rounded-b-lg cursor-pointer shadow-[0_4px_15px_rgba(255,115,121,0.4)] transition-all duration-300 active:scale-95'
