@@ -77,7 +77,6 @@ import { IoClose } from "react-icons/io5";
 
 
 
-
 const page = () => {
   const { loading } = useSelector((state) => state?.check)
   const [cust_id, setCust_id] = useState()
@@ -96,6 +95,7 @@ const page = () => {
   const artworkId = params.get("artwork_id");
 
   console.log("Artwork ID:", artworkId);
+  const { cartListItem } = useSelector((state) => state?.cart);
 
   const dispatch = useDispatch()
   const {
@@ -146,6 +146,11 @@ const page = () => {
 
 
   const onSubmit = async (data) => {
+    const totalQty = cartListItem?.data?.cart?.total_items || 0;
+    if (totalQty < 24) {
+      toast.error("A minimum of 24 hats is required to proceed. Please add more hats.");
+      return; 
+    }
     setOrderLoading(true);
 
     const payload = {

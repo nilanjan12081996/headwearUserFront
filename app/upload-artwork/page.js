@@ -1179,13 +1179,13 @@ const page = () => {
                     onChange={(e) => {
                       setEmbroideryType(e.target.value);
                       handleArtworkUpdate({ addonId: 1, enabled: false });
-                      if (patchOption) {
-                        handleArtworkUpdate({
-                          addonId: patchOption,
-                          enabled: false
-                        });
-                        setPatchOption(null);
-                      }
+                      // if (patchOption) {
+                      //   handleArtworkUpdate({
+                      //     addonId: patchOption,
+                      //     enabled: false
+                      //   });
+                      //   setPatchOption(null);
+                      // }
                     }}
 
                     className="hidden"
@@ -1254,10 +1254,10 @@ const page = () => {
                   </h3>
 
                   <p className="text-sm text-gray-600 mb-4">
-                    Creates a raised, bold 3D look. Best for simple logos. Upgrading to 3D Puff Embroidery allows you to explore available patch options.
+                    Creates a raised, bold 3D look. Best for simple logos.
                   </p>
 
-                   <div className="flex justify-center mb-3">
+                  <div className="flex justify-center mb-3">
                     <Image
                       src={puff}
                       alt="3d puff"
@@ -1345,94 +1345,92 @@ const page = () => {
 
           </div> */}
 
-          {/* Leather Patch Options - Only visible if 3D Puff is selected */}
-          {embroideryType === "3D_puff" && (
-            <div className='mb-8 mt-4 transition-all duration-500'>
-              <div className='p-4 bg-[#ff0000] mb-4'>
-                <h2 className='text-2xl font-bold text-white'>Patch Options</h2>
-              </div>
 
-              <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mt-6 mb-6'>
-                <h2 className='text-[#1A1A1A] text-[20px] font-semibold'>Select a Patch Style</h2>
-                <p className='text-[#7E7E7E] text-sm font-normal'><strong>Optional:</strong> Select your preferred patch style below..</p>
-                <ul className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
-                  <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                    <FaCheck className="text-green-600" /> Synthetic Leather
-                  </li>
-                  <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                    <FaCheck className="text-green-600" /> Very Classy Look
-                  </li>
-                  <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                    <FaCheck className="text-green-600" /> Best for Simple Designs
-                  </li>
-                </ul>
-              </div>
-
-              {/* Patch Grid System */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {visiblePatches.map((item) => {
-                  const currentImage = imageToggle
-                    ? `/images/patch${item.id}.1.png`
-                    : `/images/patch${item.id}.png`;
-                  console.log('currentImage', currentImage)
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => {
-                        setPatchOption(item.id);
-                        handleArtworkUpdate({ addonId: item.id, enabled: true });
-                      }}
-                      className={`relative cursor-pointer rounded-2xl border-4 transition-all duration-500 overflow-hidden bg-white shadow-sm hover:shadow-md
-                  ${patchOption === item.id ? "border-[#ed1c24] scale-[1.02]" : "border-gray-200 hover:border-gray-300"}`}
-                    >
-                      {/* Rotating Image Container */}
-                      <div className="aspect-square w-full bg-[#f9f9f9] overflow-hidden relative p-4 rounded-xl border border-gray-100">
-                        <img
-                          src={currentImage}
-                          alt={item.name}
-                          className="h-full w-full object-contain transition-all duration-700 ease-in-out"
-                        />
-                      </div>
-
-                      {/* Price Tag Overlay */}
-                      <div className="absolute top-2 left-2 bg-black/70 text-white text-[12px] px-2 py-1 rounded-md z-2">
-                        +${item.unit_price}
-                      </div>
-
-                      {/* Selection Tick */}
-                      {patchOption === item.id && (
-                        <div className="absolute top-2 right-2 bg-[#ed1c24] text-white rounded-full p-1.5 shadow-lg z-10">
-                          <FaCheck size={10} />
-                        </div>
-                      )}
-
-                      <div className="px-3 pb-3 text-center">
-                        <h3 className={`text-sm font-bold leading-tight ${patchOption === item.id ? "text-[#ed1c24]" : "text-gray-700"}`}>
-                          {item.name}
-                        </h3>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* View More / View Less Button */}
-              {patchOptionsData.length > initialItems && (
-                <div className="flex justify-center mt-8">
-                  <button
-                    onClick={() => setShowMore(!showMore)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#ed1c24] text-[#ed1c24] text-sm font-medium rounded-full hover:bg-[#ed1c24] hover:text-white transition-all duration-300 shadow-md"
-                  >
-                    {showMore ? (
-                      <>View Less <FaChevronUp /></>
-                    ) : (
-                      <>View More Patch Options <FaChevronDown /></>
-                    )}
-                  </button>
-                </div>
-              )}
+          <div className='mb-8 mt-4 transition-all duration-500'>
+            <div className='p-4 bg-[#ff0000] mb-4'>
+              <h2 className='text-2xl font-bold text-white'>Patch Options</h2>
             </div>
-          )}
+
+            <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mt-6 mb-6'>
+              <h2 className='text-[#1A1A1A] text-[20px] font-semibold'>Select a Patch Style</h2>
+              <p className='text-[#7E7E7E] text-sm font-normal'><strong>Optional:</strong> Select your preferred patch style below..</p>
+              <ul className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
+                <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                  <FaCheck className="text-green-600" /> Synthetic Leather
+                </li>
+                <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                  <FaCheck className="text-green-600" /> Very Classy Look
+                </li>
+                <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                  <FaCheck className="text-green-600" /> Best for Simple Designs
+                </li>
+              </ul>
+            </div>
+
+            {/* Patch Grid System */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {visiblePatches.map((item) => {
+                const currentImage = imageToggle
+                  ? `/images/patch${item.id}.1.png`
+                  : `/images/patch${item.id}.png`;
+                console.log('currentImage', currentImage)
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setPatchOption(item.id);
+                      handleArtworkUpdate({ addonId: item.id, enabled: true });
+                    }}
+                    className={`relative cursor-pointer rounded-2xl border-4 transition-all duration-500 overflow-hidden bg-white shadow-sm hover:shadow-md
+                  ${patchOption === item.id ? "border-[#ed1c24] scale-[1.02]" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    {/* Rotating Image Container */}
+                    <div className="aspect-square w-full bg-[#f9f9f9] overflow-hidden relative p-4 rounded-xl border border-gray-100">
+                      <img
+                        src={currentImage}
+                        alt={item.name}
+                        className="h-full w-full object-contain transition-all duration-700 ease-in-out"
+                      />
+                    </div>
+
+                    {/* Price Tag Overlay */}
+                    <div className="absolute top-2 left-2 bg-black/70 text-white text-[12px] px-2 py-1 rounded-md z-2">
+                      +${item.unit_price}
+                    </div>
+
+                    {/* Selection Tick */}
+                    {patchOption === item.id && (
+                      <div className="absolute top-2 right-2 bg-[#ed1c24] text-white rounded-full p-1.5 shadow-lg z-10">
+                        <FaCheck size={10} />
+                      </div>
+                    )}
+
+                    <div className="px-3 pb-3 text-center">
+                      <h3 className={`text-sm font-bold leading-tight ${patchOption === item.id ? "text-[#ed1c24]" : "text-gray-700"}`}>
+                        {item.name}
+                      </h3>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* View More / View Less Button */}
+            {patchOptionsData.length > initialItems && (
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={() => setShowMore(!showMore)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#ed1c24] text-[#ed1c24] text-sm font-medium rounded-full hover:bg-[#ed1c24] hover:text-white transition-all duration-300 shadow-md"
+                >
+                  {showMore ? (
+                    <>View Less <FaChevronUp /></>
+                  ) : (
+                    <>View More Patch Options <FaChevronDown /></>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Logo Placement */}
           <div className='flex justify-center'>
@@ -1590,43 +1588,131 @@ const page = () => {
 
               <div className="mt-4 space-y-3">
                 {backStitching && (
-                  <div>
+                  <div className="mt-4">
                     <label className="mb-1 block font-semibold text-sm">Back Stitch Details:</label>
-                    <input type="text" value={backStitchDetails} onChange={(e) => setBackStitchDetails(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="Enter details here..." />
-                    <div className="mt-2 flex items-center gap-2">
-                      <label className="rounded-md bg-[#0046ff] px-3 py-2 text-xs font-semibold text-white cursor-pointer">
+                    <input
+                      type="text"
+                      value={backStitchDetails}
+                      onChange={(e) => setBackStitchDetails(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                      placeholder="Enter details here..."
+                    />
+
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      {/* UPLOAD BUTTON */}
+                      <label className="rounded-md bg-[#ff7379] px-3 py-2 text-xs font-semibold text-white cursor-pointer shrink-0">
                         Upload Back Design
-                        <input type="file" className="hidden" onChange={(e) => handleStitchingFileUpload(e, 'back')} accept="image/*" />
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => handleStitchingFileUpload(e, 'back')}
+                          accept="image/*"
+                        />
                       </label>
-                      <span className="text-xs text-gray-500">{backStitchingFile ? backStitchingFile.name : "No File Selected"}</span>
+
+                      {/* PREVIEW + NAME CONTAINER */}
+                      <div className="flex items-center gap-2">
+                        {backStitchingFile && (
+                          <div className="w-8 h-8 rounded border border-gray-200 overflow-hidden shrink-0">
+                            <img
+                              src={URL.createObjectURL(backStitchingFile)}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                              onLoad={(e) => URL.revokeObjectURL(e.target.src)}
+                            />
+                          </div>
+                        )}
+                        <span className="text-xs text-gray-500  max-w-[150px]">
+                          {backStitchingFile ? backStitchingFile.name : "No File Selected"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {leftStitching && (
-                  <div>
+                  <div className="mt-4">
                     <label className="mb-1 block font-semibold text-sm">Left Side Details:</label>
-                    <input type="text" value={leftSideDetails} onChange={(e) => setLeftSideDetails(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="Enter details here..." />
-                    <div className="mt-2 flex items-center gap-2">
-                      <label className="rounded-md bg-[#0046ff] px-3 py-2 text-xs font-semibold text-white cursor-pointer">
+                    <input
+                      type="text"
+                      value={leftSideDetails}
+                      onChange={(e) => setLeftSideDetails(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                      placeholder="Enter details here..."
+                    />
+
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      {/* UPLOAD BUTTON */}
+                      <label className="rounded-md bg-[#ff7379] px-3 py-2 text-xs font-semibold text-white cursor-pointer shrink-0">
                         Upload Left Side Design
-                        <input type="file" className="hidden" onChange={(e) => handleStitchingFileUpload(e, 'left')} accept="image/*" />
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => handleStitchingFileUpload(e, 'left')}
+                          accept="image/*"
+                        />
                       </label>
-                      <span className="text-xs text-gray-500">{leftStitchingFile ? leftStitchingFile.name : "No File Selected"}</span>
+
+                      {/* PREVIEW + NAME CONTAINER */}
+                      <div className="flex items-center gap-2">
+                        {leftStitchingFile && (
+                          <div className="w-8 h-8 rounded border border-gray-200 overflow-hidden shrink-0 bg-gray-50">
+                            <img
+                              src={URL.createObjectURL(leftStitchingFile)}
+                              alt="Left Preview"
+                              className="w-full h-full object-cover"
+                              // Preview URL revoke kora memory-r jonno bhalo
+                              onLoad={(e) => URL.revokeObjectURL(e.target.src)}
+                            />
+                          </div>
+                        )}
+                        <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                          {leftStitchingFile ? leftStitchingFile.name : "No File Selected"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {rightStitching && (
-                  <div>
+                  <div className="mt-4">
                     <label className="mb-1 block font-semibold text-sm">Right Side Details:</label>
-                    <input type="text" value={rightSideDetails} onChange={(e) => setRightSideDetails(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="Enter details here..." />
-                    <div className="mt-2 flex items-center gap-2">
-                      <label className="rounded-md bg-[#0046ff] px-3 py-2 text-xs font-semibold text-white cursor-pointer">
+                    <input
+                      type="text"
+                      value={rightSideDetails}
+                      onChange={(e) => setRightSideDetails(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                      placeholder="Enter details here..."
+                    />
+
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      {/* UPLOAD BUTTON */}
+                      <label className="rounded-md bg-[#ff7379] px-3 py-2 text-xs font-semibold text-white cursor-pointer shrink-0">
                         Upload Right Side Design
-                        <input type="file" className="hidden" onChange={(e) => handleStitchingFileUpload(e, 'right')} accept="image/*" />
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => handleStitchingFileUpload(e, 'right')}
+                          accept="image/*"
+                        />
                       </label>
-                      <span className="text-xs text-gray-500">{rightStitchingFile ? rightStitchingFile.name : "No File Selected"}</span>
+
+                      {/* PREVIEW + NAME CONTAINER */}
+                      <div className="flex items-center gap-2">
+                        {rightStitchingFile && (
+                          <div className="w-8 h-8 rounded border border-gray-200 overflow-hidden shrink-0 bg-gray-50">
+                            <img
+                              src={URL.createObjectURL(rightStitchingFile)}
+                              alt="Right Preview"
+                              className="w-full h-full object-cover"
+                              onLoad={(e) => URL.revokeObjectURL(e.target.src)}
+                            />
+                          </div>
+                        )}
+                        <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                          {rightStitchingFile ? rightStitchingFile.name : "No File Selected"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}

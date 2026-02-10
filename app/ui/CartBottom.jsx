@@ -30,7 +30,7 @@ const CartBottom = ({ open, onClose }) => {
       />
 
       {/* BOTTOM CART */}
-      <div className="fixed bottom-0 left-0 w-full bg-white z-50 border-t shadow-xl">
+      <div className="fixed bottom-0 left-0 w-full bg-white z-50 border-t shadow-xl h-[400px] overflow-y-auto">
 
         {/* CLOSE BAR */}
         <div
@@ -41,7 +41,7 @@ const CartBottom = ({ open, onClose }) => {
         </div>
 
         {/* ITEMS */}
-        <div className="max-h-[320px] overflow-y-auto px-4 py-3">
+        <div className="px-4 py-3">
           {cartGroups.length > 0 ? (
             cartGroups.map((group) =>
               group.items.map((item) => {
@@ -94,10 +94,6 @@ const CartBottom = ({ open, onClose }) => {
               <span>Subtotal</span>
               <span>${cartListItem?.data?.cart?.subtotal_amount}</span>
             </div>
-            {/* <div className="flex justify-between items-center text-sm text-gray-800 py-1">
-              <span>Add-ons</span>
-              <span>${cartListItem?.data?.cart?.addons_amount}</span>
-            </div> */}
           </div>
         )}
 

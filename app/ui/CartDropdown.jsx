@@ -142,7 +142,7 @@ const CartDropdown = ({ open, onClose }) => {
         </div>
 
         {/* CART ITEMS */}
-        <div className="max-h-72 overflow-y-auto p-3">
+        <div className="max-h-50 overflow-y-auto p-3">
           {cartGroups.length > 0 ? (
             cartGroups.map((group) =>
               group.items.map((item) => {
@@ -252,17 +252,6 @@ const CartDropdown = ({ open, onClose }) => {
           </div>
         )}
 
-
-
-        {/* CONTINUE ORDER BUTTON */}
-        {/* <div className="p-3 border-t">
-          <button
-            onClick={onClose}
-            className="w-full bg-[#ed6c27] text-white py-2 rounded-md hover:bg-[#f47b3e] cursor-pointer"
-          >
-            Continue Order
-          </button>
-        </div> */}
         <div className="p-3 border-t">
           <button
             onClick={handleAction}
