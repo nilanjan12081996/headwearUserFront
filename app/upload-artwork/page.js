@@ -1353,16 +1353,20 @@ const page = () => {
 
             <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mt-6 mb-6'>
               <h2 className='text-[#1A1A1A] text-[20px] font-semibold'>Select a Patch Style</h2>
-              <p className='text-[#7E7E7E] text-sm font-normal'><strong>Optional:</strong> Select your preferred patch style below..</p>
+              {/* <p className='text-[#7E7E7E] text-sm font-normal'><strong>Optional:</strong> Select your preferred patch style below..</p> */}
+              <p className='text-[#7E7E7E] text-sm font-normal'><strong>Note:</strong> Minimum order for patches is 48 total units. Lead times for patches is 12-18 business days.</p>
               <ul className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
                 <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                  <FaCheck className="text-green-600" /> Synthetic Leather
+                  <FaCheck className="text-green-600" /> Professional, Premium Look
                 </li>
                 <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                  <FaCheck className="text-green-600" /> Very Classy Look
+                  <FaCheck className="text-green-600" /> Built to Last
                 </li>
                 <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                  <FaCheck className="text-green-600" /> Best for Simple Designs
+                  <FaCheck className="text-green-600" /> Bold Brand Visibility
+                </li>
+                <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                  <FaCheck className="text-green-600" /> More Design Flexibility
                 </li>
               </ul>
             </div>
@@ -1378,9 +1382,20 @@ const page = () => {
                   <div
                     key={item.id}
                     onClick={() => {
+                      if (totalQty < 48) {
+                        toast.error("Minimum order for patches is 48 total units.", {
+                          autoClose: 2000,
+                          position: "top-right"
+                        });
+                        return;
+                      }
                       setPatchOption(item.id);
                       handleArtworkUpdate({ addonId: item.id, enabled: true });
                     }}
+                    // onClick={() => {
+                    //   setPatchOption(item.id);
+                    //   handleArtworkUpdate({ addonId: item.id, enabled: true });
+                    // }}
                     className={`relative cursor-pointer rounded-2xl border-4 transition-all duration-500 overflow-hidden bg-white shadow-sm hover:shadow-md
                   ${patchOption === item.id ? "border-[#ed1c24] scale-[1.02]" : "border-gray-200 hover:border-gray-300"}`}
                   >
