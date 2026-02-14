@@ -801,7 +801,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
                                                                 </div> */}
                                                                 <div className="bg-[#eeeeee] rounded-[10px] p-5 mb-4 text-left">
                                                                     <ul className="list-disc list-inside space-y-2 text-base text-black">
-                                                                        {singleHatDetail?.data?.data?.description
+                                                                        {singleHatDetail?.data?.data?.name
                                                                             ?.split("\n")
                                                                             ?.map((item, index) => (
                                                                                 <li key={index}>{item.trim()}</li>
