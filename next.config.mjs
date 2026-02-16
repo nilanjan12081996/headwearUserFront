@@ -40,6 +40,11 @@ const nextConfig = {
         hostname: 'showmecustomheadwearapi.bestworks.clouduploads',
         pathname: '/**',
       },
+      {
+        protocol: "https",
+        hostname: "adminapi.showmecustomapparel.com",
+        pathname: "/**",
+      },
     ],
   },
 };
