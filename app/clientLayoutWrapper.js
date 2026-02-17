@@ -124,7 +124,7 @@ export default function ClientLayoutWrapper({ children }) {
     // );
 
     return (
-        <main className={hideHeaderFooter ? "" : "pt-[70px]"}>
+        <main className={hideHeaderFooter ? "" : "pt-[60px]"}>
             {!hideHeaderFooter && <Header />}
 
             {children}

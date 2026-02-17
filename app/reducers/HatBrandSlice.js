@@ -153,18 +153,21 @@ const hatBrandSlice = createSlice({
             // })
             .addCase(getHatListDetail.fulfilled, (state, { payload }) => {
                 state.loading = false;
-
                 const { brandId, hats, pagination } = payload;
-
                 const prev = state.brandWiseHatList[brandId];
 
+
+                const existingIds = new Set(prev ? prev.list.map(item => item.id) : []);
+
+
+                const uniqueNewHats = hats.filter(hat => !existingIds.has(hat.id));
+
                 state.brandWiseHatList[brandId] = {
-                    list: prev ? [...prev.list, ...hats] : hats,
+                    list: prev ? [...prev.list, ...uniqueNewHats] : hats,
                     pagination,
                     page: pagination.page,
                     hasMore: pagination.page < pagination.totalPages
                 };
-
                 state.error = null;
             })
 
