@@ -504,7 +504,7 @@ const uniquePricingTiers = getAllUniquePricingTiers(
               <IoMdTrophy className='text-white text-5xl' />
             </div>
             <div>
-              <p className='text-white text-base font-medium'>48+ Items</p>
+              <p className='text-white text-base font-medium'>100+ Items</p>
               <p className='text-white text-base font-medium'>Free Premium Setup</p>
             </div>
           </div>

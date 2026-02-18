@@ -52,7 +52,7 @@ const CartProgressBar = ({
                                 <IoMdTrophy className='text-white text-2xl  md:text-3xl lg:text-5xl' />
                             </div>
                             <div className='text-base text-[10px] sm:text-sm md:text-base lg:text-lg font-medium'>
-                                <p className='text-white'>48+ Items</p>
+                                <p className='text-white'>100+ Items</p>
                                 <p className='text-white'>Free Premium Setup</p>
                             </div>
                         </div>

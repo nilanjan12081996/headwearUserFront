@@ -248,9 +248,9 @@ const page = () => {
 
 
   const placements = [
-    { id: "left", label: "right_side", img: cap_left, heading: "Right Eye" },
+    { id: "left", label: "right_side", img: cap_right, heading: "Right Eye" },
     { id: "front", label: "front_center", img: cap_front, heading: "Centered" },
-    { id: "right", label: "left_side", img: cap_right, heading: "Left Eye" },
+    { id: "right", label: "left_side", img: cap_left, heading: "Left Eye" },
 
   ];
 
@@ -1003,7 +1003,15 @@ const page = () => {
                   className="text-2xl font-bold"
                   style={{ fontFamily: "Arial, sans-serif" }}
                 >
-                  Premimum<br />+$100</h2>
+                  Premium<br />
+                  {totalQty >= 100 ? (
+                    <>
+                      <s>+$100</s> FREE
+                    </>
+                  ) : (
+                    <>+$100</>
+                  )}
+                </h2>
 
                 <input
                   type="radio"
@@ -1012,7 +1020,7 @@ const page = () => {
                   checked={selectedPrice === "puff"}
                   onChange={() => {
                     if (totalQty < 48) {
-                      toast.error("Premium Setup not is only available for orders of 48 hats or more.", {
+                      toast.error("Premium Setup is only available for orders of 48 hats or more.", {
                         duration: 2000
                       });
                       return;
@@ -1021,11 +1029,9 @@ const page = () => {
                     handleArtworkUpdate({
                       setupPlanId: 2
                     });
-                  }
-                  }
-                  className={`hidden ${totalQty < 12 ? "pointer-events-none opacity-50" : ""}`}
+                  }}
+                  className={`hidden ${totalQty < 48 ? "pointer-events-none opacity-50" : ""}`}
                 />
-
 
                 <ul className="my-2 space-y-1">
                   {selectedStyle && (
@@ -1047,7 +1053,6 @@ const page = () => {
                           width={20}
                           height={20}
                           className={`${selectedPrice === "puff" ? "opacity-100" : "opacity-40"}`}
-
                         />
                         Unlimited Revisions
                       </li>
@@ -1065,6 +1070,7 @@ const page = () => {
                     </>
                   )}
                 </ul>
+
                 <button
                   className={`py-2 px-3 text-md rounded-2xl my-2
                ${selectedPrice === "puff" ? "bg-[#ff0000] text-white" : "bg-[#eee] text-[#7f7f7f]"}
@@ -1073,9 +1079,7 @@ const page = () => {
                   Premium Setup
                 </button>
 
-
-                <p> Only Available for orders of 48+ hats</p>
-
+                <p>Only Available for orders of 48+ hats</p>
               </label>
 
             </div>
