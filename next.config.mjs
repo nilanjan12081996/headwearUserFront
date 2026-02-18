@@ -14,9 +14,9 @@ const nextConfig = {
   },
   // --- Redirect Logic End ---
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // eslint: {
+  //   ignoreDuringBuilds: true,
+  // },
 
   images: {
     remotePatterns: [
