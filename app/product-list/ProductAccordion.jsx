@@ -1,30 +1,26 @@
 'use client';
-import React, { useEffect, useState } from 'react'
-import logoBlack from "../assets/imagesource/logoBlack.png";
-import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from 'flowbite-react';
+import React, { useEffect, useState, useRef, useCallback, memo, useMemo } from 'react';
 import preview_01 from "../assets/imagesource/preview_01.jpg";
-import preview_02 from "../assets/imagesource/preview_02.jpg";
-import preview_03 from "../assets/imagesource/preview_03.jpg";
-import Black from "../assets/imagesource/Black.png";
-import { FiPlusCircle } from "react-icons/fi";
-import White from "../assets/imagesource/White.png";
-import Moss from "../assets/imagesource/Moss.png";
-import Buck from "../assets/imagesource/Buck.png";
 import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { getHatBrandList, getHatListDetail, getSingleHatDetail } from '../reducers/HatBrandSlice';
 import HatColorSelector from './HatColorSelector';
-import { addCartGroup, addCartItem, cartList, deleteCartItem, updateCartItem } from '../reducers/CartSlice';
+import { addCartItem, cartList, deleteCartItem, updateCartItem } from '../reducers/CartSlice';
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import { v4 as uuidv4 } from "uuid";
-import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
-import { FaSearch } from 'react-icons/fa';
-import { useRef } from "react";
 
-
-
-
+// ─── Animation Styles ─────────────────────────────────────────────────────────
+const ANIM_STYLE = `
+@keyframes expandDown {
+  from { opacity: 0; transform: scaleY(0.95); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+.hat-detail-panel {
+  animation: expandDown 0.3s ease-out forwards;
+  transform-origin: top;
+}
+`;
 
 let pendingDesiredQty = {};
 
@@ -36,15 +32,291 @@ function debounce(fn, delay = 300) {
     };
 }
 
+function useColCount() {
+    const [cols, setCols] = useState(2);
+    useEffect(() => {
+        function update() {
+            const w = window.innerWidth;
+            if (w >= 1024) setCols(4);
+            else if (w >= 768) setCols(3);
+            else setCols(2);
+        }
+        update();
+        window.addEventListener('resize', update);
+        return () => window.removeEventListener('resize', update);
+    }, []);
+    return cols;
+}
 
-const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
+// ─── Image Gallery: main image on top + thumbnail strip below ────────────────
+const HatImageGallery = ({ hatData, base_url }) => {
+    // Build all slides: first hat's main image, then each color image
+    const slides = useMemo(() => {
+        const mainSlide = hatData?.hatImages?.[0]
+            ? { src: `${base_url}/${hatData.hatImages[0].image_url}`, label: hatData.name || '' }
+            : null;
+
+        const colorSlides = (hatData?.hatColors || [])
+            .filter(c => c?.colorImages?.length > 0)
+            .map(c => ({
+                src: `${base_url}/${c.colorImages[0].image_url}`,
+                label: c.name,
+            }));
+
+        return [mainSlide, ...colorSlides].filter(Boolean);
+    }, [hatData, base_url]);
+
+    const VISIBLE = 4; // thumbnails visible at once
+    const [selectedIdx, setSelectedIdx] = useState(0);  // which image is shown in main
+    const [thumbStart, setThumbStart] = useState(0);     // which thumbnail index starts the visible window
+
+    const canPrev = thumbStart > 0;
+    const canNext = thumbStart + VISIBLE < slides.length;
+
+    const handleThumbPrev = () => {
+        if (canPrev) setThumbStart(s => s - 1);
+    };
+    const handleThumbNext = () => {
+        if (canNext) setThumbStart(s => s + 1);
+    };
+
+    const visibleThumbs = slides.slice(thumbStart, thumbStart + VISIBLE);
+    const current = slides[selectedIdx];
+
+    return (
+        <div className="flex flex-col items-center bg-gray-50 p-5 md:w-5/12 border-r border-gray-100">
+
+            {/* ── Main Image ── */}
+            <div className="w-full flex items-center justify-center min-h-[220px] mb-3">
+                {current && (
+                    <Image
+                        key={current.src}
+                        src={current.src}
+                        alt={current.label || 'Hat'}
+                        width={300}
+                        height={300}
+                        className="object-contain max-h-[220px] w-auto transition-opacity duration-200"
+                    />
+                )}
+            </div>
+
+            {/* ── Label under main image ── */}
+            <p className="text-center text-sm font-bold text-[#ff7379] mb-3 min-h-[20px]">
+                {current?.label || ''}
+            </p>
+
+            {/* ── Thumbnail strip with prev/next arrows ── */}
+            {slides.length > 1 && (
+                <div className="flex items-center gap-2 w-full justify-center">
+                    {/* Prev Arrow */}
+                    <button
+                        onClick={handleThumbPrev}
+                        disabled={!canPrev}
+                        className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-[#ff7379] text-[#ff7379]
+                                   hover:bg-[#ff7379] hover:text-white transition-all flex items-center justify-center
+                                   disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    {/* Visible Thumbnails */}
+                    <div className="flex gap-2">
+                        {visibleThumbs.map((slide, i) => {
+                            const realIdx = thumbStart + i;
+                            const isSelected = realIdx === selectedIdx;
+                            return (
+                                <button
+                                    key={realIdx}
+                                    onClick={() => setSelectedIdx(realIdx)}
+                                    className={`w-14 h-14 rounded-lg border-2 overflow-hidden flex-shrink-0 transition-all bg-white
+                                        ${isSelected
+                                            ? 'border-[#ff7379] shadow-md ring-2 ring-pink-100'
+                                            : 'border-gray-200 hover:border-[#ff7379] opacity-70 hover:opacity-100'
+                                        }`}
+                                >
+                                    <Image
+                                        src={slide.src}
+                                        alt={slide.label || ''}
+                                        width={56}
+                                        height={56}
+                                        className="object-contain w-full h-full"
+                                    />
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Next Arrow */}
+                    <button
+                        onClick={handleThumbNext}
+                        disabled={!canNext}
+                        className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-[#ff7379] text-[#ff7379]
+                                   hover:bg-[#ff7379] hover:text-white transition-all flex items-center justify-center
+                                   disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── DetailPanel ──────────────────────────────────────────────────────────────
+const DetailPanel = memo(({
+    uniqueHatId, singleHatDetail, base_url, hatQuantities,
+    selectedDecoName, onIncrease, onDecrease, onManualChange
+}) => {
+    if (!singleHatDetail?.data) {
+        return (
+            <div className="col-span-full py-12 flex justify-center border-2 border-[#ff7379] rounded-2xl mb-4">
+                <span className="w-8 h-8 border-4 border-[#ff7379] border-t-transparent rounded-full animate-spin"></span>
+            </div>
+        );
+    }
+
+    const hatData = singleHatDetail.data.data;
+
+    return (
+        <div
+            id={`panel-${uniqueHatId}`}
+            className="hat-detail-panel col-span-full border-2 border-[#ff7379] rounded-2xl bg-white overflow-hidden mb-6 shadow-xl"
+        >
+            {/* Top Section: Gallery + Description + Size Chart */}
+            <div className="flex flex-col md:flex-row border-b border-gray-100">
+
+                {/* Image Gallery */}
+                <HatImageGallery hatData={hatData} base_url={base_url} />
+
+                <div className="p-6 md:w-7/12 flex flex-col justify-center">
+                    {/* Description */}
+                    <div className="bg-[#eeeeee] rounded-xl p-4 mb-4 text-left">
+                        <ul className="list-disc list-inside space-y-2 text-base text-black">
+                            {hatData?.description
+                                ?.split("\n")
+                                ?.map((item, index) => (
+                                    <li key={index}>{item.trim()}</li>
+                                ))}
+                        </ul>
+                    </div>
+
+                    {/* Size Chart */}
+                    {hatData?.size_chart_json?.size_chart?.length > 0 && (
+                        <div className="mt-4 border border-gray-200 rounded-md overflow-hidden">
+                            <div className="bg-[#ff7379] text-center font-bold text-base py-2 text-white">
+                                Size Chart
+                            </div>
+                            <div
+                                className="grid text-center font-semibold border-b border-gray-300 bg-[#eeeeee]"
+                                style={{ gridTemplateColumns: `repeat(${hatData.size_chart_json.size_chart.length}, 1fr)` }}
+                            >
+                                {hatData.size_chart_json.size_chart.map((item, index) => (
+                                    <div key={index} className="py-2 border-r last:border-r-0 border-gray-300">
+                                        {item.size}
+                                    </div>
+                                ))}
+                            </div>
+                            <div
+                                className="grid text-center text-sm"
+                                style={{ gridTemplateColumns: `repeat(${hatData.size_chart_json.size_chart.length}, 1fr)` }}
+                            >
+                                {hatData.size_chart_json.size_chart.map((item, index) => (
+                                    <div key={index} className="py-2 border-r last:border-r-0 border-gray-200">
+                                        {item.value}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Price Table */}
+            <div className="px-6 py-4">
+                <div className="bg-[#ff7379] text-center mb-2 font-bold text-base py-2 text-white">
+                    Total Items Price Break
+                </div>
+                <div className="mb-2">
+                    <div className="flex gap-2 mb-2">
+                        <div
+                            className={`w-4/12 sm:w-3/12 flex items-center justify-center text-center font-medium text-[11px] sm:text-sm px-2
+                                ${selectedDecoName === "Embroidery" ? "bg-[#ff7379] text-white" : "bg-[#eeeeee] text-black"}`}
+                        >
+                            STANDARD <br /> EMBROIDERY
+                        </div>
+                        <div className="w-8/12 sm:w-9/12 overflow-x-auto">
+                            <div className="flex gap-1 min-w-max">
+                                {singleHatDetail?.data?.embroideryPrices
+                                    ?.filter(tier => tier.min_qty >= 24)
+                                    .map((tier, index) => {
+                                        const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
+                                            .flatMap(colorObj => Object.values(colorObj || {}))
+                                            .reduce((sum, qty) => sum + qty, 0);
+                                        const meetsQty = totalQty >= tier.min_qty;
+                                        return (
+                                            <div key={index} className="text-center w-[65px] sm:w-[75px] flex-shrink-0">
+                                                <div className={`py-1 text-[10px] sm:text-sm font-medium ${meetsQty ? "bg-[#ff7379] text-white" : "bg-[#eeeeee] text-black"}`}>
+                                                    {tier.min_qty}
+                                                </div>
+                                                <div className={`py-1 text-[10px] sm:text-sm font-bold border border-gray-200 mt-[2px]
+                                                    ${selectedDecoName === "Embroidery" && meetsQty
+                                                        ? "bg-[#ff7379] text-white border-[#ff7379]"
+                                                        : "bg-white text-black border-gray-200"}`}>
+                                                    ${Number(tier.unit_price)}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-[#eeeeee] mb-4 font-medium text-sm py-2 px-2 text-black text-right">
+                    Price includes item & decoration.
+                </div>
+            </div>
+
+            {/* Color Selectors */}
+            <div className=''>
+                <div className="flex flex-wrap -m-2 mb-2 gap-2 justify-center">
+                    {hatData?.hatColors?.map((color) => {
+                        const colorImage = color?.colorImages?.length > 0 ? color.colorImages[0].image_url : null;
+                        return (
+                            <HatColorSelector
+                                key={color.id}
+                                colorName={color.name}
+                                colorImage={colorImage}
+                                sizeVariants={color.hatSizes}
+                                quantities={hatQuantities?.[uniqueHatId]?.[color.name] || {}}
+                                onIncrease={(size) => onIncrease(uniqueHatId, color.name, size, hatData.id, hatData.brand_id)}
+                                onDecrease={(size) => onDecrease(uniqueHatId, color.name, size)}
+                                onChange={(size, val) => onManualChange(uniqueHatId, color.name, size, val, hatData.id, hatData.brand_id)}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+});
+
+DetailPanel.displayName = 'DetailPanel';
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+const ProductAccordion = ({ selectedDecoName, selectedDecoId, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
     const dispatch = useDispatch();
+    const colCount = useColCount();
+    const router = useRouter();
     const loadMoreRef = useRef(null);
 
     const { brandList, brandWiseHatList, singleHatDetail, loading } = useSelector((state) => state.hatBrand);
     const { cartListItem } = useSelector((state) => state?.cart);
-    console.log('singleHatDetail', singleHatDetail)
-    // Page load e restore kore first render e
+    const base_url = process.env.NEXT_PUBLIC_API_IMAGE_URL;
+
     const [cartItemMap, setCartItemMap] = useState(() => {
         if (typeof window !== "undefined") {
             const saved = sessionStorage.getItem("cartItemMap");
@@ -52,41 +324,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         }
         return {};
     });
-    const base_url = process.env.NEXT_PUBLIC_API_IMAGE_URL;
 
-    const [cartItemId, setCartItemId] = useState()
-    const [isProcessing, setIsProcessing] = useState({});
-    const [createLock, setCreateLock] = useState({});
-    const router = useRouter()
-    const [cartUUID, setCartUUID] = useState(null);
-    const [errorMsg, setErrorMsg] = useState(null);
-    const [showLoader, setShowLoader] = useState(false);
-    const [isFetching, setIsFetching] = useState(false);
-
-
-
-
-    useEffect(() => {
-        let savedUUID = sessionStorage.getItem("uuid");
-
-        if (!savedUUID) {
-            const newUUID = "sess-" + uuidv4();   // <-- prepend sess-
-            sessionStorage.setItem("uuid", newUUID);
-            console.log("New UUID created:", newUUID);
-            savedUUID = newUUID;
-        } else {
-            console.log("UUID already exists:", savedUUID);
-        }
-
-        setCartUUID(savedUUID);  // store in state
-    }, []);
-
-
-    useEffect(() => {
-        sessionStorage.setItem("cartItemMap", JSON.stringify(cartItemMap));
-    }, [cartItemMap]);
-
-    // initial state with sessionStorage
     const [hatQuantities, setHatQuantities] = useState(() => {
         if (typeof window !== "undefined") {
             const saved = sessionStorage.getItem("hatQuantities");
@@ -95,11 +333,38 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
         return initialHatQuantities || {};
     });
 
-    // save every time quantity changes
+    const [expandedHat, setExpandedHat] = useState(null);
+    const [cartUUID, setCartUUID] = useState(null);
+    const [createLock, setCreateLock] = useState({});
+    const [showLoader, setShowLoader] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+
+    let updateQueue = {};
+
     useEffect(() => {
-        setParentHatQuantities(hatQuantities); // sync to parent if needed
+        if (!document.getElementById('hat-grid-styles')) {
+            const style = document.createElement('style');
+            style.id = 'hat-grid-styles';
+            style.textContent = ANIM_STYLE;
+            document.head.appendChild(style);
+        }
+        let savedUUID = sessionStorage.getItem("uuid");
+        if (!savedUUID) {
+            const newUUID = "sess-" + uuidv4();
+            sessionStorage.setItem("uuid", newUUID);
+            savedUUID = newUUID;
+        }
+        setCartUUID(savedUUID);
+    }, []);
+
+    useEffect(() => {
+        setParentHatQuantities(hatQuantities);
         sessionStorage.setItem("hatQuantities", JSON.stringify(hatQuantities));
     }, [hatQuantities]);
+
+    useEffect(() => {
+        sessionStorage.setItem("cartItemMap", JSON.stringify(cartItemMap));
+    }, [cartItemMap]);
 
     useEffect(() => {
         const handleStorageChange = () => {
@@ -107,1002 +372,1162 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, selectedOption, ha
             if (savedQuantities) {
                 const parsed = JSON.parse(savedQuantities);
                 setHatQuantities(parsed);
-                if (setParentHatQuantities) {
-                    setParentHatQuantities(parsed);
-                }
+                if (setParentHatQuantities) setParentHatQuantities(parsed);
             }
         };
-
-        // Listen for custom event
         window.addEventListener("hatQuantitiesChanged", handleStorageChange);
-
-        return () => {
-            window.removeEventListener("hatQuantitiesChanged", handleStorageChange);
-        };
+        return () => window.removeEventListener("hatQuantitiesChanged", handleStorageChange);
     }, [setParentHatQuantities]);
 
-
-    let updateQueue = {};
-    useEffect(() => {
-        dispatch(getHatBrandList());
-    }, []);
-
+    useEffect(() => { dispatch(getHatBrandList()); }, []);
 
     useEffect(() => {
         if (!brandList?.data?.length) return;
-
         brandList.data.forEach((brand) => {
-            dispatch(
-                getHatListDetail({
-                    brandId: brand.id,
-                    page: 1,
-                    limit: 5,
-                })
-            );
+            dispatch(getHatListDetail({ brandId: brand.id, page: 1, limit: 12 }));
         });
     }, [brandList, dispatch]);
 
-    // useEffect(() => {
-    //     const observer = new IntersectionObserver(
-    //         (entries) => {
-    //             if (!entries[0].isIntersecting || loading) return;
+    const hasAnyMoreData = () => brandList?.data?.some((brand) => brandWiseHatList?.[brand.id]?.hasMore);
 
-    //             setShowLoader(true);
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (!entries[0].isIntersecting || loading || isFetching) return;
+                if (!hasAnyMoreData()) return;
 
-    //             setTimeout(() => {
-    //                 brandList?.data?.forEach((brand) => {
-    //                     const brandData = brandWiseHatList?.[brand.id];
+                setIsFetching(true);
+                setShowLoader(true);
 
-    //                     if (brandData?.hasMore) {
-    //                         dispatch(
-    //                             getHatListDetail({
-    //                                 brandId: brand.id,
-    //                                 page: brandData.page + 1,
-    //                                 limit: 5
-    //                             })
-    //                         );
-    //                     }
-    //                 });
+                const brandRequests = brandList?.data?.map((brand) => {
+                    const brandData = brandWiseHatList?.[brand.id];
+                    if (brandData?.hasMore) {
+                        return dispatch(getHatListDetail({
+                            brandId: brand.id,
+                            page: (brandData.page || 1) + 1,
+                            limit: 12
+                        }));
+                    }
+                    return Promise.resolve();
+                });
 
-    //                 setShowLoader(false);
-    //             }, 2000);
-    //         },
-    //         {
-    //             threshold: 0.2,
-    //             rootMargin: "150px"
-    //         }
-    //     );
+                Promise.all(brandRequests).finally(() => {
+                    setIsFetching(false);
+                    setShowLoader(false);
+                });
+            },
+            { threshold: 0.1, rootMargin: "100px" }
+        );
 
-    //     if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+        if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+        return () => observer.disconnect();
+    }, [brandWiseHatList, brandList, loading, isFetching]);
 
-    //     return () => observer.disconnect();
-    // }, [brandWiseHatList, brandList, loading]);
-
-    const hasAnyMoreData = () => {
-        return brandList?.data?.some((brand) => {
-            return brandWiseHatList?.[brand.id]?.hasMore;
-        });
-    };
-
-   useEffect(() => {
-    const observer = new IntersectionObserver(
-        (entries) => {
-            if (!entries[0].isIntersecting || loading || isFetching) return;
-
-            if (!hasAnyMoreData()) return;
-
-            setIsFetching(true);
-            setShowLoader(true);
-
-            const brandRequests = brandList?.data?.map((brand) => {
-                const brandData = brandWiseHatList?.[brand.id];
-                if (brandData?.hasMore) {
-                    return dispatch(getHatListDetail({
-                        brandId: brand.id,
-                        page: (brandData.page || 1) + 1,
-                        limit: 5
-                    }));
-                }
-                return Promise.resolve();
-            });
-            Promise.all(brandRequests).finally(() => {
-                setIsFetching(false);
-                setShowLoader(false);
-            });
-        },
-        { threshold: 0.1, rootMargin: "100px" }
-    );
-
-    if (loadMoreRef.current) observer.observe(loadMoreRef.current);
-    return () => observer.disconnect();
-}, [brandWiseHatList, brandList, loading, isFetching]);
-
-
-
-    const handleHatClick = (hatId) => {
-        console.log("Hello");
-
-        console.log("hatId", hatId);
-
-        dispatch(getSingleHatDetail({ hatId }))
-    };
-
-
-
-    const savedUUid = sessionStorage.getItem("uuid")
-
+    const savedUUid = cartUUID;
 
     const processUpdateQueue = debounce(async (dispatch, savedUUid) => {
         const updates = Object.values(updateQueue);
         if (updates.length === 0) return;
-
-        // perform updates serially (or parallel if you prefer Promise.all)
         for (const item of updates) {
             const { cartItemId, qty } = item;
-            if (!cartItemId) continue; // safety: skip any undefined id
-            try {
-                await dispatch(updateCartItem({
-                    id: cartItemId,
-                    quantity: qty
-                }));
-            } catch (err) {
-                console.error('updateCartItem failed for', cartItemId, err);
-            }
+            if (!cartItemId) continue;
+            try { await dispatch(updateCartItem({ id: cartItemId, quantity: qty })); }
+            catch (err) { console.error('updateCartItem failed', err); }
         }
-
-        // clear queue
         updateQueue = {};
+        try { await dispatch(cartList({ id: savedUUid })); }
+        catch (err) { console.error('cartList refresh failed', err); }
+    }, 400);
 
-        // refresh cart list once after batch
-        try {
-            await dispatch(cartList({ id: savedUUid }));
-        } catch (err) {
-            console.error('cartList refresh failed', err);
-        }
-    }, 400); // debounce delay
-
-    // queueCartUpdate: if no cartItemId and a create is in progress, buffer the qty
     const queueCartUpdate = (uniqueHatId, colorName, cartItemId, newQty) => {
         const key = `${uniqueHatId}-${colorName}`;
-
-        if (!cartItemId) {
-            // No cartItemId yet — buffer the desired qty so we can apply it once create finishes
-            pendingDesiredQty[key] = newQty;
-            return;
-        }
-
-        // has cartItemId → place into batch queue
-        updateQueue[key] = {
-            cartItemId,
-            qty: newQty
-        };
-
+        if (!cartItemId) { pendingDesiredQty[key] = newQty; return; }
+        updateQueue[key] = { cartItemId, qty: newQty };
         processUpdateQueue(dispatch, savedUUid);
     };
 
-
-
-    const setQty = (uniqueHatId, colorName, sizeId, qty) => {
-        setHatQuantities(prev => ({
-            ...prev,
-            [uniqueHatId]: {
-                ...prev[uniqueHatId],
-                [colorName]: {
-                    ...prev[uniqueHatId]?.[colorName],
-                    [sizeId]: qty
-                }
-            }
-        }));
-    };
-
-    const increase = async (
-        uniqueHatId,
-        colorName,
-        size,
-        hatId,
-        brandId
-    ) => {
+    const increase = useCallback(async (uniqueHatId, colorName, size, hatId, brandId) => {
         const sizeId = size.id;
         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
-
-        const currentQty =
-            hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
-
+        const currentQty = hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
         const newQty = currentQty + 1;
 
-        // 🔹 Optimistic UI
         setHatQuantities(prev => ({
             ...prev,
-            [uniqueHatId]: {
-                ...prev[uniqueHatId],
-                [colorName]: {
-                    ...prev[uniqueHatId]?.[colorName],
-                    [sizeId]: newQty
-                }
-            }
+            [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: newQty } }
         }));
 
         let cartItemId = cartItemMap?.[key];
 
-        // 🔥 STALE ID PROTECTION
         if (cartItemId && currentQty === 0) {
             cartItemId = undefined;
             setCartItemMap(prev => {
-                const updated = { ...prev };
-                delete updated[key];
+                const updated = { ...prev }; delete updated[key];
                 sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                 return updated;
             });
         }
 
-        // 🔒 Create in progress
-        if (createLock[key]) {
-            pendingDesiredQty[key] = newQty;
-            return;
-        }
+        if (createLock[key]) { pendingDesiredQty[key] = newQty; return; }
 
-        // 🆕 CREATE
         if (!cartItemId) {
             setCreateLock(prev => ({ ...prev, [key]: true }));
-
             try {
-                const res = await dispatch(
-                    addCartItem({
-                        session_uuid: cartUUID,
-                        hat_id: hatId,
-                        brand_id: brandId,
-                        hat_size_variant_id: sizeId,
-                        decoration_type_id: selectedDecoId,
-                        quantity: newQty
-                    })
-                );
-
+                const res = await dispatch(addCartItem({
+                    session_uuid: cartUUID, hat_id: hatId, brand_id: brandId,
+                    hat_size_variant_id: sizeId, decoration_type_id: selectedDecoId, quantity: newQty
+                }));
                 const cartGroups = res?.payload?.data?.cartGroups || [];
-
-                const createdItem = cartGroups
-                    .flatMap(g => g.cartItems)
-                    .find(
-                        i =>
-                            String(i.hat_size_variant_id) === String(sizeId) &&
-                            i.is_active === 1 &&
-                            i.quantity > 0
-                    );
-
+                const createdItem = cartGroups.flatMap(g => g.cartItems)
+                    .find(i => String(i.hat_size_variant_id) === String(sizeId) && i.is_active === 1 && i.quantity > 0);
                 if (!createdItem?.id) throw new Error("Create failed");
-
                 setCartItemMap(prev => {
                     const updated = { ...prev, [key]: createdItem.id };
                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                     return updated;
                 });
                 const cartId = res?.payload?.data?.id;
-                if (cartId) {
-
-                    sessionStorage.setItem("cart_id", cartId); // optional if you also want sessionStorage
-                }
-
-                // 🔁 Apply pending qty if exists
-                if (
-                    pendingDesiredQty[key] !== undefined &&
-                    pendingDesiredQty[key] !== newQty
-                ) {
-                    await dispatch(
-                        updateCartItem({
-                            id: createdItem.id,
-                            quantity: pendingDesiredQty[key]
-                        })
-                    );
+                if (cartId) sessionStorage.setItem("cart_id", cartId);
+                if (pendingDesiredQty[key] !== undefined && pendingDesiredQty[key] !== newQty) {
+                    await dispatch(updateCartItem({ id: createdItem.id, quantity: pendingDesiredQty[key] }));
                     delete pendingDesiredQty[key];
                 }
-
                 await dispatch(cartList({ id: cartUUID }));
             } catch (err) {
                 console.error("Increase create error", err);
-
-                // rollback UI
                 setHatQuantities(prev => ({
                     ...prev,
-                    [uniqueHatId]: {
-                        ...prev[uniqueHatId],
-                        [colorName]: {
-                            ...prev[uniqueHatId]?.[colorName],
-                            [sizeId]: currentQty
-                        }
-                    }
+                    [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: currentQty } }
                 }));
             } finally {
-                setCreateLock(prev => {
-                    const copy = { ...prev };
-                    delete copy[key];
-                    return copy;
-                });
+                setCreateLock(prev => { const copy = { ...prev }; delete copy[key]; return copy; });
             }
-
             return;
         }
 
-        // 🔁 UPDATE
         try {
-            await dispatch(
-                updateCartItem({
-                    id: cartItemId,
-                    quantity: newQty
-                })
-            );
+            await dispatch(updateCartItem({ id: cartItemId, quantity: newQty }));
             await dispatch(cartList({ id: cartUUID }));
-        } catch (err) {
-            console.error("Increase update error", err);
-        }
-    };
+        } catch (err) { console.error("Increase update error", err); }
+    }, [hatQuantities, cartItemMap, cartUUID, selectedDecoId, createLock, dispatch]);
 
-
-    const decrease = async (
-        uniqueHatId,
-        colorName,
-        size
-    ) => {
+    const decrease = useCallback(async (uniqueHatId, colorName, size) => {
         const sizeId = size.id;
         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
-
-        const currentQty =
-            hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
-
+        const currentQty = hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
         if (currentQty === 0) return;
-
         const newQty = currentQty - 1;
 
-        // 🔹 Optimistic UI
         setHatQuantities(prev => ({
             ...prev,
-            [uniqueHatId]: {
-                ...prev[uniqueHatId],
-                [colorName]: {
-                    ...prev[uniqueHatId]?.[colorName],
-                    [sizeId]: newQty
-                }
-            }
+            [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: newQty } }
         }));
 
         const cartItemId = cartItemMap?.[key];
         if (!cartItemId) return;
-
-        if (createLock[key]) {
-            pendingDesiredQty[key] = newQty;
-            return;
-        }
+        if (createLock[key]) { pendingDesiredQty[key] = newQty; return; }
 
         try {
-            // ❌ REMOVE ITEM
             if (newQty === 0) {
                 await dispatch(deleteCartItem(cartItemId));
-
-                // 🔥 FULL CLEANUP
                 setCartItemMap(prev => {
-                    const updated = { ...prev };
-                    delete updated[key];
+                    const updated = { ...prev }; delete updated[key];
                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                     return updated;
                 });
-
                 delete pendingDesiredQty[key];
-
-                setCreateLock(prev => {
-                    const copy = { ...prev };
-                    delete copy[key];
-                    return copy;
-                });
-
+                setCreateLock(prev => { const copy = { ...prev }; delete copy[key]; return copy; });
                 await dispatch(cartList({ id: cartUUID }));
                 return;
             }
-
-            // 🔁 UPDATE
-            await dispatch(
-                updateCartItem({
-                    id: cartItemId,
-                    quantity: newQty
-                })
-            );
-
+            await dispatch(updateCartItem({ id: cartItemId, quantity: newQty }));
             await dispatch(cartList({ id: cartUUID }));
-        } catch (err) {
-            console.error("Decrease error", err);
-        }
-    };
+        } catch (err) { console.error("Decrease error", err); }
+    }, [hatQuantities, cartItemMap, cartUUID, createLock, dispatch]);
 
-
-    const handleManualChange = async (
-        uniqueHatId,
-        colorName,
-        size,
-        newQty,
-        hatId,
-        brandId
-    ) => {
+    const handleManualChange = useCallback(async (uniqueHatId, colorName, size, newQty, hatId, brandId) => {
         const sizeId = size.id;
-        console.log('size', size)
         const maxQty = size?.inventoryItems?.qty_available || 0;
         if (newQty < 0) return;
-        if (newQty > maxQty) {
-            alert(`Only ${maxQty} items available`);
-            //  setErrorMsg(`Only ${maxQty} items available`)
-            newQty = maxQty;
-        }
-
+        if (newQty > maxQty) { alert(`Only ${maxQty} items available`); newQty = maxQty; }
 
         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
+        const currentQty = hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
 
-        const currentQty =
-            hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
-
-        // 🔹 Optimistic UI
         setHatQuantities(prev => ({
             ...prev,
-            [uniqueHatId]: {
-                ...prev[uniqueHatId],
-                [colorName]: {
-                    ...prev[uniqueHatId]?.[colorName],
-                    [sizeId]: newQty
-                }
-            }
+            [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: newQty } }
         }));
 
         let cartItemId = cartItemMap?.[key];
-
-        // 🔥 STALE ID PROTECTION (same as increase)
         if (cartItemId && currentQty === 0) {
             cartItemId = undefined;
             setCartItemMap(prev => {
-                const updated = { ...prev };
-                delete updated[key];
+                const updated = { ...prev }; delete updated[key];
                 sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                 return updated;
             });
         }
 
-        // 🔒 Create in progress
-        if (createLock[key]) {
-            pendingDesiredQty[key] = newQty;
-            return;
-        }
+        if (createLock[key]) { pendingDesiredQty[key] = newQty; return; }
 
-        // 🆕 CREATE (same as increase)
         if (!cartItemId) {
             setCreateLock(prev => ({ ...prev, [key]: true }));
-
             try {
-                const res = await dispatch(
-                    addCartItem({
-                        session_uuid: cartUUID,
-                        hat_id: hatId,
-                        brand_id: brandId,
-                        hat_size_variant_id: sizeId,
-                        decoration_type_id: selectedDecoId,
-                        quantity: newQty
-                    })
-                );
-
+                const res = await dispatch(addCartItem({
+                    session_uuid: cartUUID, hat_id: hatId, brand_id: brandId,
+                    hat_size_variant_id: sizeId, decoration_type_id: selectedDecoId, quantity: newQty
+                }));
                 const cartId = res?.payload?.data?.id;
-                if (cartId) {
-                    sessionStorage.setItem("cart_id", cartId);
-                }
-
+                if (cartId) sessionStorage.setItem("cart_id", cartId);
                 const cartGroups = res?.payload?.data?.cartGroups || [];
-
-                const createdItem = cartGroups
-                    .flatMap(g => g.cartItems)
-                    .find(
-                        i =>
-                            String(i.hat_size_variant_id) === String(sizeId) &&
-                            i.is_active === 1 &&
-                            i.quantity > 0
-                    );
-
+                const createdItem = cartGroups.flatMap(g => g.cartItems)
+                    .find(i => String(i.hat_size_variant_id) === String(sizeId) && i.is_active === 1 && i.quantity > 0);
                 if (!createdItem?.id) throw new Error("Create failed");
-
-                // ✅ SAVE NEW ID
                 setCartItemMap(prev => {
                     const updated = { ...prev, [key]: createdItem.id };
                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
                     return updated;
                 });
-
-                // 🔁 Apply pending qty if exists
-                if (
-                    pendingDesiredQty[key] !== undefined &&
-                    pendingDesiredQty[key] !== newQty
-                ) {
-                    await dispatch(
-                        updateCartItem({
-                            id: createdItem.id,
-                            quantity: pendingDesiredQty[key]
-                        })
-                    );
+                if (pendingDesiredQty[key] !== undefined && pendingDesiredQty[key] !== newQty) {
+                    await dispatch(updateCartItem({ id: createdItem.id, quantity: pendingDesiredQty[key] }));
                     delete pendingDesiredQty[key];
                 }
-
                 await dispatch(cartList({ id: cartUUID }));
             } catch (err) {
                 console.error("Manual create error", err);
-
-                // rollback UI
                 setHatQuantities(prev => ({
                     ...prev,
-                    [uniqueHatId]: {
-                        ...prev[uniqueHatId],
-                        [colorName]: {
-                            ...prev[uniqueHatId]?.[colorName],
-                            [sizeId]: currentQty
-                        }
-                    }
+                    [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: currentQty } }
                 }));
             } finally {
-                setCreateLock(prev => {
-                    const copy = { ...prev };
-                    delete copy[key];
-                    return copy;
-                });
+                setCreateLock(prev => { const copy = { ...prev }; delete copy[key]; return copy; });
             }
-
             return;
         }
 
-        // 🔁 UPDATE (safe)
         try {
-            await dispatch(
-                updateCartItem({
-                    id: cartItemId,
-                    quantity: newQty
-                })
-            );
+            await dispatch(updateCartItem({ id: cartItemId, quantity: newQty }));
             await dispatch(cartList({ id: cartUUID }));
         } catch (err) {
             console.error("Manual update error", err);
-
-            // rollback UI
             setHatQuantities(prev => ({
                 ...prev,
-                [uniqueHatId]: {
-                    ...prev[uniqueHatId],
-                    [colorName]: {
-                        ...prev[uniqueHatId]?.[colorName],
-                        [sizeId]: currentQty
-                    }
-                }
+                [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: currentQty } }
             }));
         }
-    };
+    }, [hatQuantities, cartItemMap, cartUUID, selectedDecoId, createLock, dispatch]);
 
+    const handleHatClick = (hatId, brandId, uniqueHatId) => {
+        if (expandedHat?.uniqueHatId === uniqueHatId) {
+            setExpandedHat(null);
+            return;
+        }
+        setExpandedHat({ uniqueHatId, brandId });
+        dispatch(getSingleHatDetail({ hatId }));
+        setTimeout(() => {
+            const el = document.getElementById(`panel-${uniqueHatId}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 350);
+    };
 
     const handleNextpage = () => {
         const totalQty = cartListItem?.data?.cart?.total_items || 0;
-
         if (totalQty < 24) {
-            toast.error(
-                "A minimum of 24 hats is required to proceed. Please add more hats to continue."
-            );
+            toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
             return;
         }
-
         router.push("/upload-artwork");
     };
 
-
     return (
-        <div className='product_details_area'>
+        <div className='product_details_area max-w-[1400px] mx-auto p-4'>
             <ToastContainer />
-            {/* <div className="w-full max-w-md mx-auto">
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="Search here..."
-                        className="w-full pl-4 pr-12 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2focus:ring-pink-400"
-                    />
 
-                    <button
-                        type="button"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#ff7379] p-2.5 rounded-full text-white hover:bg-[#ff5a61] transition cursor-pointer"
-                        onClick={() => alert("Search clicked")}
-                    >
-                        <FaSearch size={16} />
-                    </button>
-                </div>
-            </div> */}
             {brandList?.data?.map((brand) => {
-                const hats =
-                    brandWiseHatList?.[brand.id]?.list?.map((item) => ({
-                        id: item.id,
-                        name: item.name,
-                        description: item.description,
-                        hatImages: item.hatImages
-                    })) || [];
-
-                const pagination = brandWiseHatList?.[brand.id]?.pagination;
-
+                const hats = brandWiseHatList?.[brand.id]?.list || [];
                 return (
-                    <div key={brand.id}>
-
-                        <div className='bg-[#efefef] p-4 my-2'>
-                            <Image src={base_url + brand?.image_url} width={200} height={50} />
-                            {/* <h2 className='text-[25px] lg:text-[35px] font-bold'>{brand.name}</h2> */}
+                    <div key={brand.id} className="mb-10">
+                        <div className='bg-[#efefef] p-4 rounded-xl mb-4'>
+                            <Image src={base_url + brand?.image_url} width={200} height={50} alt={brand.name} />
                         </div>
 
-                        <div className='product_details_area_box'>
-                            <Accordion collapseAll key={brand.id}>
-                                {hats.length === 0 ? (
-                                    <p className='text-center text-gray-500 py-5'>
-                                        No records
-                                    </p>
-                                ) : (
-                                    hats.map((hat) => {
-                                        console.log("myHats", hat)
-                                        // ---------- FIX: Single unique hat ID ----------
-                                        const uniqueHatId = `${brand.id}_${hat.id}`;
-                                        const imageSrc = hat?.hatImages?.[0]?.image_url
-                                            ? base_url + '/' + hat.hatImages[0].image_url
-                                            : preview_01;
-                                        return (
-                                            <AccordionPanel key={hat.id}>
-                                                <div onClick={() => handleHatClick(hat.id)}>
-                                                    <AccordionTitle>
-                                                        <div className='flex items-center gap-3' >
+                        {hats.length === 0 ? (
+                            <p className='text-center text-gray-500 py-5'>No records</p>
+                        ) : (
+                            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+                                {(() => {
+                                    const rendered = [];
+                                    for (let i = 0; i < hats.length; i += colCount) {
+                                        const row = hats.slice(i, i + colCount);
 
-                                                            {/* <Image src={preview_01} alt='preview_01' className="w-[80px]" /> */}
-                                                            <Image
-                                                                src={imageSrc}
-                                                                alt={hat?.hatImages?.[0]?.alt_text || hat.name}
-                                                                width={60}
-                                                                height={60}
-                                                                className="w-[60px] h-[60px] object-contain rounded"
-                                                            />
-                                                            <p className='text-xl text-[#ff7379] font-semibold'>{hat.name}</p>
+                                        row.forEach((hat) => {
+                                            const uniqueHatId = `${brand.id}_${hat.id}`;
+                                            const isExpanded = expandedHat?.uniqueHatId === uniqueHatId;
+                                            const imageSrc = hat?.hatImages?.[0]?.image_url
+                                                ? `${base_url}/${hat.hatImages[0].image_url}`
+                                                : preview_01;
+                                            const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
+                                                .flatMap(colorObj => Object.values(colorObj || {}))
+                                                .reduce((sum, qty) => sum + qty, 0);
+
+                                            rendered.push(
+                                                <div
+                                                    key={hat.id}
+                                                    onClick={() => handleHatClick(hat.id, brand.id, uniqueHatId)}
+                                                    className={`cursor-pointer rounded-xl border-2 transition-all p-3 bg-white relative
+                                                        ${isExpanded
+                                                            ? 'border-[#ff7379] ring-4 ring-pink-50 shadow-lg'
+                                                            : 'border-gray-200 hover:border-[#ff7379] hover:shadow-md'}`}
+                                                >
+                                                    {totalQty > 0 && (
+                                                        <div className="absolute -top-2 -right-2 bg-[#ff7379] text-white text-[10px] font-bold h-6 w-6 flex items-center justify-center rounded-full shadow-lg z-10">
+                                                            {totalQty}
                                                         </div>
-                                                    </AccordionTitle>
-                                                </div>
-
-                                                <AccordionContent>
-                                                    {/* {singleHatDetail.loading && (
-                                                        <p className="text-center text-lg py-4 text-gray-600">Loading...</p>
-                                                    )} */}
-                                                    {singleHatDetail?.data && (
-                                                        <>
-                                                            <div className="flex justify-center items-center">
-                                                                {/* {singleHatDetail?.data?.data?.hatImages?.map((img) => (
-                                                                    <Image
-                                                                        key={img.id}
-                                                                        src={base_url +'/'+ img.image_url}
-                                                                        alt="Hat Image"
-                                                                        width={300}
-                                                                        height={300}
-                                                                        className="rounded-lg object-contain"
-                                                                    />
-                                                                ))} */}
-                                                                <div className="flex justify-center items-center">
-                                                                    {singleHatDetail?.data?.data?.hatImages?.[0] && (
-                                                                        <Image
-                                                                            src={`${base_url}/${singleHatDetail.data.data.hatImages[0].image_url}`}
-                                                                            alt="Hat Image"
-                                                                            width={300}
-                                                                            height={300}
-                                                                            className="rounded-lg object-contain"
-                                                                        />
-                                                                    )}
-                                                                </div>
-
-                                                            </div>
-                                                            <div className='w-[full] md:w-8/12 mx-auto my-6'>
-                                                                {/* <div className='bg-[#eeeeee] rounded-[10px] p-5 text-center mb-4'>
-                                                                    <p className='text-base text-black'>{singleHatDetail?.data?.data?.description}</p>
-                                                                </div> */}
-                                                                <div className="bg-[#eeeeee] rounded-[10px] p-5 mb-4 text-left">
-                                                                    <ul className="list-disc list-inside space-y-2 text-base text-black">
-                                                                        {singleHatDetail?.data?.data?.description
-                                                                            ?.split("\n")
-                                                                            ?.map((item, index) => (
-                                                                                <li key={index}>{item.trim()}</li>
-                                                                            ))}
-                                                                    </ul>
-                                                                </div>
-
-                                                                {singleHatDetail?.data?.data?.size_chart_json?.size_chart?.length > 0 && (
-                                                                    <div className="mt-4 border border-gray-200 rounded-md overflow-hidden">
-                                                                        {/* Data thakle heading show korbe */}
-                                                                        <div className="bg-[#ff7379] text-center font-bold text-base py-2 text-white">
-                                                                            Size Chart
-                                                                        </div>
-
-                                                                        <div>
-                                                                            {/* Sizes Row */}
-                                                                            <div
-                                                                                className="grid text-center font-semibold border-b border-gray-300 bg-[#eeeeee]"
-                                                                                style={{
-                                                                                    gridTemplateColumns: `repeat(${singleHatDetail.data.data.size_chart_json.size_chart.length}, 1fr)`
-                                                                                }}
-                                                                            >
-                                                                                {singleHatDetail.data.data.size_chart_json.size_chart.map((item, index) => (
-                                                                                    <div key={index} className="py-2 border-r last:border-r-0 border-gray-300">
-                                                                                        {item.size}
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-
-                                                                            {/* Values Row */}
-                                                                            <div
-                                                                                className="grid text-center text-sm"
-                                                                                style={{
-                                                                                    gridTemplateColumns: `repeat(${singleHatDetail.data.data.size_chart_json.size_chart.length}, 1fr)`
-                                                                                }}
-                                                                            >
-                                                                                {singleHatDetail.data.data.size_chart_json.size_chart.map((item, index) => (
-                                                                                    <div key={index} className="py-2 border-r last:border-r-0 border-gray-200">
-                                                                                        {item.value}
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* PRICE TABLE */}
-                                                                <div>
-                                                                    {/* Header */}
-                                                                    <div className="bg-[#ff7379] text-center mb-2 font-bold text-base py-2 text-white">
-                                                                        Total Items Price Break
-                                                                    </div>
-
-                                                                    <div className="mb-2">
-
-                                                                        {/* EMBROIDERY */}
-                                                                        <div className="flex gap-2 mb-2">
-
-                                                                            {/* Left Label */}
-                                                                            <div
-                                                                                className={`w-4/12 sm:w-3/12 flex items-center justify-center text-center font-medium text-[11px] sm:text-sm px-2
-        ${selectedDecoName === "Embroidery"
-                                                                                        ? "bg-[#ff7379] text-white"
-                                                                                        : "bg-[#eeeeee] text-black"
-                                                                                    }`}
-                                                                            >
-                                                                                STANDARD <br /> EMBROIDERY
-                                                                            </div>
-
-                                                                            {/* Pricing Tiers */}
-                                                                            <div className="w-8/12 sm:w-9/12 overflow-x-auto">
-                                                                                <div className="flex gap-1 min-w-max">
-
-                                                                                    {singleHatDetail?.data?.embroideryPrices
-                                                                                        ?.filter(tier => tier.min_qty >= 24)
-                                                                                        .map((tier, index) => {
-
-                                                                                            const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
-                                                                                                .flatMap(colorObj => Object.values(colorObj || {}))
-                                                                                                .reduce((sum, qty) => sum + qty, 0);
-
-                                                                                            const meetsQty = totalQty >= tier.min_qty;
-
-                                                                                            return (
-                                                                                                <div key={index} className="text-center w-[65px] sm:w-[75px] flex-shrink-0">
-
-                                                                                                    {/* Quantity */}
-                                                                                                    <div
-                                                                                                        className={`py-1 text-[10px] sm:text-sm font-medium
-                    ${meetsQty
-                                                                                                                ? "bg-[#ff7379] text-white"
-                                                                                                                : "bg-[#eeeeee] text-black"
-                                                                                                            }`}
-                                                                                                    >
-                                                                                                        {tier.min_qty}
-                                                                                                    </div>
-
-                                                                                                    {/* Price */}
-                                                                                                    <div
-                                                                                                        className={`py-1 text-[10px] sm:text-sm font-bold border border-gray-200 mt-[2px]
-                    ${selectedDecoName === "Embroidery" && meetsQty
-                                                                                                                ? "bg-[#ff7379] text-white border-[#ff7379]"
-                                                                                                                : "bg-white text-black border-gray-200"
-                                                                                                            }`}
-                                                                                                    >
-                                                                                                        ${Number(tier.unit_price)}
-                                                                                                    </div>
-
-                                                                                                </div>
-                                                                                            );
-                                                                                        })}
-
-                                                                                </div>
-                                                                            </div>
-
-                                                                        </div>
-
-                                                                    </div>
-
-                                                                    {/* Footer Note */}
-                                                                    <div className="bg-[#eeeeee] mb-4 font-medium text-sm py-2 px-2 text-black text-right">
-                                                                        Price includes item & decoration.
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* PRICE TABLE */}
-                                                                {/* <div>
-                                                                    <div className="bg-[#ff7379] text-center mb-2 font-bold text-base py-2 text-white">
-                                                                        Total Items Price Break
-                                                                    </div>
-
-                                                                    <div className="mb-2">
-                                                                        <div className="flex gap-2 mb-2">
-                                                                            <div
-                                                                                className={`w-4/12 sm:w-3/12 flex items-center justify-center text-center font-medium text-[11px] sm:text-sm px-2
-                                                                                    ${selectedDecoName === "Embroidery"
-                                                                                        ? "bg-[#ff7379] text-white"
-                                                                                        : "bg-[#eeeeee] text-black"
-                                                                                    }`}
-                                                                            >
-                                                                                STANDARD <br /> EMBROIDERY
-                                                                            </div>
-                                                                            <div className="w-8/12 sm:w-9/12 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1">
-                                                                                {singleHatDetail?.data?.embroideryPrices
-                                                                                    ?.filter(tier => tier.min_qty >= 24)
-                                                                                    .map((tier, index) => {
-
-                                                                                        const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
-                                                                                            .flatMap(colorObj => Object.values(colorObj || {}))
-                                                                                            .reduce((sum, qty) => sum + qty, 0);
-
-                                                                                        const meetsQty = totalQty >= tier.min_qty;
-
-                                                                                        return (
-                                                                                            <div key={index} className="text-center">
-
-                                                                                                <div
-                                                                                                    className={`py-1 text-[10px] sm:text-sm font-medium
-                                                                                                        ${meetsQty
-                                                                                                            ? "bg-[#ff7379] text-white"
-                                                                                                            : "bg-[#eeeeee] text-black"
-                                                                                                        }`}
-                                                                                                >
-                                                                                                    {tier.min_qty}
-                                                                                                </div>
-
-                                                                                                <div
-                                                                                                    className={`py-1 text-[10px] sm:text-sm font-bold border mt-[2px] 
-                                                                                                        ${selectedDecoName === "Embroidery" && meetsQty
-                                                                                                            ? "bg-[#ff7379] text-white border-[#ff7379]"
-                                                                                                            : "bg-white text-black border-gray-200"
-                                                                                                        }`}
-                                                                                                >
-                                                                                                    ${Number(tier.unit_price)}
-                                                                                                </div>
-
-                                                                                            </div>
-                                                                                        );
-                                                                                    })}
-
-                                                                            </div>
-
-                                                                        </div>
-
-                                                                    </div>
-                                                                    <div className="bg-[#eeeeee] mb-4 font-medium text-sm py-2 px-2 text-black text-right">
-                                                                        Price includes item & decoration.
-                                                                    </div>
-                                                                </div> */}
-                                                                
-                                                            </div>
-                                                            <div className="flex flex-wrap gap-2">
-
-
-                                                                {singleHatDetail?.data?.data?.hatColors?.map((color, index) => {
-
-                                                                    const sizeVariants = color?.hatSizes || []
-                                                                    const colorImage =
-                                                                        color?.colorImages?.length > 0
-                                                                            ? color.colorImages[0].image_url
-                                                                            : null;
-                                                                    return (
-                                                                        <HatColorSelector
-                                                                            key={color.id}
-                                                                            colorName={color.name}
-                                                                            // colorImage={color.primary_image_url}
-                                                                            colorImage={colorImage}
-                                                                            sizeVariants={color.hatSizes}
-
-
-                                                                            quantities={
-                                                                                hatQuantities?.[uniqueHatId]?.[color.name] || {}
-                                                                            }
-
-                                                                            onIncrease={(size) =>
-                                                                                increase(
-                                                                                    uniqueHatId,
-                                                                                    color.name,
-                                                                                    size,
-                                                                                    singleHatDetail.data.data.id,
-                                                                                    singleHatDetail.data.data.brand_id
-                                                                                )
-                                                                            }
-
-                                                                            onDecrease={(size) =>
-                                                                                decrease(uniqueHatId, color.name, size)
-                                                                            }
-
-                                                                            onChange={(size, val) => {
-                                                                                setQty(uniqueHatId, color.name, size.id, val);
-
-                                                                                handleManualChange(
-                                                                                    uniqueHatId,
-                                                                                    color.name,
-                                                                                    size,
-                                                                                    val,
-                                                                                    singleHatDetail.data.data.id,
-                                                                                    singleHatDetail.data.data.brand_id
-                                                                                );
-                                                                            }}
-                                                                        />
-
-                                                                    );
-                                                                })}
-                                                            </div>
-
-                                                        </>
                                                     )}
-                                                </AccordionContent>
-                                            </AccordionPanel>
-                                        )
-                                    })
-                                )}
-                            </Accordion>
-                            <div
-                                ref={loadMoreRef}
-                                className="h-14 flex items-center justify-center"
-                            >
-                                {showLoader && (
-                                    <div className="flex items-center gap-3 py-4">
-                                        <span className="w-5 h-5 border-2 border-[#ff7379] border-t-transparent rounded-full animate-spin"></span>
-                                        <span className="text-[#ff7379] text-sm font-medium tracking-wide">
-                                            Loading more hats...
-                                        </span>
-                                    </div>
-                                )}
-                                {!hasAnyMoreData() && (
-                                    <p className="text-center text-gray-400 text-sm py-6 mt-2">
-                                        No more hats available
-                                    </p>
-                                )}
+                                                    <div className="aspect-square flex items-center justify-center overflow-hidden mb-2">
+                                                        <Image
+                                                            src={imageSrc}
+                                                            alt={hat?.hatImages?.[0]?.alt_text || hat.name}
+                                                            width={200} height={200}
+                                                            className="object-contain w-full h-full"
+                                                        />
+                                                    </div>
+                                                    <p className="text-xs font-bold text-center text-[#ff7379] truncate px-1">{hat.name}</p>
+                                                    <div className={`mt-2 flex justify-center transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                                        <svg className="w-4 h-4 text-[#ff7379]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
 
-
+                                        const expandedInThisRow = row.find(h => `${brand.id}_${h.id}` === expandedHat?.uniqueHatId);
+                                        if (expandedInThisRow) {
+                                            rendered.push(
+                                                <DetailPanel
+                                                    key={`panel-${expandedHat.uniqueHatId}`}
+                                                    uniqueHatId={expandedHat.uniqueHatId}
+                                                    singleHatDetail={singleHatDetail}
+                                                    base_url={base_url}
+                                                    hatQuantities={hatQuantities}
+                                                    selectedDecoName={selectedDecoName}
+                                                    onIncrease={increase}
+                                                    onDecrease={decrease}
+                                                    onManualChange={handleManualChange}
+                                                />
+                                            );
+                                        }
+                                    }
+                                    return rendered;
+                                })()}
                             </div>
-
-                        </div>
+                        )}
                     </div>
-                )
+                );
             })}
-            {/* <div className='mb-3 lg:mb-0 fixed top-[85px] md:top-[95px] left-1/2 z-49 ml-[30px] md:ml-0 '>
-                <button onClick={() => handleNextpage()} className='text-md cursor-pointer bg-[#ff7379] hover:bg-[#ee8d92] text-white font-semibold py-2 px-3 rounded-b-md shadow-md transition duration-300 min-h-[47px]'>
-                    Next Step
-                </button>
-            </div> */}
+
+            <div ref={loadMoreRef} className="h-14 flex items-center justify-center">
+                {showLoader && (
+                    <div className="flex items-center gap-3 py-4">
+                        <span className="w-5 h-5 border-2 border-[#ff7379] border-t-transparent rounded-full animate-spin"></span>
+                        <span className="text-[#ff7379] text-sm font-medium tracking-wide">Loading more hats...</span>
+                    </div>
+                )}
+                {!hasAnyMoreData() && !showLoader && (
+                    <p className="text-center text-gray-400 text-sm py-6 mt-2">No more hats available</p>
+                )}
+            </div>
+
             <div className='fixed top-[58px] md:top-[70px] left-1/2 -translate-x-1/2 z-50 w-max'>
                 <button
-                    onClick={() => handleNextpage()}
+                    onClick={handleNextpage}
                     className='group flex items-center gap-2 text-lg md:text-xl bg-[#ed1c24] hover:bg-[#ee5e62] text-white font-bold py-2 px-4 md:px-8 rounded-b-lg cursor-pointer shadow-[0_4px_15px_rgba(255,115,121,0.4)] transition-all duration-300 active:scale-95'
                 >
                     <span>Next Step</span>
-
-                    {/* Right Arrow Icon */}
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2.5}
-                        stroke="currentColor"
-                        className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform duration-200"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform duration-200">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                     </svg>
                 </button>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default ProductAccordion;
+
+// 'use client';
+// import React, { useEffect, useState, useRef, useCallback, memo } from 'react';
+// import preview_01 from "../assets/imagesource/preview_01.jpg";
+// import Image from 'next/image';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { getHatBrandList, getHatListDetail, getSingleHatDetail } from '../reducers/HatBrandSlice';
+// import HatColorSelector from './HatColorSelector';
+// import { addCartItem, cartList, deleteCartItem, updateCartItem } from '../reducers/CartSlice';
+// import { useRouter } from 'next/navigation';
+// import { toast, ToastContainer } from 'react-toastify';
+// import { v4 as uuidv4 } from "uuid";
+
+// // ─── Animation Styles ─────────────────────────────────────────────────────────
+// const ANIM_STYLE = `
+// @keyframes expandDown {
+//   from { opacity: 0; transform: scaleY(0.95); }
+//   to   { opacity: 1; transform: scaleY(1); }
+// }
+// .hat-detail-panel {
+//   animation: expandDown 0.3s ease-out forwards;
+//   transform-origin: top;
+// }
+// `;
+
+// // ─── Pending desired qty buffer (module-level like original) ──────────────────
+// let pendingDesiredQty = {};
+
+// // ─── Debounce helper (same as original) ──────────────────────────────────────
+// function debounce(fn, delay = 300) {
+//     let timer;
+//     return (...args) => {
+//         clearTimeout(timer);
+//         timer = setTimeout(() => fn(...args), delay);
+//     };
+// }
+
+// // ─── Responsive column count hook ────────────────────────────────────────────
+// function useColCount() {
+//     const [cols, setCols] = useState(2);
+//     useEffect(() => {
+//         function update() {
+//             const w = window.innerWidth;
+//             if (w >= 1024) setCols(4);
+//             else if (w >= 768) setCols(3);
+//             else setCols(2);
+//         }
+//         update();
+//         window.addEventListener('resize', update);
+//         return () => window.removeEventListener('resize', update);
+//     }, []);
+//     return cols;
+// }
+
+// // ─── DetailPanel Sub-Component ────────────────────────────────────────────────
+// const DetailPanel = memo(({
+//     uniqueHatId, singleHatDetail, base_url, hatQuantities,
+//     selectedDecoName, onIncrease, onDecrease, onManualChange
+// }) => {
+//     if (!singleHatDetail?.data) {
+//         return (
+//             <div className="col-span-full py-12 flex justify-center border-2 border-[#ff7379] rounded-2xl mb-4">
+//                 <span className="w-8 h-8 border-4 border-[#ff7379] border-t-transparent rounded-full animate-spin"></span>
+//             </div>
+//         );
+//     }
+
+//     const hatData = singleHatDetail.data.data;
+
+//     return (
+//         <div
+//             id={`panel-${uniqueHatId}`}
+//             className="hat-detail-panel col-span-full border-2 border-[#ff7379] rounded-2xl bg-white overflow-hidden mb-6 shadow-xl"
+//         >
+//             {/* Top Section: Image + Description + Size Chart */}
+//             <div className="flex flex-col md:flex-row border-b border-gray-100">
+//                 <div className="flex flex-col items-center justify-center bg-gray-50 md:w-5/12 border-r border-gray-100">
+//                     {hatData?.hatImages?.[0] && (
+//                         <Image
+//                             src={`${base_url}/${hatData.hatImages[0].image_url}`}
+//                             alt="Hat"
+//                             width={300}
+//                             height={300}
+//                             className="object-contain max-h-[250px]"
+//                         />
+//                     )}
+//                     {hatData?.name && (
+//                         <p className="text-center text-base font-bold text-[#ff7379]">{hatData.name}</p>
+//                     )}
+//                 </div>
+//                 <div className="p-6 md:w-7/12 flex flex-col justify-center">
+//                     {/* Description */}
+//                     <div className="bg-[#eeeeee] rounded-xl p-4 mb-4 text-left">
+//                         <ul className="list-disc list-inside space-y-2 text-base text-black">
+//                             {hatData?.description
+//                                 ?.split("\n")
+//                                 ?.map((item, index) => (
+//                                     <li key={index}>{item.trim()}</li>
+//                                 ))}
+//                         </ul>
+//                     </div>
+
+//                     {/* Size Chart */}
+//                     {hatData?.size_chart_json?.size_chart?.length > 0 && (
+//                         <div className="mt-4 border border-gray-200 rounded-md overflow-hidden">
+//                             <div className="bg-[#ff7379] text-center font-bold text-base py-2 text-white">
+//                                 Size Chart
+//                             </div>
+//                             <div
+//                                 className="grid text-center font-semibold border-b border-gray-300 bg-[#eeeeee]"
+//                                 style={{ gridTemplateColumns: `repeat(${hatData.size_chart_json.size_chart.length}, 1fr)` }}
+//                             >
+//                                 {hatData.size_chart_json.size_chart.map((item, index) => (
+//                                     <div key={index} className="py-2 border-r last:border-r-0 border-gray-300">
+//                                         {item.size}
+//                                     </div>
+//                                 ))}
+//                             </div>
+//                             <div
+//                                 className="grid text-center text-sm"
+//                                 style={{ gridTemplateColumns: `repeat(${hatData.size_chart_json.size_chart.length}, 1fr)` }}
+//                             >
+//                                 {hatData.size_chart_json.size_chart.map((item, index) => (
+//                                     <div key={index} className="py-2 border-r last:border-r-0 border-gray-200">
+//                                         {item.value}
+//                                     </div>
+//                                 ))}
+//                             </div>
+//                         </div>
+//                     )}
+//                 </div>
+//             </div>
+
+//             {/* Price Table */}
+//             <div className="px-6 py-4">
+//                 <div className="bg-[#ff7379] text-center mb-2 font-bold text-base py-2 text-white">
+//                     Total Items Price Break
+//                 </div>
+//                 <div className="mb-2">
+//                     <div className="flex gap-2 mb-2">
+//                         {/* Label */}
+//                         <div
+//                             className={`w-4/12 sm:w-3/12 flex items-center justify-center text-center font-medium text-[11px] sm:text-sm px-2
+//                                 ${selectedDecoName === "Embroidery"
+//                                     ? "bg-[#ff7379] text-white"
+//                                     : "bg-[#eeeeee] text-black"
+//                                 }`}
+//                         >
+//                             STANDARD <br /> EMBROIDERY
+//                         </div>
+
+//                         {/* Pricing Tiers */}
+//                         <div className="w-8/12 sm:w-9/12 overflow-x-auto">
+//                             <div className="flex gap-1 min-w-max">
+//                                 {singleHatDetail?.data?.embroideryPrices
+//                                     ?.filter(tier => tier.min_qty >= 24)
+//                                     .map((tier, index) => {
+//                                         const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
+//                                             .flatMap(colorObj => Object.values(colorObj || {}))
+//                                             .reduce((sum, qty) => sum + qty, 0);
+//                                         const meetsQty = totalQty >= tier.min_qty;
+
+//                                         return (
+//                                             <div key={index} className="text-center w-[65px] sm:w-[75px] flex-shrink-0">
+//                                                 <div className={`py-1 text-[10px] sm:text-sm font-medium ${meetsQty ? "bg-[#ff7379] text-white" : "bg-[#eeeeee] text-black"}`}>
+//                                                     {tier.min_qty}
+//                                                 </div>
+//                                                 <div className={`py-1 text-[10px] sm:text-sm font-bold border border-gray-200 mt-[2px]
+//                                                     ${selectedDecoName === "Embroidery" && meetsQty
+//                                                         ? "bg-[#ff7379] text-white border-[#ff7379]"
+//                                                         : "bg-white text-black border-gray-200"
+//                                                     }`}>
+//                                                     ${Number(tier.unit_price)}
+//                                                 </div>
+//                                             </div>
+//                                         );
+//                                     })}
+//                             </div>
+//                         </div>
+//                     </div>
+//                 </div>
+//                 <div className="bg-[#eeeeee] mb-4 font-medium text-sm py-2 px-2 text-black text-right">
+//                     Price includes item & decoration.
+//                 </div>
+//             </div>
+
+//             {/* Color Selectors */}
+//             <div className=''>
+//             <div className="flex flex-wrap -m-2 mb-2 gap-2 justify-center">
+//                 {hatData?.hatColors?.map((color) => {
+//                     const colorImage = color?.colorImages?.length > 0 ? color.colorImages[0].image_url : null;
+//                     return (
+//                         <HatColorSelector
+//                             key={color.id}
+//                             colorName={color.name}
+//                             colorImage={colorImage}
+//                             sizeVariants={color.hatSizes}
+//                             quantities={hatQuantities?.[uniqueHatId]?.[color.name] || {}}
+//                             onIncrease={(size) => onIncrease(uniqueHatId, color.name, size, hatData.id, hatData.brand_id)}
+//                             onDecrease={(size) => onDecrease(uniqueHatId, color.name, size)}
+//                             onChange={(size, val) => onManualChange(uniqueHatId, color.name, size, val, hatData.id, hatData.brand_id)}
+//                         />
+//                     );
+//                 })}
+//             </div>
+//             </div>
+//         </div>
+//     );
+// });
+
+// DetailPanel.displayName = 'DetailPanel';
+
+// // ─── Main Component ───────────────────────────────────────────────────────────
+// const ProductAccordion = ({ selectedDecoName, selectedDecoId, hatQuantities: initialHatQuantities, setHatQuantities: setParentHatQuantities }) => {
+//     const dispatch = useDispatch();
+//     const colCount = useColCount();
+//     const router = useRouter();
+//     const loadMoreRef = useRef(null);
+
+//     const { brandList, brandWiseHatList, singleHatDetail, loading } = useSelector((state) => state.hatBrand);
+//     const { cartListItem } = useSelector((state) => state?.cart);
+
+//     const base_url = process.env.NEXT_PUBLIC_API_IMAGE_URL;
+
+//     // ── State (with sessionStorage restore, same as original) ─────────────────
+//     const [cartItemMap, setCartItemMap] = useState(() => {
+//         if (typeof window !== "undefined") {
+//             const saved = sessionStorage.getItem("cartItemMap");
+//             return saved ? JSON.parse(saved) : {};
+//         }
+//         return {};
+//     });
+
+//     const [hatQuantities, setHatQuantities] = useState(() => {
+//         if (typeof window !== "undefined") {
+//             const saved = sessionStorage.getItem("hatQuantities");
+//             return saved ? JSON.parse(saved) : initialHatQuantities || {};
+//         }
+//         return initialHatQuantities || {};
+//     });
+
+//     const [expandedHat, setExpandedHat] = useState(null);   // { uniqueHatId, brandId }
+//     const [cartUUID, setCartUUID] = useState(null);
+//     const [createLock, setCreateLock] = useState({});
+//     const [showLoader, setShowLoader] = useState(false);
+//     const [isFetching, setIsFetching] = useState(false);
+
+//     // ── Module-level update queue (same as original) ───────────────────────────
+//     let updateQueue = {};
+
+//     // ── Init UUID + inject animation styles ────────────────────────────────────
+//     useEffect(() => {
+//         if (!document.getElementById('hat-grid-styles')) {
+//             const style = document.createElement('style');
+//             style.id = 'hat-grid-styles';
+//             style.textContent = ANIM_STYLE;
+//             document.head.appendChild(style);
+//         }
+
+//         let savedUUID = sessionStorage.getItem("uuid");
+//         if (!savedUUID) {
+//             const newUUID = "sess-" + uuidv4();
+//             sessionStorage.setItem("uuid", newUUID);
+//             savedUUID = newUUID;
+//         }
+//         setCartUUID(savedUUID);
+//     }, []);
+
+//     // ── Sync hatQuantities to sessionStorage + parent (same as original) ───────
+//     useEffect(() => {
+//         setParentHatQuantities(hatQuantities);
+//         sessionStorage.setItem("hatQuantities", JSON.stringify(hatQuantities));
+//     }, [hatQuantities]);
+
+//     useEffect(() => {
+//         sessionStorage.setItem("cartItemMap", JSON.stringify(cartItemMap));
+//     }, [cartItemMap]);
+
+//     // ── Listen for external hatQuantities changes (same as original) ───────────
+//     useEffect(() => {
+//         const handleStorageChange = () => {
+//             const savedQuantities = sessionStorage.getItem("hatQuantities");
+//             if (savedQuantities) {
+//                 const parsed = JSON.parse(savedQuantities);
+//                 setHatQuantities(parsed);
+//                 if (setParentHatQuantities) setParentHatQuantities(parsed);
+//             }
+//         };
+//         window.addEventListener("hatQuantitiesChanged", handleStorageChange);
+//         return () => window.removeEventListener("hatQuantitiesChanged", handleStorageChange);
+//     }, [setParentHatQuantities]);
+
+//     // ── Load brand list ────────────────────────────────────────────────────────
+//     useEffect(() => {
+//         dispatch(getHatBrandList());
+//     }, []);
+
+//     // ── Load hat list per brand ────────────────────────────────────────────────
+//     useEffect(() => {
+//         if (!brandList?.data?.length) return;
+//         brandList.data.forEach((brand) => {
+//             dispatch(getHatListDetail({ brandId: brand.id, page: 1, limit: 12 }));
+//         });
+//     }, [brandList, dispatch]);
+
+//     // ── IntersectionObserver for infinite scroll (same logic as original) ──────
+//     const hasAnyMoreData = () => {
+//         return brandList?.data?.some((brand) => brandWiseHatList?.[brand.id]?.hasMore);
+//     };
+
+//     useEffect(() => {
+//         const observer = new IntersectionObserver(
+//             (entries) => {
+//                 if (!entries[0].isIntersecting || loading || isFetching) return;
+//                 if (!hasAnyMoreData()) return;
+
+//                 setIsFetching(true);
+//                 setShowLoader(true);
+
+//                 const brandRequests = brandList?.data?.map((brand) => {
+//                     const brandData = brandWiseHatList?.[brand.id];
+//                     if (brandData?.hasMore) {
+//                         return dispatch(getHatListDetail({
+//                             brandId: brand.id,
+//                             page: (brandData.page || 1) + 1,
+//                             limit: 12
+//                         }));
+//                     }
+//                     return Promise.resolve();
+//                 });
+
+//                 Promise.all(brandRequests).finally(() => {
+//                     setIsFetching(false);
+//                     setShowLoader(false);
+//                 });
+//             },
+//             { threshold: 0.1, rootMargin: "100px" }
+//         );
+
+//         if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+//         return () => observer.disconnect();
+//     }, [brandWiseHatList, brandList, loading, isFetching]);
+
+//     // ── Debounced batch update queue (same as original) ────────────────────────
+//     const savedUUid = cartUUID;
+
+//     const processUpdateQueue = debounce(async (dispatch, savedUUid) => {
+//         const updates = Object.values(updateQueue);
+//         if (updates.length === 0) return;
+
+//         for (const item of updates) {
+//             const { cartItemId, qty } = item;
+//             if (!cartItemId) continue;
+//             try {
+//                 await dispatch(updateCartItem({ id: cartItemId, quantity: qty }));
+//             } catch (err) {
+//                 console.error('updateCartItem failed for', cartItemId, err);
+//             }
+//         }
+
+//         updateQueue = {};
+
+//         try {
+//             await dispatch(cartList({ id: savedUUid }));
+//         } catch (err) {
+//             console.error('cartList refresh failed', err);
+//         }
+//     }, 400);
+
+//     const queueCartUpdate = (uniqueHatId, colorName, cartItemId, newQty) => {
+//         const key = `${uniqueHatId}-${colorName}`;
+//         if (!cartItemId) {
+//             pendingDesiredQty[key] = newQty;
+//             return;
+//         }
+//         updateQueue[key] = { cartItemId, qty: newQty };
+//         processUpdateQueue(dispatch, savedUUid);
+//     };
+
+//     // ── increase (full original logic) ────────────────────────────────────────
+//     const increase = useCallback(async (uniqueHatId, colorName, size, hatId, brandId) => {
+//         const sizeId = size.id;
+//         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
+//         const currentQty = hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
+//         const newQty = currentQty + 1;
+
+//         // Optimistic UI
+//         setHatQuantities(prev => ({
+//             ...prev,
+//             [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: newQty } }
+//         }));
+
+//         let cartItemId = cartItemMap?.[key];
+
+//         // Stale ID protection
+//         if (cartItemId && currentQty === 0) {
+//             cartItemId = undefined;
+//             setCartItemMap(prev => {
+//                 const updated = { ...prev };
+//                 delete updated[key];
+//                 sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
+//                 return updated;
+//             });
+//         }
+
+//         // Create in progress
+//         if (createLock[key]) {
+//             pendingDesiredQty[key] = newQty;
+//             return;
+//         }
+
+//         // CREATE
+//         if (!cartItemId) {
+//             setCreateLock(prev => ({ ...prev, [key]: true }));
+//             try {
+//                 const res = await dispatch(addCartItem({
+//                     session_uuid: cartUUID,
+//                     hat_id: hatId,
+//                     brand_id: brandId,
+//                     hat_size_variant_id: sizeId,
+//                     decoration_type_id: selectedDecoId,
+//                     quantity: newQty
+//                 }));
+
+//                 const cartGroups = res?.payload?.data?.cartGroups || [];
+//                 const createdItem = cartGroups
+//                     .flatMap(g => g.cartItems)
+//                     .find(i => String(i.hat_size_variant_id) === String(sizeId) && i.is_active === 1 && i.quantity > 0);
+
+//                 if (!createdItem?.id) throw new Error("Create failed");
+
+//                 setCartItemMap(prev => {
+//                     const updated = { ...prev, [key]: createdItem.id };
+//                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
+//                     return updated;
+//                 });
+
+//                 const cartId = res?.payload?.data?.id;
+//                 if (cartId) sessionStorage.setItem("cart_id", cartId);
+
+//                 // Apply pending qty if exists
+//                 if (pendingDesiredQty[key] !== undefined && pendingDesiredQty[key] !== newQty) {
+//                     await dispatch(updateCartItem({ id: createdItem.id, quantity: pendingDesiredQty[key] }));
+//                     delete pendingDesiredQty[key];
+//                 }
+
+//                 await dispatch(cartList({ id: cartUUID }));
+//             } catch (err) {
+//                 console.error("Increase create error", err);
+//                 // Rollback
+//                 setHatQuantities(prev => ({
+//                     ...prev,
+//                     [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: currentQty } }
+//                 }));
+//             } finally {
+//                 setCreateLock(prev => { const copy = { ...prev }; delete copy[key]; return copy; });
+//             }
+//             return;
+//         }
+
+//         // UPDATE
+//         try {
+//             await dispatch(updateCartItem({ id: cartItemId, quantity: newQty }));
+//             await dispatch(cartList({ id: cartUUID }));
+//         } catch (err) {
+//             console.error("Increase update error", err);
+//         }
+//     }, [hatQuantities, cartItemMap, cartUUID, selectedDecoId, createLock, dispatch]);
+
+//     // ── decrease (full original logic) ────────────────────────────────────────
+//     const decrease = useCallback(async (uniqueHatId, colorName, size) => {
+//         const sizeId = size.id;
+//         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
+//         const currentQty = hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
+
+//         if (currentQty === 0) return;
+//         const newQty = currentQty - 1;
+
+//         // Optimistic UI
+//         setHatQuantities(prev => ({
+//             ...prev,
+//             [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: newQty } }
+//         }));
+
+//         const cartItemId = cartItemMap?.[key];
+//         if (!cartItemId) return;
+
+//         if (createLock[key]) {
+//             pendingDesiredQty[key] = newQty;
+//             return;
+//         }
+
+//         try {
+//             if (newQty === 0) {
+//                 await dispatch(deleteCartItem(cartItemId));
+//                 setCartItemMap(prev => {
+//                     const updated = { ...prev };
+//                     delete updated[key];
+//                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
+//                     return updated;
+//                 });
+//                 delete pendingDesiredQty[key];
+//                 setCreateLock(prev => { const copy = { ...prev }; delete copy[key]; return copy; });
+//                 await dispatch(cartList({ id: cartUUID }));
+//                 return;
+//             }
+
+//             await dispatch(updateCartItem({ id: cartItemId, quantity: newQty }));
+//             await dispatch(cartList({ id: cartUUID }));
+//         } catch (err) {
+//             console.error("Decrease error", err);
+//         }
+//     }, [hatQuantities, cartItemMap, cartUUID, createLock, dispatch]);
+
+//     // ── handleManualChange (full original logic) ───────────────────────────────
+//     const handleManualChange = useCallback(async (uniqueHatId, colorName, size, newQty, hatId, brandId) => {
+//         const sizeId = size.id;
+//         const maxQty = size?.inventoryItems?.qty_available || 0;
+//         if (newQty < 0) return;
+//         if (newQty > maxQty) {
+//             alert(`Only ${maxQty} items available`);
+//             newQty = maxQty;
+//         }
+
+//         const key = `${uniqueHatId}-${colorName}-${sizeId}`;
+//         const currentQty = hatQuantities?.[uniqueHatId]?.[colorName]?.[sizeId] || 0;
+
+//         // Optimistic UI
+//         setHatQuantities(prev => ({
+//             ...prev,
+//             [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: newQty } }
+//         }));
+
+//         let cartItemId = cartItemMap?.[key];
+
+//         // Stale ID protection
+//         if (cartItemId && currentQty === 0) {
+//             cartItemId = undefined;
+//             setCartItemMap(prev => {
+//                 const updated = { ...prev };
+//                 delete updated[key];
+//                 sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
+//                 return updated;
+//             });
+//         }
+
+//         if (createLock[key]) {
+//             pendingDesiredQty[key] = newQty;
+//             return;
+//         }
+
+//         // CREATE
+//         if (!cartItemId) {
+//             setCreateLock(prev => ({ ...prev, [key]: true }));
+//             try {
+//                 const res = await dispatch(addCartItem({
+//                     session_uuid: cartUUID,
+//                     hat_id: hatId,
+//                     brand_id: brandId,
+//                     hat_size_variant_id: sizeId,
+//                     decoration_type_id: selectedDecoId,
+//                     quantity: newQty
+//                 }));
+
+//                 const cartId = res?.payload?.data?.id;
+//                 if (cartId) sessionStorage.setItem("cart_id", cartId);
+
+//                 const cartGroups = res?.payload?.data?.cartGroups || [];
+//                 const createdItem = cartGroups
+//                     .flatMap(g => g.cartItems)
+//                     .find(i => String(i.hat_size_variant_id) === String(sizeId) && i.is_active === 1 && i.quantity > 0);
+
+//                 if (!createdItem?.id) throw new Error("Create failed");
+
+//                 setCartItemMap(prev => {
+//                     const updated = { ...prev, [key]: createdItem.id };
+//                     sessionStorage.setItem("cartItemMap", JSON.stringify(updated));
+//                     return updated;
+//                 });
+
+//                 if (pendingDesiredQty[key] !== undefined && pendingDesiredQty[key] !== newQty) {
+//                     await dispatch(updateCartItem({ id: createdItem.id, quantity: pendingDesiredQty[key] }));
+//                     delete pendingDesiredQty[key];
+//                 }
+
+//                 await dispatch(cartList({ id: cartUUID }));
+//             } catch (err) {
+//                 console.error("Manual create error", err);
+//                 setHatQuantities(prev => ({
+//                     ...prev,
+//                     [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: currentQty } }
+//                 }));
+//             } finally {
+//                 setCreateLock(prev => { const copy = { ...prev }; delete copy[key]; return copy; });
+//             }
+//             return;
+//         }
+
+//         // UPDATE
+//         try {
+//             await dispatch(updateCartItem({ id: cartItemId, quantity: newQty }));
+//             await dispatch(cartList({ id: cartUUID }));
+//         } catch (err) {
+//             console.error("Manual update error", err);
+//             setHatQuantities(prev => ({
+//                 ...prev,
+//                 [uniqueHatId]: { ...prev[uniqueHatId], [colorName]: { ...prev[uniqueHatId]?.[colorName], [sizeId]: currentQty } }
+//             }));
+//         }
+//     }, [hatQuantities, cartItemMap, cartUUID, selectedDecoId, createLock, dispatch]);
+
+//     // ── Hat card click: toggle expand + fetch detail ───────────────────────────
+//     const handleHatClick = (hatId, brandId, uniqueHatId) => {
+//         if (expandedHat?.uniqueHatId === uniqueHatId) {
+//             setExpandedHat(null);
+//             return;
+//         }
+//         setExpandedHat({ uniqueHatId, brandId });
+//         dispatch(getSingleHatDetail({ hatId }));
+
+//         // Scroll into view after panel renders
+//         setTimeout(() => {
+//             const el = document.getElementById(`panel-${uniqueHatId}`);
+//             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+//         }, 350);
+//     };
+
+//     // ── Next page handler (same as original) ──────────────────────────────────
+//     const handleNextpage = () => {
+//         const totalQty = cartListItem?.data?.cart?.total_items || 0;
+//         if (totalQty < 24) {
+//             toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+//             return;
+//         }
+//         router.push("/upload-artwork");
+//     };
+
+//     // ─────────────────────────────────────────────────────────────────────────
+//     return (
+//         <div className='product_details_area max-w-[1400px] mx-auto p-4'>
+//             <ToastContainer />
+
+//             {brandList?.data?.map((brand) => {
+//                 const hats = brandWiseHatList?.[brand.id]?.list || [];
+
+//                 return (
+//                     <div key={brand.id} className="mb-10">
+//                         {/* Brand Header */}
+//                         <div className='bg-[#efefef] p-4 rounded-xl mb-4'>
+//                             <Image src={base_url + brand?.image_url} width={200} height={50} alt={brand.name} />
+//                         </div>
+
+//                         {hats.length === 0 ? (
+//                             <p className='text-center text-gray-500 py-5'>No records</p>
+//                         ) : (
+//                             <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+//                                 {(() => {
+//                                     const rendered = [];
+
+//                                     for (let i = 0; i < hats.length; i += colCount) {
+//                                         const row = hats.slice(i, i + colCount);
+
+//                                         // Render hat cards in this row
+//                                         row.forEach((hat) => {
+//                                             const uniqueHatId = `${brand.id}_${hat.id}`;
+//                                             const isExpanded = expandedHat?.uniqueHatId === uniqueHatId;
+//                                             const imageSrc = hat?.hatImages?.[0]?.image_url
+//                                                 ? `${base_url}/${hat.hatImages[0].image_url}`
+//                                                 : preview_01;
+
+//                                             const totalQty = Object.values(hatQuantities?.[uniqueHatId] || {})
+//                                                 .flatMap(colorObj => Object.values(colorObj || {}))
+//                                                 .reduce((sum, qty) => sum + qty, 0);
+
+//                                             rendered.push(
+//                                                 <div
+//                                                     key={hat.id}
+//                                                     onClick={() => handleHatClick(hat.id, brand.id, uniqueHatId)}
+//                                                     className={`cursor-pointer rounded-xl border-2 transition-all p-3 bg-white relative
+//                                                         ${isExpanded
+//                                                             ? 'border-[#ff7379] ring-4 ring-pink-50 shadow-lg'
+//                                                             : 'border-gray-200 hover:border-[#ff7379] hover:shadow-md'
+//                                                         }`}
+//                                                 >
+//                                                     {/* Qty Badge */}
+//                                                     {totalQty > 0 && (
+//                                                         <div className="absolute -top-2 -right-2 bg-[#ff7379] text-white text-[10px] font-bold h-6 w-6 flex items-center justify-center rounded-full shadow-lg z-10">
+//                                                             {totalQty}
+//                                                         </div>
+//                                                     )}
+
+//                                                     {/* Hat Image */}
+//                                                     <div className="aspect-square flex items-center justify-center overflow-hidden mb-2">
+//                                                         <Image
+//                                                             src={imageSrc}
+//                                                             alt={hat?.hatImages?.[0]?.alt_text || hat.name}
+//                                                             width={200}
+//                                                             height={200}
+//                                                             className="object-contain w-full h-full"
+//                                                         />
+//                                                     </div>
+
+//                                                     {/* Hat Name */}
+//                                                     <p className="text-xs font-bold text-center text-[#ff7379] truncate px-1">{hat.name}</p>
+
+//                                                     {/* Chevron */}
+//                                                     <div className={`mt-2 flex justify-center transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+//                                                         <svg className="w-4 h-4 text-[#ff7379]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+//                                                         </svg>
+//                                                     </div>
+//                                                 </div>
+//                                             );
+//                                         });
+
+//                                         // After this row, inject DetailPanel if expanded hat is in this row
+//                                         const expandedInThisRow = row.find(
+//                                             h => `${brand.id}_${h.id}` === expandedHat?.uniqueHatId
+//                                         );
+
+//                                         if (expandedInThisRow) {
+//                                             rendered.push(
+//                                                 <DetailPanel
+//                                                     key={`panel-${expandedHat.uniqueHatId}`}
+//                                                     uniqueHatId={expandedHat.uniqueHatId}
+//                                                     singleHatDetail={singleHatDetail}
+//                                                     base_url={base_url}
+//                                                     hatQuantities={hatQuantities}
+//                                                     selectedDecoName={selectedDecoName}
+//                                                     onIncrease={increase}
+//                                                     onDecrease={decrease}
+//                                                     onManualChange={handleManualChange}
+//                                                 />
+//                                             );
+//                                         }
+//                                     }
+
+//                                     return rendered;
+//                                 })()}
+//                             </div>
+//                         )}
+//                     </div>
+//                 );
+//             })}
+
+//             {/* Load More Trigger */}
+//             <div ref={loadMoreRef} className="h-14 flex items-center justify-center">
+//                 {showLoader && (
+//                     <div className="flex items-center gap-3 py-4">
+//                         <span className="w-5 h-5 border-2 border-[#ff7379] border-t-transparent rounded-full animate-spin"></span>
+//                         <span className="text-[#ff7379] text-sm font-medium tracking-wide">Loading more hats...</span>
+//                     </div>
+//                 )}
+//                 {!hasAnyMoreData() && !showLoader && (
+//                     <p className="text-center text-gray-400 text-sm py-6 mt-2">No more hats available</p>
+//                 )}
+//             </div>
+
+//             {/* Next Step Button */}
+//             <div className='fixed top-[58px] md:top-[70px] left-1/2 -translate-x-1/2 z-50 w-max'>
+//                 <button
+//                     onClick={handleNextpage}
+//                     className='group flex items-center gap-2 text-lg md:text-xl bg-[#ed1c24] hover:bg-[#ee5e62] text-white font-bold py-2 px-4 md:px-8 rounded-b-lg cursor-pointer shadow-[0_4px_15px_rgba(255,115,121,0.4)] transition-all duration-300 active:scale-95'
+//                 >
+//                     <span>Next Step</span>
+//                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform duration-200">
+//                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+//                     </svg>
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default ProductAccordion;
