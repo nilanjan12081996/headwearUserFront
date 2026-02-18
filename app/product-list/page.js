@@ -66,6 +66,7 @@ import ProductAccordion from './ProductAccordion';
 import { addCartUUID, cartList, dropDownToggle, getDecorationType } from '../reducers/CartSlice';
 import { v4 as uuidv4 } from "uuid";
 import CartProgressBar from '../components/CartProgressBar';
+import TopIntro from './TopIntro';
 
 
 
@@ -204,21 +205,21 @@ const page = () => {
   };
 
   useEffect(() => {
-  if (decorationList?.data?.length > 0) {
-    const savedId = sessionStorage.getItem("selectedDecorationId");
+    if (decorationList?.data?.length > 0) {
+      const savedId = sessionStorage.getItem("selectedDecorationId");
 
-    const selected = savedId
-      ? decorationList.data.find(item => item.id == savedId)
-      : decorationList.data[0];
+      const selected = savedId
+        ? decorationList.data.find(item => item.id == savedId)
+        : decorationList.data[0];
 
-    if (selected) {
-      setSelectedOption({
-        id: selected.id,
-        name: selected.name,
-      });
+      if (selected) {
+        setSelectedOption({
+          id: selected.id,
+          name: selected.name,
+        });
+      }
     }
-  }
-}, [decorationList]);
+  }, [decorationList]);
 
 
 
@@ -234,12 +235,9 @@ const page = () => {
         </div>
       </div>
 
-      <div className="py-10 lg:pb-20 lg:pt-10">
-
-        <div className='mb-10'>
-
-
-          <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 mb-10 flex justify-between items-center'>
+      <div>
+        <div className='mt-4'>
+          <div className='max-w-6xl mx-auto px-5 lg:px-0 py-0 flex justify-between items-center'>
             <div>
               <ul className='flex items-center gap-2'>
                 <li>
@@ -302,9 +300,9 @@ const page = () => {
       </div>
       {/* Who We Are section ends here */}
 
-
+      <TopIntro />
       {/* Start:: Product Accordion section  */}
-      <div className='product_list_section mb-20 mt-10'>
+      <div className='product_list_section mb-20 mt-5'>
         <div className='max-w-6xl mx-auto'>
           <ProductAccordion
             selectedDecoId={selectedOption.id}
