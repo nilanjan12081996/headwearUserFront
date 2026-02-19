@@ -266,7 +266,7 @@ const DetailPanel = memo(({
                                                     ${selectedDecoName === "Embroidery" && meetsQty
                                                         ? "bg-[#ff7379] text-white border-[#ff7379]"
                                                         : "bg-white text-black border-gray-200"}`}>
-                                                    ${Number(tier.unit_price)}
+                                                    ${Number(tier.unit_price).toFixed(2)}
                                                 </div>
                                             </div>
                                         );
