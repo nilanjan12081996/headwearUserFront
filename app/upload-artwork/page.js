@@ -59,6 +59,7 @@ import right_stitching from "../assets/imagesource/stitching3.jpg";
 
 import standard_flat from "../../public/images/stem.png";
 import puff from "../../public/images/3dem.png";
+import patch1 from "../../public/images/patch5.png"
 
 
 
@@ -1086,7 +1087,7 @@ const page = () => {
           </div>
 
           {/* Embroidery Options */}
-          {selectedOption?.name === "Embroidery" && (
+          {/* {selectedOption?.name === "Embroidery" && (
             <div className="mb-8 mt-4">
               <div className='p-4 bg-[#ff0000]'>
                 <h2 className='text-2xl font-bold text-white'>Embroidery Option</h2>
@@ -1097,70 +1098,6 @@ const page = () => {
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* <label className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "standard_flat" ? "border-[#ff0000] shadow-md" : "border-gray-300"}`}>
-                  <input type="radio" name="embroidery" value="standard_flat" checked={embroideryType === "standard_flat"}
-                    onChange={(e) => {
-                      setEmbroideryType(e.target.value);
-
-                      handleArtworkUpdate({
-                        addonId: 1,
-                        enabled: false
-                      });
-                    }}
-                    className="hidden" />
-                  <h3 className="text-lg font-semibold">Standard Flat Embroidery</h3>
-                  <p className="text-sm text-gray-600 mb-4">Most common embroidery type. Works well for smaller details.</p>
-                  <div className="w-full py-2 rounded-full bg-[#ed1c24] text-white font-medium text-center">
-                    Flat Embroidery
-                  </div>
-                </label>
-
-                <label
-                  className={`border-4 rounded-xl p-5 cursor-pointer transition ${embroideryType === "3D_puff" ? "border-[#ff0000] shadow-md" : "border-gray-300"
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="embroidery"
-                    value="3D_puff"
-                    checked={embroideryType === "3D_puff"}
-                    onChange={(e) => {
-                      setEmbroideryType(e.target.value);
-
-                      handleArtworkUpdate({
-                        addonId: 1,
-                        enabled: true
-                      });
-                    }}
-                    className="hidden"
-                  />
-
-                  <h3 className="text-lg font-semibold">3D Puff Embroidery</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Creates a raised 3D look. Only certain designs can be puffed.
-                  </p>
-
-                  <div
-                    className="w-full py-2 rounded-full bg-[#ed1c24] text-white font-medium text-center"
-                  >
-                    3D Puff Embroidery
-                  </div>
-                  <div className="bg-white rounded-xl shadow p-4 mt-4">
-
-                    <h3 className="text-center bg-[#e0e0e0] font-semibold p-2 rounded">
-                      3D Puff Quantity Price Breaks
-                    </h3>
-                    <div className="mt-3 flex justify-center items-center space-x-4">
-                      <div className="text-center bg-[#f5f5f5] rounded px-4 py-2 font-semibold">
-                        Quantity: {threeDPuffTiers[0]?.min_qty}+
-                      </div>
-                      <div className="text-center bg-[#fff3cd] rounded px-6 py-2 font-bold text-yellow-800 border border-yellow-500">
-                        ${Number(threeDPuffTiers[0]?.unit_price)}
-                      </div>
-                    </div>
-                  </div>
-
-                </label> */}
                 <label
                   className={`relative border-4 rounded-xl p-5 cursor-pointer transition
   ${embroideryType === "standard_flat"
@@ -1168,7 +1105,6 @@ const page = () => {
                       : "border-gray-300"
                     }`}
                 >
-                  {/* Tick */}
                   {embroideryType === "standard_flat" && (
                     <div className="absolute top-3 right-3 bg-red-600 text-white rounded-full p-2">
                       <FaCheck size={12} />
@@ -1183,13 +1119,6 @@ const page = () => {
                     onChange={(e) => {
                       setEmbroideryType(e.target.value);
                       handleArtworkUpdate({ addonId: 1, enabled: false });
-                      // if (patchOption) {
-                      //   handleArtworkUpdate({
-                      //     addonId: patchOption,
-                      //     enabled: false
-                      //   });
-                      //   setPatchOption(null);
-                      // }
                     }}
 
                     className="hidden"
@@ -1209,14 +1138,12 @@ const page = () => {
                       className="w-32 h-24 object-contain rounded-lg"
                     />
                   </div>
-                  {/* FREE Badge */}
                   <div className="flex justify-center mb-4">
                     <div className="px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
                       No Extra Cost
                     </div>
                   </div>
 
-                  {/* Bottom Pill */}
                   <div
                     className={`w-full py-2 rounded-full font-medium text-center
     ${embroideryType === "standard_flat"
@@ -1234,7 +1161,6 @@ const page = () => {
                       : "border-gray-300"
                     }`}
                 >
-                  {/* Tick */}
                   {embroideryType === "3D_puff" && (
                     <div className="absolute top-3 right-3 bg-red-600 text-white rounded-full p-2">
                       <FaCheck size={12} />
@@ -1269,14 +1195,12 @@ const page = () => {
                     />
                   </div>
 
-                  {/* Price Badge */}
                   <div className="flex justify-center mb-4">
                     <div className="px-4 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-semibold">
                       +$3.50 Per item
                     </div>
                   </div>
 
-                  {/* Bottom Pill */}
                   <div
                     className={`w-full py-2 rounded-full font-medium text-center
     ${embroideryType === "3D_puff"
@@ -1292,72 +1216,9 @@ const page = () => {
               </div>
             </div>
           )}
-
-          {/* Leather Patch Options */}
-          {/* <div className='mb-8 mt-4'>
-            <div className='p-4 bg-[#ff0000] mb-4'>
-              <h2 className='text-2xl font-bold text-white'>Patch Options</h2>
-            </div>
-            <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mb-4'>
-              <h2 className='text-[#1A1A1A] text-[20px] font-semibold pb-2'>Select a Patch Shape & Color</h2>
-              <p className='text-[15px]'>We will convert your artwork and send you mockups.</p>
-            </div>
-            <div className="rounded-2xl border border-[#ed1c24] bg-gradient-to-br from-[#fff5f5] to-[#ffffff] p-6 shadow-md">
-              <h2 className="mb-4 text-[22px] font-semibold text-[#1A1A1A]">
-                Leather Patch
-              </h2>
-              <ul className="mb-6 flex flex-wrap gap-4 text-sm text-gray-700">
-                <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                  <FaCheck className="text-green-600" /> Synthetic Leather
-                </li>
-                <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                  <FaCheck className="text-green-600" /> Very Classy Look
-                </li>
-                <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
-                  <FaCheck className="text-green-600" /> Best for Simple Designs
-                </li>
-              </ul>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-xl bg-white p-4 shadow-sm">
-                  <label className="mb-1 block text-sm font-medium text-gray-600">
-                    Patch Option
-                  </label>
-                  <select
-                    value={patchOption}
-                    className="bg-gray-200 text-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 cursor-pointer w-full"
-                    onChange={(e) => {
-                      const selectedId = e.target.value;
-                      setPatchOption(selectedId);
-
-                      handleArtworkUpdate({
-                        addonId: selectedId || 2,
-                        enabled: true,
-                      });
-                    }}
-                  >
-                    <option value="">Select Option</option>
-                    {patchOptionsData.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name} — ${item.unit_price}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-              </div>
-            </div>
-
-          </div> */}
-
-
           <div className='mb-8 mt-4 transition-all duration-500'>
-            <div className='p-4 bg-[#ff0000] mb-4'>
-              <h2 className='text-2xl font-bold text-white'>Patch Options</h2>
-            </div>
-
             <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mt-6 mb-6'>
               <h2 className='text-[#1A1A1A] text-[20px] font-semibold'>Select a Patch Style</h2>
-              {/* <p className='text-[#7E7E7E] text-sm font-normal'><strong>Optional:</strong> Select your preferred patch style below..</p> */}
               <p className='text-[#7E7E7E] text-sm font-normal'><strong>Note:</strong> Minimum order for patches is 48 total units. Lead times for patches is 12-18 business days.</p>
               <ul className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
                 <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
@@ -1375,7 +1236,6 @@ const page = () => {
               </ul>
             </div>
 
-            {/* Patch Grid System */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {visiblePatches.map((item) => {
                 const currentImage = imageToggle
@@ -1396,14 +1256,9 @@ const page = () => {
                       setPatchOption(item.id);
                       handleArtworkUpdate({ addonId: item.id, enabled: true });
                     }}
-                    // onClick={() => {
-                    //   setPatchOption(item.id);
-                    //   handleArtworkUpdate({ addonId: item.id, enabled: true });
-                    // }}
                     className={`relative cursor-pointer rounded-2xl border-4 transition-all duration-500 overflow-hidden bg-white shadow-sm hover:shadow-md
                   ${patchOption === item.id ? "border-[#ed1c24] scale-[1.02]" : "border-gray-200 hover:border-gray-300"}`}
                   >
-                    {/* Rotating Image Container */}
                     <div className="aspect-square w-full bg-[#f9f9f9] overflow-hidden relative p-4 rounded-xl border border-gray-100">
                       <img
                         src={currentImage}
@@ -1412,12 +1267,10 @@ const page = () => {
                       />
                     </div>
 
-                    {/* Price Tag Overlay */}
                     <div className="absolute top-2 left-2 bg-black/70 text-white text-[12px] px-2 py-1 rounded-md z-2">
                       +${item.unit_price}
                     </div>
 
-                    {/* Selection Tick */}
                     {patchOption === item.id && (
                       <div className="absolute top-2 right-2 bg-[#ed1c24] text-white rounded-full p-1.5 shadow-lg z-10">
                         <FaCheck size={10} />
@@ -1434,7 +1287,6 @@ const page = () => {
               })}
             </div>
 
-            {/* View More / View Less Button */}
             {patchOptionsData.length > initialItems && (
               <div className="flex justify-center mt-8">
                 <button
@@ -1449,7 +1301,307 @@ const page = () => {
                 </button>
               </div>
             )}
-          </div>
+          </div> */}
+
+          {/* Embroidery Options */}
+          {selectedOption?.name === "Embroidery" && (
+            <div className="mb-8 mt-4">
+              <div className='p-4 bg-[#ff0000]'>
+                <h2 className='text-2xl font-bold text-white'>Embroidery Option</h2>
+              </div>
+              <p className="text-sm text-gray-600 my-4">
+                Standard Flat Embroidery is included at no extra cost.
+                You may optionally upgrade to <span className="font-semibold text-black">3D Puff Embroidery</span> for a raised, dimensional look at <span className="font-semibold text-black">+$3.50</span>.
+              </p>
+
+              {/* ── 3 Cards Row ── */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                {/* ── Card 1: Standard Flat ── */}
+                <label
+                  className={`relative border-4 rounded-xl p-5 cursor-pointer transition-all duration-300
+                    ${embroideryType === "standard_flat"
+                      ? "border-[#ff0000] shadow-lg"
+                      : "border-gray-300 hover:border-gray-400"
+                    }`}
+                >
+                  {embroideryType === "standard_flat" && (
+                    <div className="absolute top-3 right-3 bg-red-600 text-white rounded-full p-2">
+                      <FaCheck size={12} />
+                    </div>
+                  )}
+                  <input
+                    type="radio"
+                    name="embroidery"
+                    value="standard_flat"
+                    checked={embroideryType === "standard_flat"}
+                    onChange={(e) => {
+                      setEmbroideryType(e.target.value);
+                      handleArtworkUpdate({ addonId: 1, enabled: false });
+                      if (patchOption) {
+                        handleArtworkUpdate({
+                          addonId: patchOption,
+                          enabled: false
+                        });
+                        setPatchOption(null);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <h3 className="text-lg font-semibold mb-1">Standard Flat Embroidery</h3>
+                  <p className="text-sm text-gray-600 mb-3  min-h-[80px]">
+                    Most common embroidery type. Works well for smaller details.
+                  </p>
+                  <div className="flex justify-center mb-3">
+                    <Image
+                      src={standard_flat}
+                      alt="Standard Flat Embroidery"
+                      className="w-32 h-24 object-contain rounded-lg"
+                    />
+                  </div>
+                  <div className="flex justify-center mb-4">
+                    <div className="px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
+                      No Extra Cost
+                    </div>
+                  </div>
+                  <div
+                    className={`w-full py-2 rounded-full font-medium text-center transition-all duration-300
+                      ${embroideryType === "standard_flat"
+                        ? "bg-[#ed1c24] text-white"
+                        : "bg-gray-200 text-gray-700"
+                      }`}
+                  >
+                    Flat Embroidery
+                  </div>
+                </label>
+
+                {/* ── Card 2: 3D Puff ── */}
+                <label
+                  className={`relative border-4 rounded-xl p-5 cursor-pointer transition-all duration-300
+                    ${embroideryType === "3D_puff"
+                      ? "border-[#ff0000] shadow-lg"
+                      : "border-gray-300 hover:border-gray-400"
+                    }`}
+                >
+                  {embroideryType === "3D_puff" && (
+                    <div className="absolute top-3 right-3 bg-red-600 text-white rounded-full p-2">
+                      <FaCheck size={12} />
+                    </div>
+                  )}
+                  <input
+                    type="radio"
+                    name="embroidery"
+                    value="3D_puff"
+                    checked={embroideryType === "3D_puff"}
+                    onChange={(e) => {
+                      setEmbroideryType(e.target.value);
+                      handleArtworkUpdate({ addonId: 1, enabled: true });
+                      if (patchOption) {
+                        handleArtworkUpdate({
+                          addonId: patchOption,
+                          enabled: false
+                        });
+                        setPatchOption(null);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <h3 className="text-lg font-semibold mb-1">3D Puff Embroidery</h3>
+                  <p className="text-sm text-gray-600 mb-4 min-h-[80px]">
+                    Creates a raised, bold 3D look. Best for simple logos.
+                  </p>
+                  <div className="flex justify-center mb-3">
+                    <Image
+                      src={puff}
+                      alt="3d puff"
+                      className="w-32 h-24 object-contain rounded-lg"
+                    />
+                  </div>
+                  <div className="flex justify-center mb-4">
+                    <div className="px-4 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-semibold">
+                      +$3.50 Per item
+                    </div>
+                  </div>
+                  <div
+                    className={`w-full py-2 rounded-full font-medium text-center transition-all duration-300
+                      ${embroideryType === "3D_puff"
+                        ? "bg-[#ed1c24] text-white"
+                        : "bg-gray-200 text-gray-700"
+                      }`}
+                  >
+                    3D Puff Embroidery
+                  </div>
+                </label>
+
+                {/* ── Card 3: Patch ── */}
+                <label
+                  className={`relative border-4 rounded-xl p-5 cursor-pointer transition-all duration-300
+                    ${embroideryType === "patch"
+                      ? "border-[#ff0000] shadow-lg"
+                      : "border-gray-300 hover:border-gray-400"
+                    }`}
+                >
+                  {embroideryType === "patch" && (
+                    <div className="absolute top-3 right-3 bg-red-600 text-white rounded-full p-2">
+                      <FaCheck size={12} />
+                    </div>
+                  )}
+                  <input
+                    type="radio"
+                    name="embroidery"
+                    value="patch"
+                    checked={embroideryType === "patch"}
+                    onChange={(e) => {
+                      setEmbroideryType(e.target.value);
+                      handleArtworkUpdate({ addonId: 1, enabled: false });
+                      setTimeout(() => {
+                        document.getElementById("patch-options-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }, 400);
+                    }}
+                    className="hidden"
+                  />
+                  <h3 className="text-lg font-semibold mb-1">Patch</h3>
+                  <p className="text-sm text-gray-600 mb-4 min-h-[80px]">
+                    Select from one of our custom patch options. Price shown is in addition to standard pricing. Patch options &amp; pricing will populate when selected.
+                  </p>
+
+                  {/* Patch card image — empty for now, add src later */}
+                  <div className="flex justify-center mb-3">
+                    <Image
+                      src={patch1}
+                      alt="patch"
+                      className="w-32 h-24 object-contain rounded-lg"
+                    />
+                  </div>
+
+                  <div className="flex justify-center mb-4">
+                    <div className="px-4 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-semibold">
+                      Price Varies
+                    </div>
+                  </div>
+                  <div
+                    className={`w-full py-2 rounded-full font-medium text-center transition-all duration-300
+                      ${embroideryType === "patch"
+                        ? "bg-[#ed1c24] text-white"
+                        : "bg-gray-200 text-gray-700"
+                      }`}
+                  >
+                    Patch
+                  </div>
+                </label>
+
+              </div>
+
+              {/* ── Patch Options — animated slide down ── */}
+              <div
+                id="patch-options-section"
+                style={{
+                  maxHeight: embroideryType === "patch" ? "2000px" : "0px",
+                  opacity: embroideryType === "patch" ? 1 : 0,
+                  overflow: "hidden",
+                  transition: "max-height 0.55s ease, opacity 0.4s ease",
+                }}
+              >
+                <div className='mb-8 mt-6 border-4 p-4 !border-[#ed1c24] rounded-lg'>
+                  <div className='px-5 py-7 w-full bg-[#eeeeee] rounded-[10px] mt-6 mb-6'>
+                    <h2 className='text-[#1A1A1A] text-[20px] font-semibold'>Select a Patch Style</h2>
+                    {/* <p className='text-[#7E7E7E] text-sm font-normal'><strong>Optional:</strong> Select your preferred patch style below..</p> */}
+                    <p className='text-[#7E7E7E] text-sm font-normal'><strong>Note:</strong> Minimum order for patches is 48 total units. Lead times for patches is 12-18 business days.</p>
+                    <ul className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
+                      <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                        <FaCheck className="text-green-600" /> Professional, Premium Look
+                      </li>
+                      <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                        <FaCheck className="text-green-600" /> Built to Last
+                      </li>
+                      <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                        <FaCheck className="text-green-600" /> Bold Brand Visibility
+                      </li>
+                      <li className="flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                        <FaCheck className="text-green-600" /> More Design Flexibility
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Patch Grid System */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {visiblePatches.map((item) => {
+                      const currentImage = imageToggle
+                        ? `/images/patch${item.id}.1.png`
+                        : `/images/patch${item.id}.png`;
+                      console.log('currentImage', currentImage)
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            if (totalQty < 48) {
+                              toast.error("Minimum order for patches is 48 total units.", {
+                                autoClose: 2000,
+                                position: "top-right"
+                              });
+                              return;
+                            }
+                            setPatchOption(item.id);
+                            handleArtworkUpdate({ addonId: item.id, enabled: true });
+                          }}
+                          // onClick={() => {
+                          //   setPatchOption(item.id);
+                          //   handleArtworkUpdate({ addonId: item.id, enabled: true });
+                          // }}
+                          className={`relative cursor-pointer rounded-2xl border-4 transition-all duration-500 overflow-hidden bg-white shadow-sm hover:shadow-md
+                            ${patchOption === item.id ? "border-[#ed1c24] scale-[1.02]" : "border-gray-200 hover:border-gray-300"}`}
+                        >
+                          {/* Rotating Image Container */}
+                          <div className="aspect-square w-full bg-[#f9f9f9] overflow-hidden relative p-4 rounded-xl border border-gray-100">
+                            <img
+                              src={currentImage}
+                              alt={item.name}
+                              className="h-full w-full object-contain transition-all duration-700 ease-in-out"
+                            />
+                          </div>
+
+                          {/* Price Tag Overlay */}
+                          <div className="absolute top-2 left-2 bg-black/70 text-white text-[12px] px-2 py-1 rounded-md z-2">
+                            +${item.unit_price}
+                          </div>
+
+                          {/* Selection Tick */}
+                          {patchOption === item.id && (
+                            <div className="absolute top-2 right-2 bg-[#ed1c24] text-white rounded-full p-1.5 shadow-lg z-10">
+                              <FaCheck size={10} />
+                            </div>
+                          )}
+
+                          <div className="px-3 pb-3 text-center">
+                            <h3 className={`text-sm font-bold leading-tight ${patchOption === item.id ? "text-[#ed1c24]" : "text-gray-700"}`}>
+                              {item.name}
+                            </h3>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* View More / View Less Button */}
+                  {patchOptionsData.length > initialItems && (
+                    <div className="flex justify-center mt-8">
+                      <button
+                        onClick={() => setShowMore(!showMore)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#ed1c24] text-[#ed1c24] text-sm font-medium rounded-full hover:bg-[#ed1c24] hover:text-white transition-all duration-300 shadow-md"
+                      >
+                        {showMore ? (
+                          <>View Less <FaChevronUp /></>
+                        ) : (
+                          <>View More Patch Options <FaChevronDown /></>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          )}
 
           {/* Logo Placement */}
           <div className='flex justify-center'>
@@ -1512,7 +1664,7 @@ const page = () => {
           </div>
 
 
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <div className='p-4 bg-[#ff0000] mb-4'>
               <h2 className='text-2xl font-bold text-white'>Logo Colors</h2>
             </div>
@@ -1542,7 +1694,7 @@ const page = () => {
               <p className='text-[#7E7E7E] text-sm font-normal pb-2'><strong>Note:</strong> Color can only change 1 time for every 6 or more hats ordered.</p>
               <Textarea className='!text-black' rows={3} value={colorNotes} onChange={(e) => setColorNotes(e.target.value)} placeholder="Color Notes" />
             </div>
-          </div>
+          </div> */}
 
           {/* Additional Addons */}
           <div className="mt-8 mb-8">
