@@ -2,10 +2,10 @@
 
 import axios from 'axios';
 import { toast } from 'react-toastify';
-const api = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_BASE_URL });
+const newApi = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_NEW_URL });
 
 const formDataURL = ['user/user-profile/change-avatar','user/logo/upload-logo','user/artWork/add','postgresapi/user/artWork/add', 'postgresapi/user/logo/upload-logo'];
-api.interceptors.request.use((req) => {
+newApi.interceptors.request.use((req) => {
     let userTokenData;
     try {
         userTokenData = JSON.parse(sessionStorage.getItem('showmeheadwear'));
@@ -25,7 +25,7 @@ api.interceptors.request.use((req) => {
     return req;
 });
 
-api.interceptors.response.use(
+newApi.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && [401, 403].includes(error.response.status)) {
@@ -36,4 +36,4 @@ api.interceptors.response.use(
     }
 );
 
-export default api;
+export default newApi;

@@ -1,6 +1,7 @@
 'use client';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from './api';
+import newApi from './newApi';
 
 /* ================= SEND SECURITY CODE ================= */
 
@@ -56,7 +57,7 @@ export const registerCustomer = createAsyncThunk(
     'auth/registerCustomer',
     async (userInput, { rejectWithValue }) => {
         try {
-            const response = await api.post(
+            const response = await newApi.post(
                 '/api/customers/register',
                 userInput
             );
@@ -80,7 +81,7 @@ export const loginCustomer = createAsyncThunk(
     'auth/loginCustomer',
     async (userInput, { rejectWithValue }) => {
         try {
-            const response = await api.post(
+            const response = await newApi.post(
                 '/api/customers/login',
                 userInput
             );
@@ -104,7 +105,7 @@ export const logoutCustomer = createAsyncThunk(
     'auth/logoutCustomer',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.post('/api/customers/logout');
+            const response = await newApi.post('/api/customers/logout');
 
             if (response?.data?.status_code === 200) {
                 return response.data;
