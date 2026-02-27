@@ -26,31 +26,34 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
 
   const password = watch("password");
 
+  // const onSubmit = async (data) => {
+  //   const nameParts = data.full_name.trim().split(" ");
+  //   const firstName = nameParts[0] || "";
+  //   const lastName = nameParts.slice(1).join(" ") || "";
+
+  //   const payload = {
+  //     companyName: data.company_name,
+  //     firstName,
+  //     lastName,
+  //     email: data.email,
+  //     phone: Number(data.phone),
+  //     password: data.password,
+  //     confirmPassword: data.confirm_password,
+  //   };
+
+  //   const res = await dispatch(registerCustomer(payload));
+
+  //   if (res?.payload?.status_code === 200 || res?.payload?.status_code === 201) {
+  //     toast.success("Registration successful!");
+  //     reset();
+  //     setOpenRegisterModal(false);
+  //   } else {
+  //     toast.error(res?.payload?.message || "Registration failed. Please try again.");
+  //   }
+  // };
+  
   const onSubmit = async (data) => {
-    const nameParts = data.full_name.trim().split(" ");
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
-
-    const payload = {
-      companyName: data.company_name,
-      firstName,
-      lastName,
-      email: data.email,
-      phone: Number(data.phone),
-      password: data.password,
-      confirmPassword: data.confirm_password,
-    };
-
-    const res = await dispatch(registerCustomer(payload));
-
-    if (res?.payload?.status_code === 200 || res?.payload?.status_code === 201) {
-      toast.success("Registration successful!");
-      reset();
-      setOpenRegisterModal(false);
-    } else {
-      toast.error(res?.payload?.message || "Registration failed. Please try again.");
-    }
-  };
+  }
 
   const openLogin = () => {
     setOpenLoginModal(true);
