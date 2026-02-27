@@ -21,7 +21,7 @@ import { RiSearch2Line } from "react-icons/ri";
 import { MdOutlineLogout } from "react-icons/md";
 import { getSearchHistory, reset } from '../reducers/SearchHistroySlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../reducers/AuthSlice';
+
 
 import { HiDocumentText } from "react-icons/hi2";
 import { HiHome } from "react-icons/hi";
@@ -41,29 +41,7 @@ const Sidebar = () => {
   const topLoaderRef = useRef(null);
   //console.log(sidebarOpen,"sidebarOpen");
   const router = useRouter();
-  const handleLogout = () => {
-    // dispatch(logout())
-
-    try {
-
-      // Dispatch logout action
-      dispatch(logout());
-      dispatch(reset());
-
-      // Navigate to home page
-      router.push("/");
-
-      // Force reload to ensure clean state
-      // setTimeout(() => {
-      //   window.location.reload();
-      // }, 100);
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Fallback: still navigate to home
-      router.push("/");
-    }
-
-  };
+  
 
   const openMobileMenu = () => {
     setSidebarOpen(prev => !prev);

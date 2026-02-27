@@ -227,8 +227,7 @@ const page = () => {
 
   return (
     <div>
-      <div className='banner_area py-0 lg:p-0'>
-
+      <div className='banner_area pt-[28px]'>
         <div className="relative">
           <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
           <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />

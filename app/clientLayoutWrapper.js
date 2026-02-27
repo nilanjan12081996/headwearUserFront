@@ -14,7 +14,7 @@ export default function ClientLayoutWrapper({ children }) {
     const router = useRouter();
 
     // Define public routes that don't require authentication
-    const publicRoutes = ['/', '/product-list', '/upload-artwork', '/checkout', '/product-details', '/about-us', '/awareness', '/terms-conditions', '/refund-cancellation-policy', '/mood-meters', '/mood-masters', '/moodz-matter', '/mood-equalisers', '/support', '/experts', '/therapies', '/mental-health-experts', '/packages', '/contact-us', '/pricing', '/how-it-works', '/features', '/privacy', '/dashboard', '/faqs', '/resume-templates', '/resume-history','/order-confirm'];
+    const publicRoutes = ['/', '/product-list', '/upload-artwork', '/checkout', '/product-details', '/about-us', '/awareness', '/terms-conditions', '/refund-cancellation-policy', '/mood-meters', '/mood-masters', '/moodz-matter', '/mood-equalisers', '/support', '/experts', '/therapies', '/mental-health-experts', '/packages', '/contact-us', '/pricing', '/how-it-works', '/features', '/privacy', '/dashboard', '/faqs', '/resume-templates', '/resume-history','/order-confirm', '/orders'];
     const isPublicRoute = publicRoutes.includes(pathname);
     const hideHeaderFooterRoutes = ['/order-confirm'];
     const hideHeaderFooter = hideHeaderFooterRoutes.includes(pathname);

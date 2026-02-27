@@ -163,7 +163,7 @@ const page = () => {
   const [embroideryType, setEmbroideryType] = useState("standard_flat");
   const [patchShape, setPatchShape] = useState("");
   const [patchColor, setPatchColor] = useState("");
-  const [logoPlacement, setLogoPlacement] = useState("front_center");
+  const [logoPlacement, setLogoPlacement] = useState(["front_center"]);
 
 
   // Additional options
@@ -541,16 +541,12 @@ const page = () => {
     }
   };
 
-  useEffect(() => {
-    // logoPlacement ekhon string, tai length check korar dorkar nei
-    if (!logoPlacement || !selectedOption.id) return;
-
-    handleArtworkUpdate({
-      // Backend-er jonno string-ke array-te convert kore pathano hoche
-      logoPlacement: [logoPlacement],
-    });
-  }, [logoPlacement, selectedOption.id]);
-
+ useEffect(() => {
+  if (!logoPlacement?.length || !selectedOption.id) return;
+  handleArtworkUpdate({
+    logoPlacement: logoPlacement, // already array
+  });
+}, [logoPlacement, selectedOption.id]);
 
 
   const hatQuantities = JSON.parse(
@@ -629,7 +625,11 @@ const page = () => {
   }, [decorationList]);
 
   const handleLogoPlacement = (label) => {
-    setLogoPlacement(label); // Sudhu ekta value select hobe
+    setLogoPlacement((prev) =>
+      prev.includes(label)
+        ? prev.filter((item) => item !== label)
+        : [...prev, label]
+    );
   };
 
 
@@ -1638,7 +1638,7 @@ const page = () => {
                   >
                     <div
                       className={`mb-3 border-4 rounded-[8px] overflow-hidden 
-          ${logoPlacement === item.label // Ekhane direct comparison hobe
+          ${logoPlacement.includes(item.label)
                           ? "border-[#ed1c24]"
                           : "border-[#E2E2E2]"
                         }`}
@@ -1724,7 +1724,7 @@ const page = () => {
 
                     {/* Unit Text (Optional) */}
                     <span className="text-yellow-700 text-xs font-semibold ml-1">
-                      Per Item
+                      Per Location
                     </span>
                   </div>
                 </div>

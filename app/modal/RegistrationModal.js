@@ -1,229 +1,217 @@
 'use client';
 
-import { Button, Label, Modal, ModalBody, ModalHeader, TextInput } from "flowbite-react";
-import Image from "next/image";
-import registerStepone from "../assets/imagesource/register_stepone.png";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import VerifyOtpModal from "./verifyOtpModal";
 import { useDispatch, useSelector } from "react-redux";
 import { registerCustomer } from "../reducers/AuthSlice";
+import { RiUserLine, RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiPhoneLine, RiBuildingLine } from "react-icons/ri";
+import { IoClose } from "react-icons/io5";
+import Image from "next/image";
+import regImg from "../../public/images/regimg.png";
 import { toast } from "react-toastify";
-import { useState } from "react";
-import { checkSubscription } from "../reducers/ProfileSlice";
-import { useRouter } from "next/navigation";
-import { getSearchHistory } from "../reducers/SearchHistroySlice";
 
-import { RiGoogleFill } from "react-icons/ri";
-import Link from 'next/link';
+const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLoginModal }) => {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenVerifyOtpModal, setOpenLoginModal, openPricModal, setOpenPriceModal }) => {
-    const dispatch = useDispatch();
-    const router = useRouter();
-    const { loading } = useSelector((state) => state?.auth);
-    const [error, setError] = useState()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm();
 
-    const {
-        register,
-        handleSubmit,
-        watch,
-        formState: { errors },
-    } = useForm();
-    const password = watch("password");
-    const onSubmit = (data) => {
-        console.log("registration data", data)
-        dispatch(registerCustomer(data)).then((res) => {
-            console.log("registration res", res)
-            if (res?.payload?.status_code === 201) {
-                toast.success(res?.payload?.message, {
-                    position: "top-right",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    progress: undefined,
-                    theme: "light",
-                });
-                //setOpenRegisterModal(false);
-                //setOpenLoginModal(true);
-                // setOpenPriceModal(true)
-                dispatch(checkSubscription()).then((res) => {
-                    console.log("res", res);
-                    if (res?.payload?.data) {
+  const password = watch("password");
 
-                        setOpenRegisterModal(false);
-                        router.push('/dashboard');
-                        dispatch(getSearchHistory({ week: 0 }));
-                    } else {
+  const onSubmit = async (data) => {
+    const nameParts = data.full_name.trim().split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
 
-                        setOpenRegisterModal(false);
-                        router.push('/plans');
-                        dispatch(getSearchHistory({ week: 0 }));
-                    }
-                })
-            } else if (res?.payload?.response?.data?.status_code === 422) {
-                const validationErrors = res?.payload?.response?.data?.data || []
-                console.log("validationErrors", validationErrors);
-                const combinedMessages = validationErrors.map((e) => e.message).join(' | ');
-                setError(combinedMessages);
-            }
-        })
+    const payload = {
+      companyName: data.company_name,
+      firstName,
+      lastName,
+      email: data.email,
+      phone: Number(data.phone),
+      password: data.password,
+      confirmPassword: data.confirm_password,
     };
 
-    const openLoginModal = () => {
-        setOpenLoginModal(true);
-        setOpenRegisterModal(false);
+    const res = await dispatch(registerCustomer(payload));
+
+    if (res?.payload?.status_code === 200 || res?.payload?.status_code === 201) {
+      toast.success("Registration successful!");
+      reset();
+      setOpenRegisterModal(false);
+    } else {
+      toast.error(res?.payload?.message || "Registration failed. Please try again.");
     }
+  };
 
-    const handlePriceModal = () => {
-        setOpenPriceModal(true)
-        setOpenRegisterModal(false);
-    }
+  const openLogin = () => {
+    setOpenLoginModal(true);
+    setOpenRegisterModal(false);
+  };
 
-    return (
-        <>
-            <Modal size="6xl" show={openRegisterModal} onClose={() => setOpenRegisterModal(false)}>
-                <ModalHeader className='border-none pb-0 absolute right-3 top-3 bg-transparent'>&nbsp;</ModalHeader>
-                <ModalBody className='bg-white p-0'>
-                    <div className="lg:flex">
-                        <div className='w-6/12 hidden lg:block register_image'>
-                            &nbsp;
-                        </div>
-                        <div className='lg:w-6/12 flex justify-center items-center'>
-                            <div className='py-16 px-5 lg:py-10 lg:px-20'>
-                                <h2 className='text-[#000000] text-2xl lg:text-[30px] leading-[35px] font-semibold pb-5 text-center'>Sign Up</h2>
-                                <div className='form_area'>
-                                    <form onSubmit={handleSubmit(onSubmit)} className="flex max-w-md flex-col gap-0">
-                                        <div className='flex gap-4'>
-                                            <div className='w-full mb-2'>
-                                                <div className="mb-0 block">
-                                                    <Label>First Name</Label>
-                                                </div>
-                                                <TextInput type="text" placeholder="Enter First Name"
-                                                    {...register("first_name", {
-                                                        required: "First name is required",
-                                                    })}
-                                                />
-                                                {errors?.first_name && (
-                                                    <span className="text-red-500">
-                                                        {errors?.first_name?.message}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className='w-full mb-2'>
-                                                <div className="mb-0 block">
-                                                    <Label>Last Name</Label>
-                                                </div>
-                                                <TextInput type="text" placeholder="Enter Last Name"
-                                                    {...register("last_name", {
-                                                        required: "Last name is required",
-                                                    })}
-                                                />
-                                                {errors?.last_name && (
-                                                    <span className="text-red-500">
-                                                        {errors?.last_name?.message}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className='mb-2'>
-                                            <div className="mb-0 block">
-                                                <Label>Email Address</Label>
-                                            </div>
-                                            <TextInput type="email" placeholder="Enter your Email Id"
-                                                {...register("email", {
-                                                    required: "Email is required",
-                                                })}
-                                            />
-                                            {errors?.email && (
-                                                <span className="text-red-500">
-                                                    {errors?.email?.message}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className='mb-2'>
-                                            <div className="mb-0 block">
-                                                <Label>Username</Label>
-                                            </div>
-                                            <TextInput type="text" placeholder="Enter your Username"
-                                                {...register("username", {
-                                                    required: "Username is required",
-                                                })}
-                                            />
-                                            {errors?.username && (
-                                                <span className="text-red-500">
-                                                    {errors?.username?.message}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className='mb-2'>
-                                            <div className="mb-0 block">
-                                                <Label>Enter your Password</Label>
-                                            </div>
-                                            <TextInput type="password" placeholder='Type your password'
-                                                {...register("password", {
-                                                    required: "Password is required",
-                                                })}
-                                            />
-                                            {errors?.password && (
-                                                <span className="text-red-500">
-                                                    {errors?.password?.message}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className='mb-2'>
-                                            <div className="mb-0 block">
-                                                <Label>Confirm your Password</Label>
-                                            </div>
-                                            {/* <TextInput type="password" placeholder='Type your password'
-                                                {...register("confirm_password", {
-                                                    required: "Password is required",
-                                                })}
-                                            />
-                                            {errors?.confirm_password && (
-                                                <span className="text-red-500">
-                                                    {errors?.confirm_password?.message}
-                                                </span>
-                                            )} */}
-                                            <TextInput
-                                                type="password"
-                                                placeholder="Type your password"
-                                                {...register("confirm_password", {
-                                                    required: "Confirm Password is required",
-                                                    validate: (value) =>
-                                                        value === password || "Password do not Match",
-                                                })}
-                                            />
-                                            {errors.confirm_password && (
-                                                <span className="text-red-500">
-                                                    {errors.confirm_password.message}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <Button  type="button" onClick={handlePriceModal} className='mt-2'>{loading ? "Wait..." : "Sign Up"}</Button>
-                                        {
-                                            error && (
-                                                <div className="text-center text-sm text-red-600 mt-3">{error}</div>
-                                            )
-                                        }
-                                    </form>
-                                    <div className="mt-4 text-center continue_width">
-                                        <p className="text-[#525252] text-[14px] leading-[20px]">Or Continue With</p>
-                                    </div>
-                                    <div className="mt-4 flex justify-center items-center">
-                                        <button className="google_btn"><RiGoogleFill className="text-[18px] mr-1" /> Google</button>
-                                    </div>
-                                    <div className="mt-6 text-center">
-                                        <p className="text-[#615D5D] text-[14px] leading-[20px] font-normal">Already have an account? <Link onClick={() => openLoginModal(true)} className="text-[#000000] hover:text-[#615D5D] font-medium" href="/" passHref>Log In</Link></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
+  if (!openRegisterModal) return null;
 
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={() => setOpenRegisterModal(false)}
+      />
 
-        </>
-    )
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-[900px] mx-4 bg-white rounded-2xl overflow-hidden shadow-2xl flex min-h-[520px]">
+
+        {/* Left - Image Panel */}
+        <div className="hidden lg:flex w-1/2 relative">
+          <Image
+            src={regImg}
+            alt="Register"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/10" />
+        </div>
+
+        {/* Right - Form Panel */}
+        <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-12 py-10 overflow-y-auto">
+
+          {/* Close */}
+          <button
+            onClick={() => setOpenRegisterModal(false)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            <IoClose size={22} />
+          </button>
+
+          <h2 className="text-2xl lg:text-[28px] font-bold text-gray-900 mb-1">Looks like you're new here!</h2>
+          <p className="text-sm text-gray-500 mb-6">Sign up with your Email to get started</p>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5">
+
+            {/* Company Name */}
+            <div className="relative">
+              <RiBuildingLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type="text"
+                placeholder="Company Name"
+                className="w-full border border-gray-200 rounded-lg pl-9 pr-4 py-3 text-sm outline-none focus:border-[#ed1c24] focus:ring-1 focus:ring-[#ed1c24] transition-all placeholder-gray-400"
+                {...register("company_name", { required: "Company name is required" })}
+              />
+              {errors.company_name && <p className="text-red-500 text-xs mt-1">{errors.company_name.message}</p>}
+            </div>
+
+            {/* Full Name */}
+            <div className="relative">
+              <RiUserLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type="text"
+                placeholder="Full Name"
+                className="w-full border border-gray-200 rounded-lg pl-9 pr-4 py-3 text-sm outline-none focus:border-[#ed1c24] focus:ring-1 focus:ring-[#ed1c24] transition-all placeholder-gray-400"
+                {...register("full_name", { required: "Full name is required" })}
+              />
+              {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>}
+            </div>
+
+            {/* Email */}
+            <div className="relative">
+              <RiMailLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type="email"
+                placeholder="Email Address"
+                className="w-full border border-gray-200 rounded-lg pl-9 pr-4 py-3 text-sm outline-none focus:border-[#ed1c24] focus:ring-1 focus:ring-[#ed1c24] transition-all placeholder-gray-400"
+                {...register("email", { required: "Email is required" })}
+              />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+            </div>
+
+            {/* Phone */}
+            <div className="relative">
+              <RiPhoneLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                className="w-full border border-gray-200 rounded-lg pl-9 pr-4 py-3 text-sm outline-none focus:border-[#ed1c24] focus:ring-1 focus:ring-[#ed1c24] transition-all placeholder-gray-400"
+                {...register("phone", {
+                  required: "Phone number is required",
+                  pattern: { value: /^[0-9]+$/, message: "Enter a valid phone number" },
+                })}
+              />
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className="w-full border border-gray-200 rounded-lg pl-9 pr-10 py-3 text-sm outline-none focus:border-[#ed1c24] focus:ring-1 focus:ring-[#ed1c24] transition-all placeholder-gray-400"
+                {...register("password", { required: "Password is required" })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
+              </button>
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+            </div>
+
+            {/* Confirm Password */}
+            <div className="relative">
+              <RiLockLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                className="w-full border border-gray-200 rounded-lg pl-9 pr-10 py-3 text-sm outline-none focus:border-[#ed1c24] focus:ring-1 focus:ring-[#ed1c24] transition-all placeholder-gray-400"
+                {...register("confirm_password", {
+                  required: "Confirm password is required",
+                  validate: (value) => value === password || "Passwords do not match",
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showConfirmPassword ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
+              </button>
+              {errors.confirm_password && <p className="text-red-500 text-xs mt-1">{errors.confirm_password.message}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#ed1c24] text-white font-semibold py-3 rounded-full hover:bg-black transition-colors duration-300 text-sm tracking-wide mt-1"
+            >
+              {loading ? "Please wait..." : "Register"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-5">
+            Already have an account?{" "}
+            <button
+              onClick={openLogin}
+              className="text-gray-900 font-semibold hover:text-[#ed1c24] transition-colors"
+            >
+              Log In
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default RegistrationModal;

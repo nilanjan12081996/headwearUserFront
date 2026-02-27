@@ -740,7 +740,7 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, hatQuantities: ini
                 )}
             </div>
 
-            <div className='fixed top-[58px] md:top-[70px] left-1/2 -translate-x-1/2 z-10 w-max'>
+            <div className='fixed top-[80px] md:top-[98px] left-1/2 -translate-x-1/2 z-10 w-max'>
                 <button
                     onClick={handleNextpage}
                     className='group flex items-center gap-2 text-lg md:text-xl bg-[#ed1c24] hover:bg-[#ee5e62] text-white font-bold py-2 px-4 md:px-8 rounded-b-lg cursor-pointer shadow-[0_4px_15px_rgba(255,115,121,0.4)] transition-all duration-300 active:scale-95'
