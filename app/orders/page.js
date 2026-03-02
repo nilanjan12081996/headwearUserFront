@@ -2,52 +2,59 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
-import { GoHome } from "react-icons/go";
-import { MdOutlineArrowForwardIos } from "react-icons/md";
-import { FiSearch, FiFilter } from "react-icons/fi";
+import { useEffect, useState } from 'react';
+import { GoHome } from 'react-icons/go';
+import { MdOutlineArrowForwardIos } from 'react-icons/md';
+import { FiSearch, FiFilter } from 'react-icons/fi';
 
-import list_banner from "../assets/imagesource/list_banner.png";
+import list_banner from '../assets/imagesource/list_banner.png';
+import { useDispatch } from 'react-redux';
+import { getAllOrders } from '../reducers/OrdersSlice';
 
 // ── Static mock data ──────────────────────────────────────────
 const allOrders = [
   {
-    id: "ORD-2024-001",
-    status: "Shipped",
-    statusColor: "bg-blue-100 text-blue-700",
-    created: "Jan 15, 2024",
-    items: "Classic Snapback Hat, Trucker Cap",
+    id: 'ORD-2024-001',
+    status: 'Shipped',
+    statusColor: 'bg-blue-100 text-blue-700',
+    created: 'Jan 15, 2024',
+    items: 'Classic Snapback Hat, Trucker Cap',
     quantity: 75,
-    tracking: "1Z999AA10123456784",
-    total: "$1,245.00",
+    tracking: '1Z999AA10123456784',
+    total: '$1,245.00',
     canReorder: true,
   },
   {
-    id: "ORD-2024-002",
-    status: "In Production",
-    statusColor: "bg-purple-100 text-purple-700",
-    created: "Feb 1, 2024",
-    items: "Premium Fitted Hat, Beanie",
+    id: 'ORD-2024-002',
+    status: 'In Production',
+    statusColor: 'bg-purple-100 text-purple-700',
+    created: 'Feb 1, 2024',
+    items: 'Premium Fitted Hat, Beanie',
     quantity: 150,
     tracking: null,
-    total: "$2,850.00",
+    total: '$2,850.00',
     canReorder: false,
   },
   {
-    id: "ORD-2024-003",
-    status: "Awaiting Proof",
-    statusColor: "bg-yellow-100 text-yellow-700",
-    created: "Feb 20, 2024",
-    items: "Dad Hat",
+    id: 'ORD-2024-003',
+    status: 'Awaiting Proof',
+    statusColor: 'bg-yellow-100 text-yellow-700',
+    created: 'Feb 20, 2024',
+    items: 'Dad Hat',
     quantity: 50,
     tracking: null,
-    total: "$980.00",
+    total: '$980.00',
     canReorder: false,
   },
 ];
 
 export default function OrdersPage() {
   const [search, setSearch] = useState('');
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getAllOrders());
+  }, [dispatch]);
 
   const filtered = allOrders.filter(
     (o) =>
@@ -57,11 +64,10 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-      <div className='banner_area pt-[28px]'>
+      <div className="banner_area pt-[28px]">
         <div className="relative">
-          <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
-          <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
+          <Image src={list_banner} alt="list_banner" className="hidden lg:block w-full" />
+          <Image src={list_banner} alt="list_banner" className="block lg:hidden w-full" />
         </div>
       </div>
 
@@ -73,7 +79,9 @@ export default function OrdersPage() {
               <GoHome className="text-[#666666] text-xl" />
             </Link>
           </li>
-          <li><MdOutlineArrowForwardIos className="text-[#666666] text-xs" /></li>
+          <li>
+            <MdOutlineArrowForwardIos className="text-[#666666] text-xs" />
+          </li>
           <li className="text-[#ED1C24] text-sm font-medium">Orders</li>
         </ul>
         <Link
@@ -92,7 +100,9 @@ export default function OrdersPage() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
             <div>
               <h2 className="text-base font-semibold text-gray-900">All Orders</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Showing {filtered.length} of {allOrders.length} orders</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Showing {filtered.length} of {allOrders.length} orders
+              </p>
             </div>
 
             {/* Search + Filter */}
@@ -119,8 +129,10 @@ export default function OrdersPage() {
               <p className="text-sm text-gray-400 py-6 text-center">No orders found.</p>
             )}
             {filtered.map((order) => (
-              <div key={order.id} className="py-5 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-
+              <div
+                key={order.id}
+                className="py-5 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+              >
                 {/* Left info */}
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -140,8 +152,10 @@ export default function OrdersPage() {
                   </p>
                   {order.tracking && (
                     <p className="text-xs text-gray-500">
-                      <span className="font-medium text-gray-700">Tracking:</span>{" "}
-                      <span className="text-[#ed1c24] hover:underline cursor-pointer">{order.tracking}</span>
+                      <span className="font-medium text-gray-700">Tracking:</span>{' '}
+                      <span className="text-[#ed1c24] hover:underline cursor-pointer">
+                        {order.tracking}
+                      </span>
                     </p>
                   )}
                 </div>
@@ -163,14 +177,12 @@ export default function OrdersPage() {
                     </button>
                   </div>
                 </div>
-
               </div>
             ))}
           </div>
 
         </div>
       </div>
-
     </div>
   );
 }

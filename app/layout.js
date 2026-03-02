@@ -48,6 +48,7 @@ export default function RootLayout({ children }) {
       
           
           </ClientLayoutWrapper>
+          <ToastContainer />
         </Providers>
 
         {/* <Providers>

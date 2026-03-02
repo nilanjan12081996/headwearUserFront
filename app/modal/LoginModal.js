@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { loginCustomer } from "../reducers/AuthSlice";
 import { RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import Image from "next/image";
 import Link from "next/link";
-import loginImage from "../../public/images/loginimg.png"
+import { toast } from "react-toastify";
+import loginImage from "../../public/images/loginimg.png";
 
 const LoginModal = ({ openLoginModal, setOpenLoginModal, setOpenRegisterModal }) => {
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -19,9 +22,20 @@ const LoginModal = ({ openLoginModal, setOpenLoginModal, setOpenRegisterModal })
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    // API ready hoile connect korbe
-    console.log("login data", data);
+  const onSubmit = async (data) => {
+    const payload = {
+      email: data.email,
+      password: data.password,
+    };
+
+    const res = await dispatch(loginCustomer(payload));
+
+    if (res?.payload?.status_code === 200) {
+      toast.success(res?.payload?.message || "Login successful!");
+      setOpenLoginModal(false);
+    } else {
+      toast.error(res?.payload?.message || "Login failed. Please try again.");
+    }
   };
 
   const handleSignup = () => {

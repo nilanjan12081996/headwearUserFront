@@ -6,6 +6,7 @@ import Sidebar from "./ui/sidebar";
 import Insideheader from "./ui/insideheader";
 import Header from "./ui/header";
 import Footer from "./ui/footer";
+import { ToastContainer } from "react-toastify";
 
 export default function ClientLayoutWrapper({ children }) {
     const [hasToken, setHasToken] = useState(null);
@@ -95,6 +96,7 @@ export default function ClientLayoutWrapper({ children }) {
     if (hasToken) {
         return (
             <main>
+                <ToastContainer/>
                 <div className="dashboard_wrapper lg:flex bg-[#f3f4f6] p-0">
                     <div className="sidebar_area w-[300px] lg:w-[20%]">
                         <Sidebar />
@@ -125,6 +127,7 @@ export default function ClientLayoutWrapper({ children }) {
 
     return (
         <main className={hideHeaderFooter ? "" : "pt-[60px]"}>
+             <ToastContainer/>
             {!hideHeaderFooter && <Header />}
 
             {children}
