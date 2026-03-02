@@ -3,7 +3,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from './api';
 import newApi from './newApi';
 
-
 /* ================= SEND SECURITY CODE ================= */
 
 export const sendSecurityCode = createAsyncThunk(
@@ -63,7 +62,10 @@ export const registerCustomer = createAsyncThunk(
                 userInput
             );
 
-            if (response?.data?.status_code === 200 || response?.data?.status_code === 201) {
+            if (
+                response?.data?.status_code === 200 ||
+                response?.data?.status_code === 201
+            ) {
                 return response.data;
             } else {
                 return rejectWithValue(
@@ -121,6 +123,30 @@ export const logoutCustomer = createAsyncThunk(
     }
 );
 
+/* ================= DETECT ICCID ================= */
+
+export const detectIccid = createAsyncThunk(
+    'auth/detectIccid',
+    async (iccid, { rejectWithValue }) => {
+        try {
+            const response = await api.get(
+                `/api/v1/customer/detect-iccid?iccid=${iccid}`
+            );
+
+            if (response?.data?.status_code === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(
+                    response?.data?.response || 'ICCID detection failed'
+                );
+            }
+        } catch (err) {
+            return rejectWithValue(err);
+        }
+    }
+);
+
+/* ================= INITIAL STATE ================= */
 
 const initialState = {
     message: null,
@@ -128,7 +154,10 @@ const initialState = {
     loading: false,
     isLoggedIn: false,
     loadingSendCode: false,
+    loadingIccid: false,
 };
+
+/* ================= SLICE ================= */
 
 const authSlice = createSlice({
     name: 'auth',
@@ -136,6 +165,7 @@ const authSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
+
             /* -------- SEND SECURITY CODE -------- */
             .addCase(sendSecurityCode.pending, (state) => {
                 state.loadingSendCode = true;
@@ -182,6 +212,7 @@ const authSlice = createSlice({
                 state.isLoggedIn = true;
                 state.message = payload;
                 state.error = false;
+
                 if (payload?.token) {
                     sessionStorage.setItem(
                         'showmeheadwear',
@@ -207,12 +238,14 @@ const authSlice = createSlice({
                 state.isLoggedIn = true;
                 state.message = payload;
                 state.error = false;
+
                 if (payload?.token) {
                     sessionStorage.setItem(
                         'showmeheadwear',
                         JSON.stringify({ token: payload.token })
                     );
                 }
+
                 if (payload?.data?.id) {
                     sessionStorage.setItem(
                         'user_id',
@@ -238,6 +271,7 @@ const authSlice = createSlice({
                 state.isLoggedIn = false;
                 state.message = payload;
                 state.error = false;
+
                 sessionStorage.removeItem('showmeheadwear');
                 sessionStorage.removeItem('user_id');
             })
@@ -246,11 +280,284 @@ const authSlice = createSlice({
                 state.error = true;
                 state.message =
                     payload?.message || 'Logout failed';
+            })
+
+            /* -------- DETECT ICCID -------- */
+            .addCase(detectIccid.pending, (state) => {
+                state.loadingIccid = true;
+                state.error = null;
+            })
+            .addCase(detectIccid.fulfilled, (state, { payload }) => {
+                state.loadingIccid = false;
+                state.message = payload;
+                state.error = false;
+            })
+            .addCase(detectIccid.rejected, (state, { payload }) => {
+                state.loadingIccid = false;
+                state.error = true;
+                state.message =
+                    payload?.message || 'ICCID detection failed';
             });
     },
 });
 
 export default authSlice.reducer;
+
+
+
+// 'use client';
+// import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+// import api from './api';
+// import newApi from './newApi';
+
+
+// /* ================= SEND SECURITY CODE ================= */
+
+// export const sendSecurityCode = createAsyncThunk(
+//     'auth/sendSecurityCode',
+//     async (userInput, { rejectWithValue }) => {
+//         try {
+//             const response = await api.post(
+//                 '/postgresapi/user/address/send-code',
+//                 userInput
+//             );
+
+//             if (response?.data?.status_code === 200) {
+//                 return response.data;
+//             } else {
+//                 return rejectWithValue(
+//                     response?.data?.errors || 'Failed to send security code'
+//                 );
+//             }
+//         } catch (err) {
+//             return rejectWithValue(err);
+//         }
+//     }
+// );
+
+// /* ================= VERIFY SECURITY CODE ================= */
+
+// export const verifySecurityCode = createAsyncThunk(
+//     'auth/verifySecurityCode',
+//     async (userInput, { rejectWithValue }) => {
+//         try {
+//             const response = await api.post(
+//                 '/postgresapi/user/address/verify-code',
+//                 userInput
+//             );
+
+//             if (response?.data?.status_code === 200) {
+//                 return response.data;
+//             } else {
+//                 return rejectWithValue(
+//                     response?.data?.errors || 'Security code verification failed'
+//                 );
+//             }
+//         } catch (err) {
+//             return rejectWithValue(err);
+//         }
+//     }
+// );
+
+// /* ================= REGISTER ================= */
+
+// export const registerCustomer = createAsyncThunk(
+//     'auth/registerCustomer',
+//     async (userInput, { rejectWithValue }) => {
+//         try {
+//             const response = await newApi.post(
+//                 '/api/customers/register',
+//                 userInput
+//             );
+
+//             if (response?.data?.status_code === 200 || response?.data?.status_code === 201) {
+//                 return response.data;
+//             } else {
+//                 return rejectWithValue(
+//                     response?.data?.errors || 'Registration failed'
+//                 );
+//             }
+//         } catch (err) {
+//             return rejectWithValue(err);
+//         }
+//     }
+// );
+
+// /* ================= LOGIN ================= */
+
+// export const loginCustomer = createAsyncThunk(
+//     'auth/loginCustomer',
+//     async (userInput, { rejectWithValue }) => {
+//         try {
+//             const response = await newApi.post(
+//                 '/api/customers/login',
+//                 userInput
+//             );
+
+//             if (response?.data?.status_code === 200) {
+//                 return response.data;
+//             } else {
+//                 return rejectWithValue(
+//                     response?.data?.errors || 'Login failed'
+//                 );
+//             }
+//         } catch (err) {
+//             return rejectWithValue(err);
+//         }
+//     }
+// );
+
+// /* ================= LOGOUT ================= */
+
+// export const logoutCustomer = createAsyncThunk(
+//     'auth/logoutCustomer',
+//     async (_, { rejectWithValue }) => {
+//         try {
+//             const response = await newApi.post('/api/customers/logout');
+
+//             if (response?.data?.status_code === 200) {
+//                 return response.data;
+//             } else {
+//                 return rejectWithValue(
+//                     response?.data?.errors || 'Logout failed'
+//                 );
+//             }
+//         } catch (err) {
+//             return rejectWithValue(err);
+//         }
+//     }
+// );
+
+
+// const initialState = {
+//     message: null,
+//     error: null,
+//     loading: false,
+//     isLoggedIn: false,
+//     loadingSendCode: false,
+// };
+
+// const authSlice = createSlice({
+//     name: 'auth',
+//     initialState,
+//     reducers: {},
+//     extraReducers: (builder) => {
+//         builder
+//             /* -------- SEND SECURITY CODE -------- */
+//             .addCase(sendSecurityCode.pending, (state) => {
+//                 state.loadingSendCode = true;
+//                 state.error = null;
+//                 state.message = null;
+//             })
+//             .addCase(sendSecurityCode.fulfilled, (state, { payload }) => {
+//                 state.loadingSendCode = false;
+//                 state.message = payload;
+//                 state.error = false;
+//             })
+//             .addCase(sendSecurityCode.rejected, (state, { payload }) => {
+//                 state.loadingSendCode = false;
+//                 state.error = true;
+//                 state.message =
+//                     payload?.message || 'Failed to send security code';
+//             })
+
+//             /* -------- VERIFY SECURITY CODE -------- */
+//             .addCase(verifySecurityCode.pending, (state) => {
+//                 state.loading = true;
+//                 state.error = null;
+//             })
+//             .addCase(verifySecurityCode.fulfilled, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.message = payload;
+//                 state.error = false;
+//             })
+//             .addCase(verifySecurityCode.rejected, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.error = true;
+//                 state.message =
+//                     payload?.message || 'Security code verification failed';
+//             })
+
+//             /* -------- REGISTER -------- */
+//             .addCase(registerCustomer.pending, (state) => {
+//                 state.loading = true;
+//                 state.error = null;
+//                 state.message = null;
+//             })
+//             .addCase(registerCustomer.fulfilled, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.isLoggedIn = true;
+//                 state.message = payload;
+//                 state.error = false;
+//                 if (payload?.token) {
+//                     sessionStorage.setItem(
+//                         'showmeheadwear',
+//                         JSON.stringify({ token: payload.token })
+//                     );
+//                 }
+//             })
+//             .addCase(registerCustomer.rejected, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.error = true;
+//                 state.message =
+//                     payload?.message || 'Registration failed';
+//             })
+
+//             /* -------- LOGIN -------- */
+//             .addCase(loginCustomer.pending, (state) => {
+//                 state.loading = true;
+//                 state.error = null;
+//                 state.message = null;
+//             })
+//             .addCase(loginCustomer.fulfilled, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.isLoggedIn = true;
+//                 state.message = payload;
+//                 state.error = false;
+//                 if (payload?.token) {
+//                     sessionStorage.setItem(
+//                         'showmeheadwear',
+//                         JSON.stringify({ token: payload.token })
+//                     );
+//                 }
+//                 if (payload?.data?.id) {
+//                     sessionStorage.setItem(
+//                         'user_id',
+//                         JSON.stringify({ user_id: payload.data.id })
+//                     );
+//                 }
+//             })
+//             .addCase(loginCustomer.rejected, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.isLoggedIn = false;
+//                 state.error = true;
+//                 state.message =
+//                     payload?.message || 'Login failed';
+//             })
+
+//             /* -------- LOGOUT -------- */
+//             .addCase(logoutCustomer.pending, (state) => {
+//                 state.loading = true;
+//                 state.error = null;
+//             })
+//             .addCase(logoutCustomer.fulfilled, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.isLoggedIn = false;
+//                 state.message = payload;
+//                 state.error = false;
+//                 sessionStorage.removeItem('showmeheadwear');
+//                 sessionStorage.removeItem('user_id');
+//             })
+//             .addCase(logoutCustomer.rejected, (state, { payload }) => {
+//                 state.loading = false;
+//                 state.error = true;
+//                 state.message =
+//                     payload?.message || 'Logout failed';
+//             });
+//     },
+// });
+
+// export default authSlice.reducer;
 
 
 
