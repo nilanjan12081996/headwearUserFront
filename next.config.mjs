@@ -36,6 +36,12 @@ const nextConfig = {
         hostname: "adminapi.showmecustomapparel.com",
         pathname: "/**",
       },
+      {
+        protocol: 'https',
+        hostname: 'showmecustomheadwearapi.bestworks.cloud',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

@@ -17,6 +17,7 @@ import ArtWorkSlice from '../reducers/ArtWorkSlice'
 import CheckoutSlice from '../reducers/CheckoutSlice'
 import HatSearchSlice from '../reducers/CheckoutSlice'
 import OrdersSlice from '../reducers/OrdersSlice'
+import BannerLogoSlice from '../reducers/BannerLogoSlice'
 
 const store = configureStore({
     reducer: {
@@ -35,7 +36,8 @@ const store = configureStore({
         art:ArtWorkSlice,
         check:CheckoutSlice,
         hatSearch: HatSearchSlice,
-        order: OrdersSlice
+        order: OrdersSlice,
+        bannerLogo: BannerLogoSlice,
     },
     devTools: process.env.NODE_ENV,
 });

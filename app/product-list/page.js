@@ -67,6 +67,7 @@ import { addCartUUID, cartList, dropDownToggle, getDecorationType } from '../red
 import { v4 as uuidv4 } from "uuid";
 import CartProgressBar from '../components/CartProgressBar';
 import TopIntro from './TopIntro';
+import { getBannerList, getLogoPlacementList } from '../reducers/BannerLogoSlice';
 
 
 
@@ -80,6 +81,8 @@ const page = () => {
   const { productList, allProList } = useSelector((state) => state?.prod)
   const [hatQuantities, setHatQuantities] = useState({});
   const [open, setOpen] = useState(false);
+  const { bannerList, bannerListLoading } = useSelector((state) => state.bannerLogo);
+  const { logoPlacementList, logoPlacementListLoading } = useSelector((state) => state.bannerLogo);
 
 
 
@@ -107,13 +110,12 @@ const page = () => {
   }, []);
 
   const dispatch = useDispatch()
-  // useEffect(() => {
-  //   dispatch(getSuppliers({
-  //     page: 1,
-  //     limit: 10
-  //   }))
-  // }, [])
-  // console.log("suppliersList", suppliersList);
+
+  useEffect(() => {
+    dispatch(getBannerList());
+    dispatch(getLogoPlacementList());
+  },[])
+  
   useEffect(() => {
     const savedUUID = sessionStorage.getItem("uuid");
     dispatch(cartList({
