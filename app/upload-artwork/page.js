@@ -110,6 +110,8 @@ import c19 from "../assets/imagesource/c19.jpg";
 import c20 from "../assets/imagesource/c20.jpg";
 import c21 from "../assets/imagesource/c21.jpg";
 import c22 from "../assets/imagesource/c22.jpg";
+import { getLogoPlacementList } from '../reducers/BannerLogoSlice';
+import Banner from '../ui/Banner';
 
 
 
@@ -141,6 +143,15 @@ const page = () => {
   const [patchOption, setPatchOption] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [imageToggle, setImageToggle] = useState(false);
+  const { logoPlacementList, logoPlacementListLoading } = useSelector((state) => state.bannerLogo);
+  const base_url = "https://customheadwearjava.showmecustomapparel.com";
+  useEffect(() => {
+    dispatch(getLogoPlacementList());
+  }, [dispatch])
+  useEffect(() => {
+    console.log('logoPlacementList updated:', logoPlacementList);
+  }, [logoPlacementList]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setImageToggle((prev) => !prev);
@@ -541,12 +552,12 @@ const page = () => {
     }
   };
 
- useEffect(() => {
-  if (!logoPlacement?.length || !selectedOption.id) return;
-  handleArtworkUpdate({
-    logoPlacement: logoPlacement, // already array
-  });
-}, [logoPlacement, selectedOption.id]);
+  useEffect(() => {
+    if (!logoPlacement?.length || !selectedOption.id) return;
+    handleArtworkUpdate({
+      logoPlacement: logoPlacement, // already array
+    });
+  }, [logoPlacement, selectedOption.id]);
 
 
   const hatQuantities = JSON.parse(
@@ -632,15 +643,16 @@ const page = () => {
     );
   };
 
-
+  const codeMap = {
+    "right_side": "right",
+    "front_center": "center",
+    "left_side": "left",
+  };
+  
   return (
     <div>
       <ToastContainer />
-      <div className='banner_area py-0 lg:p-0'>
-        <div className="relative">
-          <Image src={list_banner} alt='list_banner' className="w-full" />
-        </div>
-      </div>
+      <Banner/>
 
       <div className="py-10 lg:pb-20 lg:pt-10">
         <div className='mb-10'>
@@ -1629,28 +1641,46 @@ const page = () => {
                   </div>
                 ))}
               </div> */}
-              <div className='grid grid-cols-3 gap-2'>
-                {placements.map((item) => (
-                  <div
-                    key={item.id}
-                    className='product_list_box text-center cursor-pointer'
-                    onClick={() => handleLogoPlacement(item.label)}
-                  >
-                    <div
-                      className={`mb-3 border-4 rounded-[8px] overflow-hidden 
-          ${logoPlacement.includes(item.label)
-                          ? "border-[#ed1c24]"
-                          : "border-[#E2E2E2]"
-                        }`}
-                    >
-                      <Image src={item.img} alt={item.label} />
-                    </div>
 
-                    <p className='text-[18px] text-[#353535] font-medium'>
-                      {item.heading}
-                    </p>
-                  </div>
-                ))}
+
+              <div className='grid grid-cols-3 gap-2'>
+                {placements.map((item) => {
+                  // codeMap দিয়ে label কে API code এ convert করো
+                  const apiCode = codeMap[item.label];
+                  const apiPlacement = logoPlacementList?.find(p => p.code === apiCode);
+                  const dynamicImage = apiPlacement
+                    ? `${base_url}${apiPlacement.logoImage}`
+                    : null;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className='product_list_box text-center cursor-pointer'
+                      onClick={() => handleLogoPlacement(item.label)}
+                    >
+                      <div
+                        className={`mb-3 border-4 rounded-[8px] overflow-hidden 
+            ${logoPlacement.includes(item.label)
+                            ? "border-[#ed1c24]"
+                            : "border-[#E2E2E2]"
+                          }`}
+                      >
+                        {dynamicImage ? (
+                          <img
+                            src={dynamicImage}
+                            alt={item.label}
+                            className="w-full h-auto object-cover"
+                          />
+                        ) : (
+                          <Image src={item.img} alt={item.label} />
+                        )}
+                      </div>
+                      <p className='text-[18px] text-[#353535] font-medium'>
+                        {item.heading}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

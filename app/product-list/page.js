@@ -67,7 +67,8 @@ import { addCartUUID, cartList, dropDownToggle, getDecorationType } from '../red
 import { v4 as uuidv4 } from "uuid";
 import CartProgressBar from '../components/CartProgressBar';
 import TopIntro from './TopIntro';
-import { getBannerList, getLogoPlacementList } from '../reducers/BannerLogoSlice';
+import { getBannerList } from '../reducers/BannerLogoSlice';
+import Banner from '../ui/Banner';
 
 
 
@@ -82,7 +83,7 @@ const page = () => {
   const [hatQuantities, setHatQuantities] = useState({});
   const [open, setOpen] = useState(false);
   const { bannerList, bannerListLoading } = useSelector((state) => state.bannerLogo);
-  const { logoPlacementList, logoPlacementListLoading } = useSelector((state) => state.bannerLogo);
+ console.log('bannerList',bannerList)
 
 
 
@@ -113,7 +114,6 @@ const page = () => {
 
   useEffect(() => {
     dispatch(getBannerList());
-    dispatch(getLogoPlacementList());
   },[])
   
   useEffect(() => {
@@ -229,12 +229,7 @@ const page = () => {
 
   return (
     <div>
-      <div className='banner_area pt-[28px]'>
-        <div className="relative">
-          <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
-          <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
-        </div>
-      </div>
+      <Banner/>
 
       <div>
         <div className='mt-4'>

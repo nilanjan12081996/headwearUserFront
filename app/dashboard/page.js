@@ -8,6 +8,7 @@ import { FiClock, FiPackage, FiFileText } from "react-icons/fi";
 import { BsCurrencyDollar, BsGraphUpArrow, BsBoxSeam } from "react-icons/bs";
 
 import list_banner from "../assets/imagesource/list_banner.png";
+import Banner from '../ui/Banner';
 
 // ── Static mock data ──────────────────────────────────────────
 const stats = [
@@ -45,12 +46,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
 
       {/* Banner */}
-      <div className='banner_area pt-[28px]'>
-        <div className="relative">
-          <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
-          <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
-        </div>
-      </div>
+      <Banner/>
 
       {/* Breadcrumb + CTA */}
       <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-5 flex justify-between items-center">

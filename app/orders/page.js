@@ -11,6 +11,7 @@ import list_banner from '../assets/imagesource/list_banner.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { getAllOrders, searchOrders } from '../reducers/OrdersSlice';
+import Banner from '../ui/Banner';
 
 // Map orderStatus string → badge color classes
 const getStatusColor = (status) => {
@@ -138,12 +139,7 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="banner_area pt-[28px]">
-        <div className="relative">
-          <Image src={list_banner} alt="list_banner" className="hidden lg:block w-full" />
-          <Image src={list_banner} alt="list_banner" className="block lg:hidden w-full" />
-        </div>
-      </div>
+      <Banner/>
 
       {/* Breadcrumb + CTA */}
       <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-5 flex justify-between items-center">
