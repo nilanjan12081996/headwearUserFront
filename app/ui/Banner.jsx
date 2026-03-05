@@ -22,7 +22,7 @@ const Banner = () => {
   return (
     <div className='banner_area pt-[28px]'>
       <div className="relative">
-        {bannerSrc ? (
+        {/* {bannerSrc ? (
           <>
             <img
               src={bannerSrc}
@@ -40,7 +40,11 @@ const Banner = () => {
             <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
             <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
           </>
-        )}
+        )} */}
+        <>
+            <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
+            <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
+          </>
       </div>
     </div>
   );
