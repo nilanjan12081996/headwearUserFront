@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { GoHome } from 'react-icons/go';
@@ -11,8 +11,9 @@ import { FiDownload, FiRefreshCw, FiPackage, FiMapPin, FiExternalLink, FiFile } 
 import { HiOutlineClock } from 'react-icons/hi';
 
 import list_banner from '../../assets/imagesource/list_banner.png';
-import { getSingleOrder } from '../../reducers/OrdersSlice';
+import { getSingleOrder, getReorderPreview } from '../../reducers/OrdersSlice';
 import { FaPalette } from 'react-icons/fa';
+import Banner from '../../ui/Banner';
 
 const getStatusColor = (status) => {
     const s = (status || '').toLowerCase();
@@ -57,11 +58,25 @@ export default function OrderDetailPage() {
     const router = useRouter();
     const dispatch = useDispatch();
 
-    const { selectedOrder, detailLoading } = useSelector((state) => state.order ?? {});
+    const { selectedOrder, detailLoading, reorderPreviewLoading } = useSelector((state) => state.order ?? {});
+
+    // Collapsible state for colors — per group (keyed by group.id)
+    const [expandedColors, setExpandedColors] = useState({});
+    const toggleColors = (groupId) =>
+        setExpandedColors((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+
+    // Collapsible state for decoration colors
+    const [expandedDecoColors, setExpandedDecoColors] = useState(false);
 
     useEffect(() => {
         if (id) dispatch(getSingleOrder(id));
     }, [id, dispatch]);
+
+    // Reorder: prefetch preview then navigate to reorder-checkout
+    const handleReorderClick = async () => {
+        await dispatch(getReorderPreview(id));
+        router.push(`/reorder-checkout?order_id=${id}`);
+    };
 
     if (detailLoading) {
         return (
@@ -107,18 +122,17 @@ export default function OrderDetailPage() {
 
     const trackingNumber = order?.trackingNumber ?? null;
 
-    const BASE_URL = 'https://customheadwearjava.showmecustomapparel.com';
+    const BASE_URL = process.env.NEXT_PUBLIC_API_IMAGE_URL;
+
+    // All unique decoration colors across groups
+    const allDecoColors = [...new Map(
+        groups.flatMap((g) => g.hatColors || []).map((c) => [c.id, c])
+    ).values()];
 
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Banner */}
-            <div className="banner_area pt-[28px]">
-                <div className="relative">
-                    <Image src={list_banner} alt="list_banner" className="hidden lg:block w-full" />
-                    <Image src={list_banner} alt="list_banner" className="block lg:hidden w-full" />
-                </div>
-            </div>
-
+            <Banner/>
             {/* Breadcrumb */}
             <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-5">
                 <ul className="flex items-center gap-2">
@@ -153,8 +167,19 @@ export default function OrderDetailPage() {
                     <button className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-[#ed1c24] hover:text-[#ed1c24] transition-colors text-xs font-semibold px-4 py-2.5 rounded-full">
                         <FiDownload size={13} /> Download Invoice
                     </button>
-                    <button className="flex items-center gap-1.5 bg-[#ed1c24] hover:bg-black transition-colors text-white text-xs font-semibold px-4 py-2.5 rounded-full">
-                        <FiRefreshCw size={13} /> Reorder
+                    <button
+                        onClick={handleReorderClick}
+                        disabled={reorderPreviewLoading}
+                        className="flex items-center gap-1.5 bg-[#ed1c24] hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed transition-colors text-white text-xs font-semibold px-4 py-2.5 rounded-full"
+                    >
+                        {reorderPreviewLoading ? (
+                            <>
+                                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Loading…
+                            </>
+                        ) : (
+                            <><FiRefreshCw size={13} /> Reorder</>
+                        )}
                     </button>
                 </div>
             </div>
@@ -232,14 +257,24 @@ export default function OrderDetailPage() {
                                 const unitPrice = group.items?.[0]?.unitPrice ?? 0;
                                 const lineSubtotal = (group.items || []).reduce((s, i) => s + (i.lineSubtotal || 0), 0);
                                 const colorNames = (group.hatColors || []).map((c) => c.name);
+                                const isExpanded = expandedColors[group.id];
+                                const visibleColors = isExpanded ? colorNames : colorNames.slice(0, 3);
+
                                 return (
                                     <div key={group.id} className="flex justify-between items-start pb-3 border-b border-gray-50 last:border-0 last:pb-0">
                                         <div>
                                             <p className="text-sm font-semibold text-gray-900">{group.hatName}</p>
                                             <p className="text-xs text-gray-400 mt-0.5">
-                                                {colorNames.slice(0, 3).join(', ')}
+                                                {visibleColors.join(', ')}
                                                 {colorNames.length > 3 && (
-                                                    <span className="text-[#ed1c24]"> +{colorNames.length - 3} more</span>
+                                                    <button
+                                                        onClick={() => toggleColors(group.id)}
+                                                        className="ml-1 text-[#ed1c24] hover:underline font-medium"
+                                                    >
+                                                        {isExpanded
+                                                            ? ' Show less'
+                                                            : ` +${colorNames.length - 3} more`}
+                                                    </button>
                                                 )}
                                             </p>
                                             <p className="text-xs text-gray-400">{totalQty} × ${unitPrice.toFixed(2)}</p>
@@ -287,14 +322,11 @@ export default function OrderDetailPage() {
                             {/* Top row: badges + file link */}
                             <div className="flex items-start justify-between gap-4">
                                 <div className="space-y-1.5">
-                                    {/* Decoration type badge */}
                                     {art.DecorationTypeName && (
                                         <span className="inline-block text-xs font-bold bg-[#ed1c24] text-white px-2.5 py-0.5 rounded-full">
                                             {art.DecorationTypeName}
                                         </span>
                                     )}
-
-                                    {/* Embroidery Type */}
                                     {art.embroideryType && (
                                         <div>
                                             <p className="text-xs text-gray-400 mb-1">
@@ -303,8 +335,6 @@ export default function OrderDetailPage() {
                                             </p>
                                         </div>
                                     )}
-
-                                    {/* Placement badges */}
                                     {art.logoPlacement && (
                                         <div>
                                             <p className="text-xs font-medium text-gray-600 mb-1">Placement:</p>
@@ -320,24 +350,18 @@ export default function OrderDetailPage() {
                                             </div>
                                         </div>
                                     )}
-
-                                    {/* Placement Notes */}
                                     {art.placementNotes && (
                                         <p className="text-xs text-gray-400 leading-relaxed">
                                             <span className="font-medium text-gray-600">Placement Notes: </span>
                                             {art.placementNotes}
                                         </p>
                                     )}
-
-                                    {/* Setup plan */}
                                     {art.setupPlanName && (
                                         <p className="text-xs text-gray-400">
                                             <span className="font-medium text-gray-600">Setup Plan: </span>
                                             {art.setupPlanName}
                                         </p>
                                     )}
-
-                                    {/* Order Notes */}
                                     {art.orderNotes && (
                                         <p className="text-xs text-gray-400 leading-relaxed">
                                             <span className="font-medium text-gray-600">Order Notes: </span>
@@ -345,7 +369,6 @@ export default function OrderDetailPage() {
                                         </p>
                                     )}
                                 </div>
-                                {/* Logo file link */}
                                 {art.originalFileUrl && (
                                     <a
                                         href={`${BASE_URL}${art.originalFileUrl}`}
@@ -360,22 +383,26 @@ export default function OrderDetailPage() {
                                 )}
                             </div>
 
-                            {/* Colors from groups */}
-                            {groups.length > 0 && (
+                            {/* Colors from groups — collapsible, same as page 1 */}
+                            {allDecoColors.length > 0 && (
                                 <div>
-                                    <p className="text-xs text-gray-400 mb-1.5">Colors:</p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {[...new Map(
-                                            groups.flatMap((g) => g.hatColors || []).map((c) => [c.id, c])
-                                        ).values()].map((color) => (
-                                            <span
-                                                key={color.id}
-                                                className="text-xs text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full"
+                                    <p className="text-xs text-gray-400 mb-1.5">
+                                        <span className="font-medium text-gray-600">Colors: </span>
+                                        {(expandedDecoColors
+                                            ? allDecoColors
+                                            : allDecoColors.slice(0, 5)
+                                        ).map((c) => c.name).join(', ')}
+                                        {allDecoColors.length > 5 && (
+                                            <button
+                                                onClick={() => setExpandedDecoColors((p) => !p)}
+                                                className="ml-1 text-[#ed1c24] hover:underline font-medium"
                                             >
-                                                {color.name}
-                                            </span>
-                                        ))}
-                                    </div>
+                                                {expandedDecoColors
+                                                    ? ' Show less'
+                                                    : ` +${allDecoColors.length - 5} more`}
+                                            </button>
+                                        )}
+                                    </p>
                                 </div>
                             )}
                         </div>

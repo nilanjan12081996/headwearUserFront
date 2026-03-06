@@ -648,11 +648,11 @@ const page = () => {
     "front_center": "center",
     "left_side": "left",
   };
-  
+
   return (
     <div>
       <ToastContainer />
-      <Banner/>
+      <Banner />
 
       <div className="py-10 lg:pb-20 lg:pt-10">
         <div className='mb-10'>
@@ -895,7 +895,7 @@ const page = () => {
           </div> */}
 
           {/* Artwork Setup section */}
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <div className='p-4 bg-[#ff0000]'>
               <h2 className='text-2xl font-bold text-white'>Artwork Setup</h2>
             </div>
@@ -916,11 +916,11 @@ const page = () => {
                   We keep your artwork on file for all future orders.`}
               </p>
             </div>
-          </div>
+          </div> */}
 
 
           {/* Pricing selector Section  */}
-          <div className="">
+          {/* <div className="">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[300px]">
 
               <label
@@ -1096,7 +1096,7 @@ const page = () => {
               </label>
 
             </div>
-          </div>
+          </div> */}
 
           {/* Embroidery Options */}
           {/* {selectedOption?.name === "Embroidery" && (
@@ -1621,31 +1621,8 @@ const page = () => {
               <div className='p-4 bg-[#ff0000] mb-4'>
                 <h2 className='text-2xl font-bold text-white'>Logo Placement</h2>
               </div>
-              {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3> */}
-
-              {/* <div className='grid grid-cols-3 gap-2'>
-                {placements.map((item) => (
-                  <div
-                    key={item.id}
-                    className='product_list_box text-center cursor-pointer'
-                    onClick={() => setLogoPlacement(item.label)}
-                  >
-                    <div
-                      className={`mb-3 border-4 rounded-[8px] overflow-hidden 
-          ${logoPlacement === item.label ? "border-[#ed1c24]" : "border-[#E2E2E2]"} `}
-                    >
-                      <Image src={item.img} alt={item.label} />
-                    </div>
-
-                    <p className='text-[18px] text-[#353535] font-medium'>{item.heading}</p>
-                  </div>
-                ))}
-              </div> */}
-
-
               <div className='grid grid-cols-3 gap-2'>
                 {placements.map((item) => {
-                  // codeMap দিয়ে label কে API code এ convert করো
                   const apiCode = codeMap[item.label];
                   const apiPlacement = logoPlacementList?.find(p => p.code === apiCode);
                   const dynamicImage = apiPlacement
@@ -1659,8 +1636,8 @@ const page = () => {
                       onClick={() => handleLogoPlacement(item.label)}
                     >
                       <div
-                        className={`mb-3 border-4 rounded-[8px] overflow-hidden 
-            ${logoPlacement.includes(item.label)
+                        className={`mb-3 border-4 rounded-[8px] overflow-hidden md:h-[300px] h-[160px] bg-white flex items-center justify-center
+    ${logoPlacement.includes(item.label)
                             ? "border-[#ed1c24]"
                             : "border-[#E2E2E2]"
                           }`}
@@ -1669,10 +1646,14 @@ const page = () => {
                           <img
                             src={dynamicImage}
                             alt={item.label}
-                            className="w-full h-auto object-cover"
+                            className="w-full h-full object-contain"
                           />
                         ) : (
-                          <Image src={item.img} alt={item.label} />
+                          <Image
+                            src={item.img}
+                            alt={item.label}
+                            className="w-full h-full object-contain"
+                          />
                         )}
                       </div>
                       <p className='text-[18px] text-[#353535] font-medium'>

@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getBannerList } from '../reducers/BannerLogoSlice';
 import list_banner from "../assets/imagesource/list_banner.png";
 
-const base_url = "https://customheadwearjava.showmecustomapparel.com";
+const base_url = process.env.NEXT_PUBLIC_API_NEW_URL;
 
 const Banner = () => {
   const dispatch = useDispatch();
@@ -22,17 +22,17 @@ const Banner = () => {
   return (
     <div className='banner_area pt-[28px]'>
       <div className="relative">
-        {/* {bannerSrc ? (
+        {bannerSrc ? (
           <>
             <img
               src={bannerSrc}
               alt={activeBanner?.bannerName || 'banner'}
-              className="hidden lg:block w-full"
+              className="hidden lg:block w-full max-h-[250px]"
             />
             <img
               src={bannerSrc}
               alt={activeBanner?.bannerName || 'banner'}
-              className="block lg:hidden w-full"
+              className="block lg:hidden w-full  max-h-[100px]"
             />
           </>
         ) : (
@@ -40,11 +40,7 @@ const Banner = () => {
             <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
             <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
           </>
-        )} */}
-        <>
-            <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
-            <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
-          </>
+        )}
       </div>
     </div>
   );

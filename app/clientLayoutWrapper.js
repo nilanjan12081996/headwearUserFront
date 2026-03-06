@@ -15,15 +15,15 @@ export default function ClientLayoutWrapper({ children }) {
     const router = useRouter();
 
     // Define public routes that don't require authentication
-    const publicRoutes = ['/', '/product-list', '/upload-artwork', '/checkout', '/product-details', '/about-us', '/awareness', '/terms-conditions', '/refund-cancellation-policy', '/mood-meters', '/mood-masters', '/moodz-matter', '/mood-equalisers', '/support', '/experts', '/therapies', '/mental-health-experts', '/packages', '/contact-us', '/pricing', '/how-it-works', '/features', '/privacy', '/dashboard', '/faqs', '/resume-templates', '/resume-history','/order-confirm', '/orders'];
-    const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/orders/');
+    const publicRoutes = ['/', '/product-list', '/upload-artwork', '/checkout', '/product-details', '/about-us', '/awareness', '/terms-conditions', '/refund-cancellation-policy', '/mood-meters', '/mood-masters', '/moodz-matter', '/mood-equalisers', '/support', '/experts', '/therapies', '/mental-health-experts', '/packages', '/contact-us', '/pricing', '/how-it-works', '/features', '/privacy', '/faqs', '/resume-templates', '/resume-history','/order-confirm', '/reorder-checkout'];
+    const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/orders/') || pathname.startsWith('/reorder-checkout');
     const hideHeaderFooterRoutes = ['/order-confirm'];
     const hideHeaderFooter = hideHeaderFooterRoutes.includes(pathname);
 
     // Function to check token validity
     const checkTokenValidity = () => {
         try {
-            const storedToken = sessionStorage.getItem("cryptoToken");
+            const storedToken = sessionStorage.getItem("showmeheadwear");
             if (!storedToken) return false;
 
             const parsedToken = JSON.parse(storedToken);
@@ -35,7 +35,7 @@ export default function ClientLayoutWrapper({ children }) {
         } catch (error) {
             console.error("Error parsing token:", error);
             // Clear invalid token
-            sessionStorage.removeItem("cryptoToken");
+            sessionStorage.removeItem("showmeheadwear");
             return false;
         }
     };
@@ -56,7 +56,7 @@ export default function ClientLayoutWrapper({ children }) {
 
         // Listen for storage changes (for logout in other tabs)
         const handleStorageChange = (e) => {
-            if (e.key === "cryptoToken") {
+            if (e.key === "showmeheadwear") {
                 validateToken();
             }
         };
@@ -92,42 +92,34 @@ export default function ClientLayoutWrapper({ children }) {
         );
     }
 
-    // Authenticated layout
-    if (hasToken) {
-        return (
-            <main>
-                <ToastContainer/>
-                <div className="dashboard_wrapper lg:flex bg-[#f3f4f6] p-0">
-                    <div className="sidebar_area w-[300px] lg:w-[20%]">
-                        <Sidebar />
-                    </div>
-                    <div className="content_area w-full lg:w-[80%]">
-                        <Insideheader />
-                        <div className="px-5 lg:px-10 lg:py-2">
+    // // Authenticated layout
+    // if (hasToken) {
+    //     return (
+    //         <main>
+    //             <ToastContainer/>
+    //             <div className="dashboard_wrapper lg:flex bg-[#f3f4f6] p-0">
+    //                 <div className="sidebar_area w-[300px] lg:w-[20%]">
+    //                     <Sidebar />
+    //                 </div>
+    //                 <div className="content_area w-full lg:w-[80%]">
+    //                     <Insideheader />
+    //                     <div className="px-5 lg:px-10 lg:py-2">
                          
-                            {children}
+    //                         {children}
                        
                             
-                        </div>
+    //                     </div>
 
-                    </div>
-                </div>
-            </main>
-        );
-    }
+    //                 </div>
+    //             </div>
+    //         </main>
+    //     );
+    // }
 
-    // Public layout (not authenticated)
-    // return (
-    //     <main className="pt-[90px]">
-    //         <Header />
-    //         {children}
-    //         <Footer />
-    //     </main>
-    // );
+
 
     return (
         <main className={hideHeaderFooter ? "" : "pt-[60px]"}>
-             <ToastContainer/>
             {!hideHeaderFooter && <Header />}
 
             {children}

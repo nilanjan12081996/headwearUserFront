@@ -34,7 +34,8 @@ const LoginModal = ({ openLoginModal, setOpenLoginModal, setOpenRegisterModal })
       toast.success(res?.payload?.message || "Login successful!");
       setOpenLoginModal(false);
     } else {
-      toast.error(res?.payload?.message || "Login failed. Please try again.");
+      console.log("res",res)
+      toast.error(res?.payload || "Login failed. Please try again.");
     }
   };
 
@@ -114,11 +115,11 @@ const LoginModal = ({ openLoginModal, setOpenLoginModal, setOpenRegisterModal })
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
 
-            <div className="flex justify-end">
+            {/* <div className="flex justify-end">
               <Link href="#" className="text-xs text-gray-500 hover:text-gray-700">
                 Forgot Password
               </Link>
-            </div>
+            </div> */}
 
             {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 

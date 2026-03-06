@@ -1,37 +1,47 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
 import { GoHome } from "react-icons/go";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
-import { FiClock, FiPackage, FiFileText } from "react-icons/fi";
+import { FiClock, FiFileText } from "react-icons/fi";
 import { BsCurrencyDollar, BsGraphUpArrow, BsBoxSeam } from "react-icons/bs";
 
-import list_banner from "../assets/imagesource/list_banner.png";
+import { getAllOrders, getSpendSummary } from '../reducers/OrdersSlice';
 import Banner from '../ui/Banner';
+import DashboardStats from './Dashboardstats';
 
-// ── Static mock data ──────────────────────────────────────────
-const stats = [
-  { label: "Last 30 Days", value: "$0.00", icon: <BsCurrencyDollar size={16} />, iconBg: "bg-red-50 text-[#ed1c24]" },
-  { label: "Last 90 Days", value: "$0.00", icon: <BsGraphUpArrow size={14} />, iconBg: "bg-orange-50 text-orange-400" },
-  { label: "Last 365 Days", value: "$0.00", icon: <BsGraphUpArrow size={14} />, iconBg: "bg-pink-50 text-pink-400" },
-  { label: "Lifetime Spend", value: "$5,074.00", icon: <BsCurrencyDollar size={16} />, iconBg: "bg-red-50 text-[#ed1c24]" },
+// ── Order status stages ──────────────────────────────────────
+const ALL_STAGES = [
+  'Order received from customer',
+  'Order submitted',
+  'Customer Invoice sent',
+  'Payment Received',
+  'Terms Given',
+  'Order Shipped',
+  'Order delivered',
 ];
 
-const currentOrders = [
-  { id: "ORD-2024-001", status: "Shipped", statusColor: "bg-blue-100 text-blue-700", date: "Jan 15, 2024", items: 2, total: "$1,245.00" },
-  { id: "ORD-2024-002", status: "In Production", statusColor: "bg-purple-100 text-purple-700", date: "Feb 1, 2024", items: 2, total: "$2,850.00" },
-  { id: "ORD-2024-003", status: "Awaiting Proof", statusColor: "bg-yellow-100 text-yellow-700", date: "Feb 20, 2024", items: 1, total: "$980.00" },
-];
+// ── Status badge color helper ─────────────────────────────────
+const getStatusColor = (status) => {
+  const s = (status || '').toLowerCase();
+  if (s.includes('received'))   return 'bg-orange-100 text-orange-700';
+  if (s.includes('submitted'))  return 'bg-blue-100 text-blue-700';
+  if (s.includes('invoice'))    return 'bg-indigo-100 text-indigo-700';
+  if (s.includes('payment'))    return 'bg-green-100 text-green-700';
+  if (s.includes('terms'))      return 'bg-yellow-100 text-yellow-700';
+  if (s.includes('shipped'))    return 'bg-purple-100 text-purple-700';
+  if (s.includes('delivered'))  return 'bg-teal-100 text-teal-700';
+  return 'bg-gray-100 text-gray-700';
+};
 
+
+
+// ── Open invoices mock data ───────────────────────────────────
 const openInvoices = [
   { id: "INV-2024-002", due: "Mar 1, 2024", amount: "$2,850.00", status: "Pending", statusColor: "bg-yellow-100 text-yellow-700" },
-];
-
-const pastOrders = [
-  { id: "ORD-2024-001", date: "Jan 15, 2024", amount: "$1,245.00", status: "Shipped", statusColor: "bg-blue-100 text-blue-700" },
-  { id: "ORD-2024-002", date: "Feb 1, 2024", amount: "$2,850.00", status: "In Production", statusColor: "bg-purple-100 text-purple-700" },
-  { id: "ORD-2024-003", date: "Feb 20, 2024", amount: "$980.00", status: "Awaiting Proof", statusColor: "bg-yellow-100 text-yellow-700" },
 ];
 
 // ── Components ────────────────────────────────────────────────
@@ -42,11 +52,53 @@ const StatusBadge = ({ status, colorClass }) => (
 );
 
 export default function DashboardPage() {
+  const dispatch = useDispatch();
+  const router   = useRouter();
+  const { orders = [], loading = false } = useSelector((state) => state.order ?? {});
+
+  useEffect(() => {
+    dispatch(getAllOrders());
+  }, [dispatch]);
+
+  // ── Derive current orders: NOT "Order delivered", latest 3 ──
+  const currentOrders = orders
+    .filter((o) => (o.orderStatus || '').toLowerCase() !== 'order delivered')
+    .slice(0, 3);
+
+  // ── Derive past orders: only "Order delivered", latest 3 ────
+  const pastOrders = orders
+    .filter((o) => (o.orderStatus || '').toLowerCase() === 'order delivered')
+    .slice(0, 3);
+
+  // ── Format date ──────────────────────────────────────────────
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    let d;
+    if (typeof dateStr === 'string' && dateStr.match(/^\d{2}-\d{2}-\d{4}/)) {
+      const [datePart] = dateStr.split(' ');
+      const [dd, mm, yyyy] = datePart.split('-');
+      d = new Date(`${yyyy}-${mm}-${dd}`);
+    } else {
+      d = new Date(dateStr);
+    }
+    if (isNaN(d)) return dateStr;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // ── Items summary for an order ───────────────────────────────
+  const getOrderSummary = (order) => {
+    const totalQty = (order.groups || []).reduce(
+      (sum, g) => sum + (g.items || []).reduce((s, i) => s + (i.quantity || 0), 0), 0
+    );
+    const total = `$${Number(order.grandTotalAmount ?? 0).toFixed(2)}`;
+    return { totalQty, total };
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
 
       {/* Banner */}
-      <Banner/>
+      <Banner />
 
       {/* Breadcrumb + CTA */}
       <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-5 flex justify-between items-center">
@@ -70,52 +122,83 @@ export default function DashboardPage() {
       {/* Main content */}
       <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-6 pb-20 space-y-6">
 
-        {/* ── Stats Cards ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3">
-              <div className="flex justify-between items-start">
-                <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${stat.iconBg}`}>
-                  {stat.icon}
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            </div>
-          ))}
-        </div>
+       <DashboardStats/>
 
-        {/* ── Current Orders ── */}
+        {/* ── Current Orders (dynamic) ── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <div className="flex justify-between items-center mb-1">
             <div>
               <h2 className="text-base font-semibold text-gray-900">Current Orders</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Track your open orders and their status</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {loading ? 'Loading…' : `Showing last ${currentOrders.length} active order${currentOrders.length !== 1 ? 's' : ''}`}
+              </p>
             </div>
-            <button className="border border-[#ed1c24] text-[#ed1c24] hover:bg-[#ed1c24] hover:text-white transition-colors duration-200 text-sm font-medium px-4 py-1.5 rounded-full">
+            <button
+              onClick={() => router.push('/orders')}
+              className="border border-[#ed1c24] text-[#ed1c24] hover:bg-[#ed1c24] hover:text-white transition-colors duration-200 text-sm font-medium px-4 py-1.5 rounded-full"
+            >
               View All
             </button>
           </div>
 
           <div className="mt-4 divide-y divide-gray-100">
-            {currentOrders.map((order) => (
-              <div key={order.id} className="py-4 flex justify-between items-start">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm font-semibold text-gray-900">{order.id}</span>
-                    <StatusBadge status={order.status} colorClass={order.statusColor} />
+            {loading && (
+              <p className="text-sm text-gray-400 py-4 text-center animate-pulse">Loading orders…</p>
+            )}
+            {!loading && currentOrders.length === 0 && (
+              <p className="text-sm text-gray-400 py-4 text-center">No active orders found.</p>
+            )}
+            {!loading && currentOrders.map((order) => {
+              const { totalQty, total } = getOrderSummary(order);
+              const stageIdx = ALL_STAGES.findIndex(
+                (s) => s.toLowerCase() === (order.orderStatus || '').toLowerCase()
+              );
+              const progress = stageIdx >= 0
+                ? Math.round(((stageIdx + 1) / ALL_STAGES.length) * 100)
+                : 0;
+
+              return (
+                <div key={order.id} className="py-4 flex justify-between items-start">
+                  <div className="space-y-1.5 flex-1 min-w-0 pr-4">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-sm font-semibold text-gray-900">{order.orderNumber}</span>
+                      <StatusBadge
+                        status={order.orderStatus}
+                        colorClass={getStatusColor(order.orderStatus)}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <FiClock size={11} />
+                      <span>Created {formatDate(order.createdAt)}</span>
+                    </div>
+                    <p className="text-xs text-gray-500">{totalQty} unit(s) — {total}</p>
+
+                    {/* Progress bar */}
+                    {/* <div className="mt-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-gray-400">
+                          Step {stageIdx + 1} of {ALL_STAGES.length}
+                        </span>
+                        <span className="text-[10px] font-medium text-[#ed1c24]">{progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                        <div
+                          className="bg-[#ed1c24] h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div> */}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <FiClock size={11} />
-                    <span>Created {order.date}</span>
-                  </div>
-                  <p className="text-xs text-gray-500">{order.items} item(s) - {order.total}</p>
+
+                  <button
+                    onClick={() => router.push(`/orders/${order.id}`)}
+                    className="text-sm text-gray-700 hover:text-[#ed1c24] font-medium transition-colors duration-200 shrink-0 mt-1"
+                  >
+                    View Details
+                  </button>
                 </div>
-                <button className="text-sm text-gray-700 hover:text-[#ed1c24] font-medium transition-colors duration-200 shrink-0 mt-1">
-                  View Details
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -152,31 +235,53 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Recent Past Orders ── */}
+        {/* ── Recent Past Orders (dynamic — only "Order delivered") ── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <div className="mb-1">
-            <h2 className="text-base font-semibold text-gray-900">Recent Past Orders</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Your order history</p>
+          <div className="flex justify-between items-center mb-1">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Recent Past Orders</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {loading ? 'Loading…' : `Last ${pastOrders.length} delivered order${pastOrders.length !== 1 ? 's' : ''}`}
+              </p>
+            </div>
+            <button
+              onClick={() => router.push('/orders')}
+              className="border border-[#ed1c24] text-[#ed1c24] hover:bg-[#ed1c24] hover:text-white transition-colors duration-200 text-sm font-medium px-4 py-1.5 rounded-full"
+            >
+              View All
+            </button>
           </div>
 
           <div className="mt-4 divide-y divide-gray-100">
-            {pastOrders.map((order) => (
-              <div key={order.id} className="py-3.5 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <BsBoxSeam size={14} className="text-gray-500" />
+            {loading && (
+              <p className="text-sm text-gray-400 py-4 text-center animate-pulse">Loading orders…</p>
+            )}
+            {!loading && pastOrders.length === 0 && (
+              <p className="text-sm text-gray-400 py-4 text-center">No delivered orders yet.</p>
+            )}
+            {!loading && pastOrders.map((order) => {
+              const { total } = getOrderSummary(order);
+              return (
+                <div key={order.id} className="py-3.5 flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <BsBoxSeam size={14} className="text-gray-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{order.orderNumber}</p>
+                      <p className="text-xs text-gray-400">{formatDate(order.createdAt)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">{order.id}</p>
-                    <p className="text-xs text-gray-400">{order.date}</p>
+                  <div className="text-right space-y-1">
+                    <p className="text-sm font-bold text-gray-900">{total}</p>
+                    <StatusBadge
+                      status={order.orderStatus}
+                      colorClass={getStatusColor(order.orderStatus)}
+                    />
                   </div>
                 </div>
-                <div className="text-right space-y-1">
-                  <p className="text-sm font-bold text-gray-900">{order.amount}</p>
-                  <StatusBadge status={order.status} colorClass={order.statusColor} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

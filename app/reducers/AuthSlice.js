@@ -51,6 +51,7 @@ export const verifySecurityCode = createAsyncThunk(
     }
 );
 
+
 /* ================= REGISTER ================= */
 
 export const registerCustomer = createAsyncThunk(
@@ -62,42 +63,37 @@ export const registerCustomer = createAsyncThunk(
                 userInput
             );
 
-            if (
-                response?.data?.status_code === 200 ||
-                response?.data?.status_code === 201
-            ) {
+            if (response?.status === 200 || response?.status === 201) {
                 return response.data;
             } else {
                 return rejectWithValue(
-                    response?.data?.errors || 'Registration failed'
+                    response?.data?.message || 'Registration failed'
                 );
             }
         } catch (err) {
-            return rejectWithValue(err);
+            return rejectWithValue(
+                err.response?.data?.message || err.message || 'Registration failed'
+            );
         }
     }
 );
-
 /* ================= LOGIN ================= */
 
 export const loginCustomer = createAsyncThunk(
     'auth/loginCustomer',
     async (userInput, { rejectWithValue }) => {
         try {
-            const response = await newApi.post(
-                '/api/customers/login',
-                userInput
-            );
+            const response = await newApi.post('/api/customers/login', userInput);
 
-            if (response?.data?.status_code === 200) {
+            if (response?.status === 200) {
                 return response.data;
             } else {
-                return rejectWithValue(
-                    response?.data?.errors || 'Login failed'
-                );
+                return rejectWithValue(response?.data?.message || 'Login failed');
             }
         } catch (err) {
-            return rejectWithValue(err);
+            return rejectWithValue(
+                err.response?.data?.message || err.message || 'Login failed'
+            );
         }
     }
 );
@@ -110,18 +106,21 @@ export const logoutCustomer = createAsyncThunk(
         try {
             const response = await newApi.post('/api/customers/logout');
 
-            if (response?.data?.status_code === 200) {
+            if (response?.status === 200) {
                 return response.data;
             } else {
                 return rejectWithValue(
-                    response?.data?.errors || 'Logout failed'
+                    response?.data?.message || 'Logout failed'
                 );
             }
         } catch (err) {
-            return rejectWithValue(err);
+            return rejectWithValue(
+                err.response?.data?.message || err.message || 'Logout failed'
+            );
         }
     }
 );
+
 
 /* ================= DETECT ICCID ================= */
 
@@ -146,6 +145,53 @@ export const detectIccid = createAsyncThunk(
     }
 );
 
+
+/* ================= GET PROFILE ================= */
+
+export const getMyProfile = createAsyncThunk(
+    'auth/getProfile',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await newApi.get('/api/profile/details');
+
+            if (response?.status === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(
+                    response?.data?.message || 'Failed to fetch profile'
+                );
+            }
+        } catch (err) {
+            return rejectWithValue(
+                err.response?.data?.message || err.message || 'Something went wrong'
+            );
+        }
+    }
+);
+
+/* ================= CHANGE PASSWORD ================= */
+
+export const changePassword = createAsyncThunk(
+    'auth/changePassword',
+    async (userInput, { rejectWithValue }) => {
+        try {
+            const response = await newApi.post('/api/customers/change-password', userInput);
+
+            if (response?.status === 200) {
+                return response.data;
+            } else {
+                return rejectWithValue(
+                    response?.data?.message || 'Failed to change password'
+                );
+            }
+        } catch (err) {
+            return rejectWithValue(
+                err.response?.data?.message || err.message || 'Something went wrong'
+            );
+        }
+    }
+);
+
 /* ================= INITIAL STATE ================= */
 
 const initialState = {
@@ -155,6 +201,15 @@ const initialState = {
     isLoggedIn: false,
     loadingSendCode: false,
     loadingIccid: false,
+    // ── Profile ──
+    profile: null,
+    profileLoading: false,
+    profileError: null,
+
+    // ── Change Password ──
+    changePasswordLoading: false,
+    changePasswordError: null,
+    changePasswordSuccess: false,
 };
 
 /* ================= SLICE ================= */
@@ -297,6 +352,38 @@ const authSlice = createSlice({
                 state.error = true;
                 state.message =
                     payload?.message || 'ICCID detection failed';
+            })
+
+            /* -------- GET PROFILE -------- */
+            .addCase(getMyProfile.pending, (state) => {
+                state.profileLoading = true;
+                state.profileError = null;
+            })
+            .addCase(getMyProfile.fulfilled, (state, { payload }) => {
+                state.profileLoading = false;
+                state.profile = payload;
+                state.profileError = null;
+            })
+            .addCase(getMyProfile.rejected, (state, { payload }) => {
+                state.profileLoading = false;
+                state.profileError = payload;
+            })
+
+            /* -------- CHANGE PASSWORD -------- */
+            .addCase(changePassword.pending, (state) => {
+                state.changePasswordLoading = true;
+                state.changePasswordError = null;
+                state.changePasswordSuccess = false;
+            })
+            .addCase(changePassword.fulfilled, (state) => {
+                state.changePasswordLoading = false;
+                state.changePasswordSuccess = true;
+                state.changePasswordError = null;
+            })
+            .addCase(changePassword.rejected, (state, { payload }) => {
+                state.changePasswordLoading = false;
+                state.changePasswordSuccess = false;
+                state.changePasswordError = payload;
             });
     },
 });
