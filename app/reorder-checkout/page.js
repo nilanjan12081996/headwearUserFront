@@ -32,7 +32,7 @@ const ReorderCheckoutPage = () => {
     reorderError,
   } = useSelector((state) => state.order ?? {});
 
-  const [sameAddress, setSameAddress]   = useState(false);
+  const [sameAddress, setSameAddress] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
 
   const {
@@ -57,55 +57,55 @@ const ReorderCheckoutPage = () => {
     if (!reorderPreview) return;
 
     // Personal info
-    setValue("first_name",   reorderPreview.firstName   || "");
-    setValue("last_name",    reorderPreview.lastName    || "");
-    setValue("email",        reorderPreview.email       || "");
-    setValue("phone",        reorderPreview.phone       || "");
+    setValue("first_name", reorderPreview.firstName || "");
+    setValue("last_name", reorderPreview.lastName || "");
+    setValue("email", reorderPreview.email || "");
+    setValue("phone", reorderPreview.phone || "");
     setValue("company_name", reorderPreview.companyName || "");
 
     // Addresses — pick the latest BILLING and SHIPPING (last in list = highest addressId)
     const addresses = reorderPreview.addresses || [];
 
-    const billingAddr  = [...addresses].reverse().find((a) => a.addressType === "BILLING");
+    const billingAddr = [...addresses].reverse().find((a) => a.addressType === "BILLING");
     const shippingAddr = [...addresses].reverse().find((a) => a.addressType === "SHIPPING");
 
     if (billingAddr) {
-      setValue("billing.line1",        billingAddr.line1       || "");
-      setValue("billing.line2",        billingAddr.line2       || "");
-      setValue("billing.city",         billingAddr.city        || "");
-      setValue("billing.state",        billingAddr.state       || "");
-      setValue("billing.postal_code",  billingAddr.postalCode  || "");
-      setValue("billing.country",      billingAddr.country     || "");
-      setValue("billing_address_id",   billingAddr.addressId);
+      setValue("billing.line1", billingAddr.line1 || "");
+      setValue("billing.line2", billingAddr.line2 || "");
+      setValue("billing.city", billingAddr.city || "");
+      setValue("billing.state", billingAddr.state || "");
+      setValue("billing.postal_code", billingAddr.postalCode || "");
+      setValue("billing.country", billingAddr.country || "");
+      setValue("billing_address_id", billingAddr.addressId);
     }
 
     if (shippingAddr) {
-      setValue("shipping.line1",       shippingAddr.line1      || "");
-      setValue("shipping.line2",       shippingAddr.line2      || "");
-      setValue("shipping.city",        shippingAddr.city       || "");
-      setValue("shipping.state",       shippingAddr.state      || "");
+      setValue("shipping.line1", shippingAddr.line1 || "");
+      setValue("shipping.line2", shippingAddr.line2 || "");
+      setValue("shipping.city", shippingAddr.city || "");
+      setValue("shipping.state", shippingAddr.state || "");
       setValue("shipping.postal_code", shippingAddr.postalCode || "");
-      setValue("shipping.country",     shippingAddr.country    || "");
-      setValue("shipping_address_id",  shippingAddr.addressId);
+      setValue("shipping.country", shippingAddr.country || "");
+      setValue("shipping_address_id", shippingAddr.addressId);
     }
   }, [reorderPreview, setValue]);
 
   // ── Copy billing → shipping ───────────────────────────────────────────────
   useEffect(() => {
     if (sameAddress) {
-      setValue("shipping.line1",       billing?.line1       || "");
-      setValue("shipping.line2",       billing?.line2       || "");
-      setValue("shipping.city",        billing?.city        || "");
-      setValue("shipping.state",       billing?.state       || "");
+      setValue("shipping.line1", billing?.line1 || "");
+      setValue("shipping.line2", billing?.line2 || "");
+      setValue("shipping.city", billing?.city || "");
+      setValue("shipping.state", billing?.state || "");
       setValue("shipping.postal_code", billing?.postal_code || "");
-      setValue("shipping.country",     billing?.country     || "");
+      setValue("shipping.country", billing?.country || "");
     } else {
-      setValue("shipping.line1",       "");
-      setValue("shipping.line2",       "");
-      setValue("shipping.city",        "");
-      setValue("shipping.state",       "");
+      setValue("shipping.line1", "");
+      setValue("shipping.line2", "");
+      setValue("shipping.city", "");
+      setValue("shipping.state", "");
       setValue("shipping.postal_code", "");
-      setValue("shipping.country",     "");
+      setValue("shipping.country", "");
     }
   }, [sameAddress, billing, setValue]);
 
@@ -137,33 +137,31 @@ const ReorderCheckoutPage = () => {
     setOrderLoading(true);
     try {
       const payload = {
-        originalOrderId:      Number(orderId),
-        modifiedOrderDetails: {
-          grandTotalAmount: reorderPreview?.orderDetails?.grandTotalAmount ?? 0,
-          groups:           reorderPreview?.orderDetails?.groups           ?? [],
-        },
-        selectedAddresses: [
+        originalOrderId: Number(orderId),
+
+        addresses: [
           {
-            addressType: "BILLING",
-            addressId:   data.billing_address_id || undefined,
-            line1:       data.billing.line1,
-            line2:       data.billing.line2 || "",
-            city:        data.billing.city,
-            state:       data.billing.state,
-            postalCode:  data.billing.postal_code,
-            country:     data.billing.country,
+            addressId: Number(data.shipping_address_id),
+            addressType: "SHIPPING",
           },
           {
-            addressType: "SHIPPING",
-            addressId:   data.shipping_address_id || undefined,
-            line1:       data.shipping.line1,
-            line2:       data.shipping.line2 || "",
-            city:        data.shipping.city,
-            state:       data.shipping.state,
-            postalCode:  data.shipping.postal_code,
-            country:     data.shipping.country,
+            addressId: Number(data.billing_address_id),
+            addressType: "BILLING",
           },
         ],
+
+        orderDetails: {
+          grandTotalAmount: reorderPreview?.orderDetails?.grandTotalAmount ?? 0,
+          groups: (reorderPreview?.orderDetails?.groups ?? []).map((group) => ({
+            id: group.id,
+            items: (group.items ?? []).map((item) => ({
+              id: item.id,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              lineSubtotal: item.lineSubtotal,
+            })),
+          })),
+        },
       };
 
       await dispatch(submitReorder(payload)).unwrap();
