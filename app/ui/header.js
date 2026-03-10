@@ -16,6 +16,7 @@ import LoginModal from '../modal/LoginModal';
 import RegistrationModal from '../modal/RegistrationModal';
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import MyLocation from "../components/MyLocation";
 
 const Header = () => {
   const [openLoginModal, setOpenLoginModal] = useState(false);
@@ -79,12 +80,13 @@ const Header = () => {
       {/* Top Bar */}
       <div className="w-full bg-[#1a1a1a] text-white fixed top-0 left-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-2 flex justify-between items-center">
-          <div className="flex items-center gap-1.5 text-gray-300 min-w-0">
+          {/* <div className="flex items-center gap-1.5 text-gray-300 min-w-0">
             <IoLocationOutline className="text-[#ed1c24] text-sm shrink-0" />
             <span className="text-xs truncate">
               <span className="hidden sm:inline">Location: </span>Lincoln– 344, Illinois, Chicago, USA
             </span>
-          </div>
+          </div> */}
+          <MyLocation/>
 
           <div className="flex items-center gap-3 shrink-0 ml-2">
             {loggedIn ? (

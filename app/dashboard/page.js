@@ -9,7 +9,7 @@ import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { FiClock, FiFileText } from "react-icons/fi";
 import { BsCurrencyDollar, BsGraphUpArrow, BsBoxSeam } from "react-icons/bs";
 
-import { getAllOrders, getSpendSummary } from '../reducers/OrdersSlice';
+import { getAllOrders, getSpendSummary, getAllOrdersNoPagination } from '../reducers/OrdersSlice';
 import Banner from '../ui/Banner';
 import DashboardStats from './Dashboardstats';
 
@@ -27,13 +27,13 @@ const ALL_STAGES = [
 // ── Status badge color helper ─────────────────────────────────
 const getStatusColor = (status) => {
   const s = (status || '').toLowerCase();
-  if (s.includes('received'))   return 'bg-orange-100 text-orange-700';
-  if (s.includes('submitted'))  return 'bg-blue-100 text-blue-700';
-  if (s.includes('invoice'))    return 'bg-indigo-100 text-indigo-700';
-  if (s.includes('payment'))    return 'bg-green-100 text-green-700';
-  if (s.includes('terms'))      return 'bg-yellow-100 text-yellow-700';
-  if (s.includes('shipped'))    return 'bg-purple-100 text-purple-700';
-  if (s.includes('delivered'))  return 'bg-teal-100 text-teal-700';
+  if (s.includes('received')) return 'bg-orange-100 text-orange-700';
+  if (s.includes('submitted')) return 'bg-blue-100 text-blue-700';
+  if (s.includes('invoice')) return 'bg-indigo-100 text-indigo-700';
+  if (s.includes('payment')) return 'bg-green-100 text-green-700';
+  if (s.includes('terms')) return 'bg-yellow-100 text-yellow-700';
+  if (s.includes('shipped')) return 'bg-purple-100 text-purple-700';
+  if (s.includes('delivered')) return 'bg-teal-100 text-teal-700';
   return 'bg-gray-100 text-gray-700';
 };
 
@@ -53,23 +53,22 @@ const StatusBadge = ({ status, colorClass }) => (
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
-  const router   = useRouter();
-  const { orders = [], loading = false } = useSelector((state) => state.order ?? {});
+  const router = useRouter();
+  const { allOrders = [], loading = false } = useSelector((state) => state.order ?? {});
 
   useEffect(() => {
-    dispatch(getAllOrders());
+    dispatch(getAllOrdersNoPagination());
   }, [dispatch]);
 
-  // ── Derive current orders: NOT "Order delivered", latest 3 ──
-  const currentOrders = orders
+  const currentOrders = allOrders
     .filter((o) => (o.orderStatus || '').toLowerCase() !== 'order delivered')
     .slice(0, 3);
 
-  // ── Derive past orders: only "Order delivered", latest 3 ────
-  const pastOrders = orders
+  const pastOrders = allOrders
     .filter((o) => (o.orderStatus || '').toLowerCase() === 'order delivered')
     .slice(0, 3);
-
+  
+    
   // ── Format date ──────────────────────────────────────────────
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
@@ -122,7 +121,7 @@ export default function DashboardPage() {
       {/* Main content */}
       <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-6 pb-20 space-y-6">
 
-       <DashboardStats/>
+        <DashboardStats />
 
         {/* ── Current Orders (dynamic) ── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">

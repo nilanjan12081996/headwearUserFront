@@ -269,8 +269,23 @@ const ReorderCheckoutPage = () => {
                         <div className="mb-2 block">
                           <Label htmlFor="email">Email</Label>
                         </div>
-                        <TextInput {...register("email", { required: true })} id="email" type="email" sizing="md" placeholder='Email Address' />
-                        {errors.email && <small className="text-red-500">Email is required</small>}
+
+                        <div className="relative">
+                          <input
+                            type="email"
+                            readOnly
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-100 
+        text-gray-500 cursor-not-allowed outline-none"
+                            {...register("email", { required: true })}
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
+                            ✓ Verified
+                          </span>
+                        </div>
+
+                        {errors.email && (
+                          <small className="text-red-500">Email is required</small>
+                        )}
                       </div>
                       <div className='w-6/12'>
                         <div className="mb-2 block">

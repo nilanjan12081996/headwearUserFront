@@ -71,7 +71,7 @@ import OrderSummary from './OrderSummary';
 import { toast, ToastContainer } from 'react-toastify';
 import { useSearchParams } from 'next/navigation';
 import LoginModal from '../modal/LoginModal';
-import { sendSecurityCode, verifySecurityCode } from '../reducers/AuthSlice';
+import { getMyProfile, sendSecurityCode, verifySecurityCode } from '../reducers/AuthSlice';
 import { IoClose } from "react-icons/io5";
 
 
@@ -111,7 +111,17 @@ const page = () => {
     loading: authLoading,
   } = useSelector((state) => state.auth);
 
+const { profile } = useSelector((state) => state.auth ?? {});
+const isLoggedIn = !!profile?.email; 
 
+useEffect(() => {
+  if (profile?.email) {
+    setValue("email", profile.email);
+  }
+}, [profile, setValue]);
+useEffect(() => {
+  dispatch(getMyProfile()); 
+}, [dispatch]);
 
   useEffect(() => {
     console.log("showExistingCustomerModal", showExistingCustomerModal);
@@ -436,7 +446,7 @@ const page = () => {
                       <div className="mb-2 block">
                         <Label htmlFor="base">Email</Label>
                       </div>
-                      <TextInput {...register("email", { required: true })} id="base" type="email" sizing="md" placeholder='Email Address' />
+                      <TextInput {...register("email", { required: true })} id="base" type="email" sizing="md" placeholder='Email Address' readOnly={isLoggedIn} disabled={isLoggedIn} className={isLoggedIn ? "bg-gray-100 cursor-not-allowed opacity-70" : ""} />
                       {errors.email && (
                         <small className="text-red-500">
                           Email is required

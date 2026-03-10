@@ -125,6 +125,36 @@ export const getSpendSummary = createAsyncThunk(
     }
 );
 
+/* ================= FETCH ALL ORDERS (NO PAGINATION) ================= */
+export const getAllOrdersNoPagination = createAsyncThunk(
+    'orders/getAllOrdersNoPagination',
+    async (_, { rejectWithValue }) => {
+        try {
+            const firstRes = await newApi.get(`/api/orders/list?page=0&size=10`);
+            if (firstRes?.status !== 200) {
+                return rejectWithValue(firstRes?.data?.message || 'Failed to fetch orders');
+            }
+
+            const firstData = firstRes.data;
+            const totalPages = firstData?.totalPages ?? 1;
+
+            const restRequests = Array.from({ length: totalPages - 1 }, (_, i) =>
+                newApi.get(`/api/orders/list?page=${i + 1}&size=10`)
+            );
+            const restResponses = await Promise.all(restRequests);
+
+            const allOrders = [
+                ...(firstData?.content ?? []),
+                ...restResponses.flatMap((res) => res?.data?.content ?? []),
+            ];
+
+            return allOrders;
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || err.message || 'Something went wrong');
+        }
+    }
+);
+
 const initialState = {
     orders: [],
     // ── Pagination ──
@@ -152,6 +182,8 @@ const initialState = {
     spendSummary: null,
     spendSummaryLoading: false,
     spendSummaryError: null,
+
+    allOrders: [],
 };
 
 const ordersSlice = createSlice({
@@ -183,15 +215,15 @@ const ordersSlice = createSlice({
             .addCase(getAllOrders.fulfilled, (state, { payload }) => {
                 state.loading = false;
                 // ✅ Fix: handle both paginated { content: [] } and plain array
-                state.orders        = Array.isArray(payload)
+                state.orders = Array.isArray(payload)
                     ? payload
                     : Array.isArray(payload?.content)
                         ? payload.content
                         : [];
-                state.currentPage   = payload?.number        ?? 0;
-                state.totalPages    = payload?.totalPages    ?? 1;
+                state.currentPage = payload?.number ?? 0;
+                state.totalPages = payload?.totalPages ?? 1;
                 state.totalElements = payload?.totalElements ?? state.orders.length;
-                state.pageSize      = payload?.size          ?? 10;
+                state.pageSize = payload?.size ?? 10;
                 state.error = false;
             })
             .addCase(getAllOrders.rejected, (state, { payload }) => {
@@ -207,8 +239,8 @@ const ordersSlice = createSlice({
             })
             .addCase(searchOrders.fulfilled, (state, { payload }) => {
                 state.loading = false;
-                state.searchResults       = payload?.content       ?? [];
-                state.searchTotalPages    = payload?.totalPages    ?? 1;
+                state.searchResults = payload?.content ?? [];
+                state.searchTotalPages = payload?.totalPages ?? 1;
                 state.searchTotalElements = payload?.totalElements ?? 0;
                 state.error = false;
             })
@@ -275,7 +307,23 @@ const ordersSlice = createSlice({
             .addCase(getSpendSummary.rejected, (state, { payload }) => {
                 state.spendSummaryLoading = false;
                 state.spendSummaryError = payload;
-            });
+            })
+
+            /* -------- GET ALL ORDERS NO PAGINATION -------- */
+            .addCase(getAllOrdersNoPagination.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getAllOrdersNoPagination.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.allOrders = payload;
+                state.error = false;
+            })
+            .addCase(getAllOrdersNoPagination.rejected, (state, { payload }) => {
+                state.loading = false;
+                state.error = true;
+                state.message = payload;
+            })
     },
 });
 
