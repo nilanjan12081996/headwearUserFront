@@ -155,6 +155,40 @@ export const getAllOrdersNoPagination = createAsyncThunk(
     }
 );
 
+/* ================= GET INVOICE INFO ================= */
+export const getInvoiceByOrder = createAsyncThunk(
+    'orders/getInvoiceByOrder',
+    async (orderId, { rejectWithValue }) => {
+        try {
+            const response = await newApi.get(`/api/invoices/order/${orderId}`);
+            if (response?.status === 200) {
+                return response.data;
+            }
+            return rejectWithValue(response?.data?.message || 'Failed to fetch invoice');
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+);
+
+/* ================= DOWNLOAD INVOICE ================= */
+export const downloadInvoice = createAsyncThunk(
+    'orders/downloadInvoice',
+    async (orderId, { rejectWithValue }) => {
+        try {
+            const response = await newApi.get(`/api/invoices/download/${orderId}`, {
+                responseType: 'blob', // PDF binary data
+            });
+            if (response?.status === 200) {
+                return { blob: response.data, orderId };
+            }
+            return rejectWithValue('Failed to download invoice');
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || err.message);
+        }
+    }
+);
+
 const initialState = {
     orders: [],
     // ── Pagination ──
@@ -184,6 +218,12 @@ const initialState = {
     spendSummaryError: null,
 
     allOrders: [],
+
+    // ── Invoice ──
+    invoiceInfo: null,
+    invoiceLoading: false,
+    invoiceDownloading: false,
+    invoiceError: null,
 };
 
 const ordersSlice = createSlice({
@@ -214,7 +254,7 @@ const ordersSlice = createSlice({
             })
             .addCase(getAllOrders.fulfilled, (state, { payload }) => {
                 state.loading = false;
-                // ✅ Fix: handle both paginated { content: [] } and plain array
+                //handle both paginated { content: [] } and plain array
                 state.orders = Array.isArray(payload)
                     ? payload
                     : Array.isArray(payload?.content)
@@ -323,6 +363,32 @@ const ordersSlice = createSlice({
                 state.loading = false;
                 state.error = true;
                 state.message = payload;
+            })
+
+            /* -------- GET INVOICE INFO -------- */
+            .addCase(getInvoiceByOrder.pending, (state) => {
+                state.invoiceLoading = true;
+                state.invoiceError = null;
+            })
+            .addCase(getInvoiceByOrder.fulfilled, (state, { payload }) => {
+                state.invoiceLoading = false;
+                state.invoiceInfo = payload;
+            })
+            .addCase(getInvoiceByOrder.rejected, (state, { payload }) => {
+                state.invoiceLoading = false;
+                state.invoiceError = payload;
+            })
+
+            /* -------- DOWNLOAD INVOICE -------- */
+            .addCase(downloadInvoice.pending, (state) => {
+                state.invoiceDownloading = true;
+            })
+            .addCase(downloadInvoice.fulfilled, (state) => {
+                state.invoiceDownloading = false;
+            })
+            .addCase(downloadInvoice.rejected, (state, { payload }) => {
+                state.invoiceDownloading = false;
+                state.invoiceError = payload;
             })
     },
 });

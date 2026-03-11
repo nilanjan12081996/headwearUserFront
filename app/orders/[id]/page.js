@@ -11,7 +11,7 @@ import { FiDownload, FiRefreshCw, FiPackage, FiMapPin, FiExternalLink, FiFile } 
 import { HiOutlineClock } from 'react-icons/hi';
 
 import list_banner from '../../assets/imagesource/list_banner.png';
-import { getSingleOrder, getReorderPreview } from '../../reducers/OrdersSlice';
+import { getSingleOrder, getReorderPreview, getInvoiceByOrder, downloadInvoice } from '../../reducers/OrdersSlice';
 import { FaPalette } from 'react-icons/fa';
 import Banner from '../../ui/Banner';
 
@@ -58,7 +58,7 @@ export default function OrderDetailPage() {
     const router = useRouter();
     const dispatch = useDispatch();
 
-    const { selectedOrder, detailLoading, reorderPreviewLoading } = useSelector((state) => state.order ?? {});
+    const { selectedOrder, detailLoading, reorderPreviewLoading, invoiceDownloading } = useSelector((state) => state.order ?? {});
 
     // Collapsible state for colors — per group (keyed by group.id)
     const [expandedColors, setExpandedColors] = useState({});
@@ -129,10 +129,36 @@ export default function OrderDetailPage() {
         groups.flatMap((g) => g.hatColors || []).map((c) => [c.id, c])
     ).values()];
 
+
+    const handleDownloadInvoice = async () => {
+
+        const infoResult = await dispatch(getInvoiceByOrder(id));
+
+        if (getInvoiceByOrder.fulfilled.match(infoResult)) {
+            const invoiceId = infoResult.payload?.id ?? id;
+
+            const downloadResult = await dispatch(downloadInvoice(invoiceId));
+
+            if (downloadInvoice.fulfilled.match(downloadResult)) {
+                const blob = downloadResult.payload.blob;
+                const url = window.URL.createObjectURL(
+                    new Blob([blob], { type: 'application/pdf' })
+                );
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `Invoice-${orderNumber}.pdf`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Banner */}
-            <Banner/>
+            <Banner />
             {/* Breadcrumb */}
             <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-5">
                 <ul className="flex items-center gap-2">
@@ -164,8 +190,19 @@ export default function OrderDetailPage() {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <button className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-[#ed1c24] hover:text-[#ed1c24] transition-colors text-xs font-semibold px-4 py-2.5 rounded-full">
-                        <FiDownload size={13} /> Download Invoice
+                    <button
+                        onClick={handleDownloadInvoice}
+                        disabled={invoiceDownloading}
+                        className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-[#ed1c24] hover:text-[#ed1c24] disabled:opacity-60 disabled:cursor-not-allowed transition-colors text-xs font-semibold px-4 py-2.5 rounded-full"
+                    >
+                        {invoiceDownloading ? (
+                            <>
+                                <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                Downloading…
+                            </>
+                        ) : (
+                            <><FiDownload size={13} /> Download Invoice</>
+                        )}
                     </button>
                     <button
                         onClick={handleReorderClick}
@@ -313,27 +350,28 @@ export default function OrderDetailPage() {
 
                 {/* ── Decorations / Artwork ── */}
                 {art && (
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
                         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-4">
                             <FaPalette className="text-[#ed1c24]" size={15} />
                             Decorations
                         </h2>
-                        <div className="border border-gray-100 rounded-lg p-4 space-y-3">
+                        <div className="border border-gray-100 rounded-lg p-3 sm:p-4 space-y-3">
+
                             {/* Top row: badges + file link */}
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="space-y-1.5">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+
+                                {/* Left: all info */}
+                                <div className="space-y-1.5 min-w-0">
                                     {art.DecorationTypeName && (
                                         <span className="inline-block text-xs font-bold bg-[#ed1c24] text-white px-2.5 py-0.5 rounded-full">
                                             {art.DecorationTypeName}
                                         </span>
                                     )}
                                     {art.embroideryType && (
-                                        <div>
-                                            <p className="text-xs text-gray-400 mb-1">
-                                                <span className="font-medium text-gray-600">Embroidery Type: </span>
-                                                {art.embroideryType.replace(/_/g, ' ')}
-                                            </p>
-                                        </div>
+                                        <p className="text-xs text-gray-400 break-words">
+                                            <span className="font-medium text-gray-600">Embroidery Type: </span>
+                                            {art.embroideryType.replace(/_/g, ' ')}
+                                        </p>
                                     )}
                                     {art.logoPlacement && (
                                         <div>
@@ -351,42 +389,49 @@ export default function OrderDetailPage() {
                                         </div>
                                     )}
                                     {art.placementNotes && (
-                                        <p className="text-xs text-gray-400 leading-relaxed">
+                                        <p className="text-xs text-gray-400 leading-relaxed break-words">
                                             <span className="font-medium text-gray-600">Placement Notes: </span>
                                             {art.placementNotes}
                                         </p>
                                     )}
                                     {art.setupPlanName && (
-                                        <p className="text-xs text-gray-400">
+                                        <p className="text-xs text-gray-400 break-words">
                                             <span className="font-medium text-gray-600">Setup Plan: </span>
                                             {art.setupPlanName}
                                         </p>
                                     )}
                                     {art.orderNotes && (
-                                        <p className="text-xs text-gray-400 leading-relaxed">
+                                        <p className="text-xs text-gray-400 leading-relaxed break-words">
                                             <span className="font-medium text-gray-600">Order Notes: </span>
                                             {art.orderNotes}
                                         </p>
                                     )}
                                 </div>
+
+                                {/* File link — full width on mobile, shrink on desktop */}
                                 {art.originalFileUrl && (
                                     <a
                                         href={`${BASE_URL}${art.originalFileUrl}`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex items-center gap-1.5 text-xs text-[#ed1c24] hover:underline shrink-0 border border-red-100 px-3 py-1.5 rounded-full"
+                                        className="flex items-center gap-1.5 text-xs text-[#ed1c24] hover:underline
+                                   border border-red-100 px-3 py-1.5 rounded-full
+                                   w-full sm:w-auto sm:shrink-0 sm:self-start
+                                   justify-center sm:justify-start"
                                     >
                                         <FiFile size={13} />
-                                        {art.originalFileUrl.split('/').pop()}
-                                        <FiExternalLink size={11} />
+                                        <span className="truncate max-w-[180px] sm:max-w-[140px]">
+                                            {art.originalFileUrl.split('/').pop()}
+                                        </span>
+                                        <FiExternalLink size={11} className="shrink-0" />
                                     </a>
                                 )}
                             </div>
 
-                            {/* Colors from groups — collapsible, same as page 1 */}
+                            {/* Colors */}
                             {allDecoColors.length > 0 && (
                                 <div>
-                                    <p className="text-xs text-gray-400 mb-1.5">
+                                    <p className="text-xs text-gray-400 leading-relaxed break-words">
                                         <span className="font-medium text-gray-600">Colors: </span>
                                         {(expandedDecoColors
                                             ? allDecoColors
