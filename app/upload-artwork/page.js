@@ -404,20 +404,49 @@ const page = () => {
   const savedCardId = sessionStorage.getItem('cartId')
   const cart_id = sessionStorage.getItem('cart_id')
   // Prepare final payload
+  // const preparePayload = () => {
+  //   const selectedDecoration = decorationList?.data?.find(
+  //     item => item.recordId === selectedDecorationId
+  //   );
+
+  //   const payload = {
+  //     sessionUuid: sessionUUid || deviceId,
+  //     // cart_id: cartId,
+  //     cart_id: cart_id,
+  //     logo_id: logoId,
+  //     primary_decoration_type_id: selectedOption.id,
+  //     embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
+  //     patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
+  //     patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
+  //     logo_placement: Array.isArray(logoPlacement) ? logoPlacement.join(",") : logoPlacement,
+  //     placement_size_notes: placementSizeNotes,
+  //     order_notes: orderNotes,
+  //     color_notes: colorNotes,
+  //     back_stitching: backStitching,
+  //     back_stitch_details: backStitching ? backStitchDetails : "",
+  //     back_stitching_file: backStitching && backStitchingFile ? backStitchingFile : null,
+  //     left_stitching: leftStitching,
+  //     left_side_details: leftStitching ? leftSideDetails : "",
+  //     left_stitching_file: leftStitching && leftStitchingFile ? leftStitchingFile : null,
+  //     right_stitching: rightStitching,
+  //     right_side_details: rightStitching ? rightSideDetails : "",
+  //     right_stitching_file: rightStitching && rightStitchingFile ? rightStitchingFile : null,
+  //   };
+
+  //   return payload;
+  // };
+
   const preparePayload = () => {
-    const selectedDecoration = decorationList?.data?.find(
-      item => item.recordId === selectedDecorationId
-    );
+    const isPatch = embroideryType === "patch";
 
     const payload = {
       sessionUuid: sessionUUid || deviceId,
-      // cart_id: cartId,
       cart_id: cart_id,
       logo_id: logoId,
       primary_decoration_type_id: selectedOption.id,
-      embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
-      patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
-      patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
+      embroidery_type: isPatch ? "" : (embroideryType ?? ""),
+      patch_shape: isPatch && patchOption ? String(patchOption) : "",
+      patch_color: isPatch ? patchColor : "",
       logo_placement: Array.isArray(logoPlacement) ? logoPlacement.join(",") : logoPlacement,
       placement_size_notes: placementSizeNotes,
       order_notes: orderNotes,
@@ -439,6 +468,11 @@ const page = () => {
     if (!agree) {
       setErrorMsg("You must agree to copyright/ownership permission.");
       checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (embroideryType === "patch" && !patchOption) {
+      toast.error("Please select a patch style.");
+      document.getElementById("patch-options-section")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
     const payload = preparePayload();

@@ -48,7 +48,7 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
       reset();
       setOpenRegisterModal(false);
     } else {
-      toast.error(res?.payload?.message || "Registration failed. Please try again.");
+      toast.error(res?.payload || "Registration failed. Please try again.");
     }
   };
   
