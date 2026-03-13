@@ -73,6 +73,7 @@ import { useSearchParams } from 'next/navigation';
 import LoginModal from '../modal/LoginModal';
 import { getMyProfile, sendSecurityCode, verifySecurityCode } from '../reducers/AuthSlice';
 import { IoClose } from "react-icons/io5";
+import { sendHeadwearCreateOrderEmail } from '../reducers/OrdersSlice';
 
 
 
@@ -155,6 +156,89 @@ useEffect(() => {
   }, [sameAddress, billing, setValue]);
 
 
+  // const onSubmit = async (data) => {
+  //   const totalQty = cartListItem?.data?.cart?.total_items || 0;
+  //   if (totalQty < 24) {
+  //     toast.error("A minimum of 24 hats is required to proceed. Please add more hats.");
+  //     return; 
+  //   }
+  //   setOrderLoading(true);
+
+  //   const payload = {
+  //     customer: {
+  //       first_name: data.first_name,
+  //       last_name: data.last_name,
+  //       email: data.email,
+  //       phone: data.phone,
+  //       company_name: data.company_name,
+  //       session_uuid: savedUUid
+  //     },
+  //     billing: {
+  //       line1: data.billing.line1,
+  //       line2: data.billing.line2,
+  //       city: data.billing.city,
+  //       state: data.billing.state,
+  //       postal_code: data.billing.postal_code,
+  //       country: data.billing.country,
+  //       address_type: "BILLING",
+  //     },
+  //     shipping: {
+  //       line1: data.shipping.line1,
+  //       line2: data.shipping.line2,
+  //       city: data.shipping.city,
+  //       state: data.shipping.state,
+  //       postal_code: data.shipping.postal_code,
+  //       country: data.shipping.country,
+  //       address_type: "SHIPPING",
+  //     },
+  //   };
+
+  //   try {
+  //     const res = await dispatch(addAddress(payload)).unwrap();
+  //     if (res?.status_code === 201) {
+  //       const customerId = res?.data?.customer?.id;
+  //       const shipping_id = res?.data?.addresses?.[0]?.data?.id;
+  //       const billing_id = res?.data?.addresses?.[1]?.data?.id;
+
+  //       setCust_id(customerId);
+  //       setShippingId(shipping_id);
+  //       setBillingId(billing_id);
+
+  //       const updateRes = await dispatch(updateCustomer({
+  //         id: cart_id,
+  //         customer_id: customerId
+  //       })).unwrap();
+
+  //       if (updateRes.status_code === 200) {
+  //         const orderData = {
+  //           cart_id: cart_id,
+  //           billing_address_id: billing_id,
+  //           shipping_address_id: shipping_id,
+  //           shipping_method_id: 1,
+  //           artwork_config_id: artworkId,
+  //         };
+
+  //         await dispatch(saveOrder(orderData)).unwrap();
+
+  //         sessionStorage.removeItem("cartId");
+  //         sessionStorage.removeItem("cart_id");
+  //         sessionStorage.removeItem("cartItemMap");
+  //         sessionStorage.removeItem("hatQuantities");
+  //         sessionStorage.removeItem("uuid");
+
+  //         toast.success("Order placed successfully!");
+  //         setTimeout(() => {
+  //           router.push("/order-confirm");
+  //         }, 1500);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Order failed:", error);
+  //   } finally {
+  //     setOrderLoading(false);
+  //   }
+  // };
+
   const onSubmit = async (data) => {
     const totalQty = cartListItem?.data?.cart?.total_items || 0;
     if (totalQty < 24) {
@@ -217,7 +301,29 @@ useEffect(() => {
             artwork_config_id: artworkId,
           };
 
-          await dispatch(saveOrder(orderData)).unwrap();
+          const orderRes = await dispatch(saveOrder(orderData)).unwrap();
+
+          // ── Webhook call after successful order ──
+          if (orderRes?.status_code === 201) {
+            const webhookPayload = {
+              customer: {
+                first_name: data.first_name,
+                last_name: data.last_name,
+                email: data.email,
+                phone: data.phone,
+                company_name: data.company_name,
+              },
+              order_id: orderRes?.data?.order_id,
+              order_number: orderRes?.data?.order_number,
+              grand_total: orderRes?.data?.grand_total,
+            };
+
+            try {
+              await dispatch(sendHeadwearCreateOrderEmail(webhookPayload)).unwrap();
+            } catch (webhookErr) {
+              console.error("Webhook failed (non-blocking):", webhookErr);
+            }
+          }
 
           sessionStorage.removeItem("cartId");
           sessionStorage.removeItem("cart_id");

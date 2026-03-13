@@ -193,6 +193,30 @@ export const downloadInvoice = createAsyncThunk(
     }
 );
 
+/* ================= SEND HEADWEAR ORDER EMAIL ================= */
+export const sendHeadwearCreateOrderEmail = createAsyncThunk(
+    'orders/sendHeadwearCreateOrderEmail',
+    async (payload, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(
+                'https://n8nnode.showmecustomapparel.com/webhook/HEADWEAR_CREATE_ORDER_EMAIL',
+                payload,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            if (response?.status === 200 || response?.status === 201) {
+                return response.data;
+            }
+            return rejectWithValue(response?.data?.message || 'Failed to send headwear order email');
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || err.message || 'Something went wrong');
+        }
+    }
+);
+
 const initialState = {
     orders: [],
     // ── Pagination ──
@@ -228,6 +252,11 @@ const initialState = {
     invoiceLoading: false,
     invoiceDownloading: false,
     invoiceError: null,
+
+    // ── Headwear Order Email ──
+    headwearEmailLoading: false,
+    headwearEmailSuccess: false,
+    headwearEmailError: null,
 };
 
 const ordersSlice = createSlice({
@@ -393,6 +422,22 @@ const ordersSlice = createSlice({
             .addCase(downloadInvoice.rejected, (state, { payload }) => {
                 state.invoiceDownloading = false;
                 state.invoiceError = payload;
+            })
+
+            /* -------- SEND HEADWEAR ORDER EMAIL -------- */
+            .addCase(sendHeadwearCreateOrderEmail.pending, (state) => {
+                state.headwearEmailLoading = true;
+                state.headwearEmailSuccess = false;
+                state.headwearEmailError = null;
+            })
+            .addCase(sendHeadwearCreateOrderEmail.fulfilled, (state) => {
+                state.headwearEmailLoading = false;
+                state.headwearEmailSuccess = true;
+            })
+            .addCase(sendHeadwearCreateOrderEmail.rejected, (state, { payload }) => {
+                state.headwearEmailLoading = false;
+                state.headwearEmailSuccess = false;
+                state.headwearEmailError = payload;
             })
     },
 });
