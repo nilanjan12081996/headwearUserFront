@@ -73,7 +73,8 @@ import { useSearchParams } from 'next/navigation';
 import LoginModal from '../modal/LoginModal';
 import { getMyProfile, sendSecurityCode, verifySecurityCode } from '../reducers/AuthSlice';
 import { IoClose } from "react-icons/io5";
-import { sendHeadwearCreateOrderEmail } from '../reducers/OrdersSlice';
+import { clearCouponState, sendHeadwearCreateOrderEmail } from '../reducers/OrdersSlice';
+import Banner from '../ui/Banner';
 
 
 
@@ -112,17 +113,17 @@ const page = () => {
     loading: authLoading,
   } = useSelector((state) => state.auth);
 
-const { profile } = useSelector((state) => state.auth ?? {});
-const isLoggedIn = !!profile?.email; 
+  const { profile } = useSelector((state) => state.auth ?? {});
+  const isLoggedIn = !!profile?.email;
 
-useEffect(() => {
-  if (profile?.email) {
-    setValue("email", profile.email);
-  }
-}, [profile, setValue]);
-useEffect(() => {
-  dispatch(getMyProfile()); 
-}, [dispatch]);
+  useEffect(() => {
+    if (profile?.email) {
+      setValue("email", profile.email);
+    }
+  }, [profile, setValue]);
+  useEffect(() => {
+    dispatch(getMyProfile());
+  }, [dispatch]);
 
   useEffect(() => {
     console.log("showExistingCustomerModal", showExistingCustomerModal);
@@ -243,7 +244,7 @@ useEffect(() => {
     const totalQty = cartListItem?.data?.cart?.total_items || 0;
     if (totalQty < 24) {
       toast.error("A minimum of 24 hats is required to proceed. Please add more hats.");
-      return; 
+      return;
     }
     setOrderLoading(true);
 
@@ -330,7 +331,7 @@ useEffect(() => {
           sessionStorage.removeItem("cartItemMap");
           sessionStorage.removeItem("hatQuantities");
           sessionStorage.removeItem("uuid");
-
+          dispatch(clearCouponState());
           toast.success("Order placed successfully!");
           setTimeout(() => {
             router.push("/order-confirm");
@@ -450,16 +451,13 @@ useEffect(() => {
 
       <div>
         <ToastContainer />
-        <div className='banner_area py-0 lg:p-0'>
-          {/* home banner section start here */}
+        {/* <div className='banner_area py-0 lg:p-0'>
           <div className="relative">
             <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
             <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
           </div>
-        </div>
-
-
-
+        </div> */}
+        <Banner />
         {/* Who We Are section start here */}
         <div className="py-10 lg:pb-20 lg:pt-10">
 
@@ -652,7 +650,7 @@ useEffect(() => {
 
 
                   <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Shipping Information</h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Address Line 1</Label>
@@ -671,7 +669,7 @@ useEffect(() => {
                       <TextInput {...register("shipping.line2")} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
                     </div>
                   </div>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Country / Region</Label>
@@ -696,7 +694,7 @@ useEffect(() => {
                     </div>
                   </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Postal Code</Label>

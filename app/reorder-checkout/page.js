@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast, ToastContainer } from 'react-toastify';
 import { getReorderPreview, submitReorder, clearReorderState } from '../reducers/OrdersSlice';
 import ReorderSummary from './ReorderSummary';
+import Banner from '../ui/Banner';
 
 const ReorderCheckoutPage = () => {
   const router = useRouter();
@@ -176,12 +177,13 @@ const ReorderCheckoutPage = () => {
     <>
       <div>
         <ToastContainer />
-        <div className='banner_area py-0 lg:p-0'>
+        {/* <div className='banner_area py-0 lg:p-0'>
           <div className="relative">
             <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
             <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
           </div>
-        </div>
+        </div> */}
+        <Banner/>
 
         <div className="py-10 lg:pb-20 lg:pt-10">
 

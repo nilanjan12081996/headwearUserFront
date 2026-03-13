@@ -217,6 +217,28 @@ export const sendHeadwearCreateOrderEmail = createAsyncThunk(
     }
 );
 
+
+/* ================= APPLY COUPON ================= */
+export const applyCoupon = createAsyncThunk(
+    'orders/applyCoupon',
+    async ({ coupon, grandTotalAmount }, { rejectWithValue }) => {
+        try {
+            const response = await newApi.post(`/api/customer/coupons`, {
+                coupon,
+                grandTotalAmount,
+            });
+            if (response?.status === 200 || response?.status === 201) {
+                return response.data;
+            }
+            return rejectWithValue(response?.data?.message || 'Failed to apply coupon');
+        } catch (err) {
+            return rejectWithValue(
+                err.response?.data?.message || err.message || 'Something went wrong'
+            );
+        }
+    }
+);
+
 const initialState = {
     orders: [],
     // ── Pagination ──
@@ -257,6 +279,13 @@ const initialState = {
     headwearEmailLoading: false,
     headwearEmailSuccess: false,
     headwearEmailError: null,
+
+    // ── Coupon ──
+    couponData: null,
+    couponLoading: false,
+    couponSuccess: false,
+    couponError: null,
+    appliedCouponCode: null,
 };
 
 const ordersSlice = createSlice({
@@ -276,6 +305,14 @@ const ordersSlice = createSlice({
             state.reorderLoading = false;
             state.reorderSuccess = false;
             state.reorderError = null;
+        },
+
+        clearCouponState: (state) => {
+            state.couponData = null;
+            state.couponLoading = false;
+            state.couponSuccess = false;
+            state.couponError = null;
+            state.appliedCouponCode = null;
         },
     },
     extraReducers: (builder) => {
@@ -439,10 +476,28 @@ const ordersSlice = createSlice({
                 state.headwearEmailSuccess = false;
                 state.headwearEmailError = payload;
             })
+
+            /* -------- APPLY COUPON -------- */
+            .addCase(applyCoupon.pending, (state) => {
+                state.couponLoading = true;
+                state.couponSuccess = false;
+                state.couponError = null;
+            })
+            .addCase(applyCoupon.fulfilled, (state, { payload }) => {
+                state.couponLoading = false;
+                state.couponSuccess = true;
+                state.couponData = payload.data;
+                state.appliedCouponCode = payload?.coupon ?? null;
+            })
+            .addCase(applyCoupon.rejected, (state, { payload }) => {
+                state.couponLoading = false;
+                state.couponSuccess = false;
+                state.couponError = payload;
+            });
     },
 });
 
-export const { clearOrderState, clearSelectedOrder, clearReorderState } = ordersSlice.actions;
+export const { clearOrderState, clearSelectedOrder, clearReorderState, clearCouponState} = ordersSlice.actions;
 export default ordersSlice.reducer;
 
 // 'use client';
