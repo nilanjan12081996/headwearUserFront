@@ -291,6 +291,7 @@ export default function OrderDetailPage() {
                             <FiPackage className="text-[#ed1c24]" size={15} />
                             Order Items
                         </h2>
+
                         <div className="space-y-3">
                             {groups.map((group) => {
                                 const totalQty = (group.items || []).reduce((s, i) => s + (i.quantity || 0), 0);
@@ -311,9 +312,7 @@ export default function OrderDetailPage() {
                                                         onClick={() => toggleColors(group.id)}
                                                         className="ml-1 text-[#ed1c24] hover:underline font-medium"
                                                     >
-                                                        {isExpanded
-                                                            ? ' Show less'
-                                                            : ` +${colorNames.length - 3} more`}
+                                                        {isExpanded ? ' Show less' : ` +${colorNames.length - 3} more`}
                                                     </button>
                                                 )}
                                             </p>
@@ -324,11 +323,74 @@ export default function OrderDetailPage() {
                                 );
                             })}
                         </div>
-                        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-                            <p className="text-sm font-semibold text-gray-700">Total</p>
-                            <p className="text-xl font-bold text-gray-900">${Number(grandTotal).toFixed(2)}</p>
-                        </div>
+
+                        {/* ── Summary ── */}
+                        {(() => {
+                            const itemsSum = groups.reduce((sum, g) =>
+                                sum + (g.items || []).reduce((s, i) => s + (i.lineSubtotal || 0), 0), 0);
+                            const subtotal = (order?.subtotalAmount ?? 0) > 0
+                                ? Number(order.subtotalAmount)
+                                : itemsSum;
+                            const addons = Number(order?.addonsAmount ?? 0);
+                            const coupon = Number(order?.couponAddAmount ?? 0);
+
+                            
+                            const beforeCoupon = subtotal + addons;
+                            // final total after coupon
+                            const finalTotal = coupon > 0 ? beforeCoupon - coupon : beforeCoupon;
+
+                            return (
+                                <div className="mt-4 pt-3 border-t border-gray-100 space-y-2">
+
+                                    {/* Subtotal */}
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-xs text-gray-400">Subtotal</p>
+                                        <p className="text-sm text-gray-700">${subtotal.toFixed(2)}</p>
+                                    </div>
+
+                                    {/* Add-ons */}
+                                    {addons > 0 && (
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-gray-400">Add-ons</p>
+                                            <p className="text-sm text-gray-700">+${addons.toFixed(2)}</p>
+                                        </div>
+                                    )}
+
+                                    
+                                    {coupon > 0 && (
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-gray-400">Grand Total</p>
+                                            <p className="text-sm text-gray-700">${beforeCoupon.toFixed(2)}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Coupon Discount */}
+                                    {coupon > 0 && (
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                                                 Coupon Discount
+                                            </p>
+                                            <p className="text-sm font-medium text-green-600">
+                                                -${(beforeCoupon - coupon).toFixed(2)}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Final Total */}
+                                    <div className="border-t border-gray-100 pt-2 flex justify-between items-center">
+                                        <p className="text-sm font-semibold text-gray-700">Total</p>
+                                        <p className="text-xl font-bold text-gray-900">
+                                            ${coupon > 0
+                                                ? (beforeCoupon - (beforeCoupon - coupon)).toFixed(2)
+                                                : finalTotal.toFixed(2)}
+                                        </p>
+                                    </div>
+
+                                </div>
+                            );
+                        })()}
                     </div>
+
 
                     {/* Shipping Address */}
                     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">

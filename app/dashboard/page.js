@@ -202,7 +202,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Open Invoices ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        {/* <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-6 h-6 rounded-full border-2 border-orange-400 flex items-center justify-center">
               <span className="text-orange-400 text-xs font-bold leading-none">!</span>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* ── Recent Past Orders (dynamic — only "Order delivered") ── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">

@@ -4,13 +4,9 @@ import React, { useEffect, useState } from 'react'
 
 import { Label, Checkbox, TextInput } from "flowbite-react";
 
-import list_banner from "../assets/imagesource/list_banner.png";
-
 import { GoHome } from "react-icons/go";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { useRouter, useSearchParams } from "next/navigation";
-
-import Image from 'next/image';
 
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
@@ -31,6 +27,9 @@ const ReorderCheckoutPage = () => {
     reorderLoading,
     reorderSuccess,
     reorderError,
+    // ── pull coupon state so we can include it in the payload ──
+    couponSuccess,
+    couponData,
   } = useSelector((state) => state.order ?? {});
 
   const [sameAddress, setSameAddress] = useState(false);
@@ -46,67 +45,64 @@ const ReorderCheckoutPage = () => {
 
   const billing = watch("billing");
 
-  // ── Fetch preview if not in redux yet ────────────────────────────────────
+  // ── Fetch preview ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (orderId && !reorderPreview && !reorderPreviewLoading) {
       dispatch(getReorderPreview(orderId));
     }
   }, [orderId]);
 
-  // ── Auto-fill form from preview response ──────────────────────────────────
+  // ── Auto-fill form from preview ───────────────────────────────────────────
   useEffect(() => {
     if (!reorderPreview) return;
 
-    // Personal info
     setValue("first_name", reorderPreview.firstName || "");
     setValue("last_name", reorderPreview.lastName || "");
     setValue("email", reorderPreview.email || "");
     setValue("phone", reorderPreview.phone || "");
     setValue("company_name", reorderPreview.companyName || "");
 
-    // Addresses — pick the latest BILLING and SHIPPING (last in list = highest addressId)
     const addresses = reorderPreview.addresses || [];
-
-    const billingAddr = [...addresses].reverse().find((a) => a.addressType === "BILLING");
+    const billingAddr  = [...addresses].reverse().find((a) => a.addressType === "BILLING");
     const shippingAddr = [...addresses].reverse().find((a) => a.addressType === "SHIPPING");
 
     if (billingAddr) {
-      setValue("billing.line1", billingAddr.line1 || "");
-      setValue("billing.line2", billingAddr.line2 || "");
-      setValue("billing.city", billingAddr.city || "");
-      setValue("billing.state", billingAddr.state || "");
-      setValue("billing.postal_code", billingAddr.postalCode || "");
-      setValue("billing.country", billingAddr.country || "");
-      setValue("billing_address_id", billingAddr.addressId);
+      setValue("billing.line1",        billingAddr.line1       || "");
+      setValue("billing.line2",        billingAddr.line2       || "");
+      setValue("billing.city",         billingAddr.city        || "");
+      setValue("billing.state",        billingAddr.state       || "");
+      setValue("billing.postal_code",  billingAddr.postalCode  || "");
+      setValue("billing.country",      billingAddr.country     || "");
+      setValue("billing_address_id",   billingAddr.addressId);
     }
 
     if (shippingAddr) {
-      setValue("shipping.line1", shippingAddr.line1 || "");
-      setValue("shipping.line2", shippingAddr.line2 || "");
-      setValue("shipping.city", shippingAddr.city || "");
-      setValue("shipping.state", shippingAddr.state || "");
+      setValue("shipping.line1",       shippingAddr.line1      || "");
+      setValue("shipping.line2",       shippingAddr.line2      || "");
+      setValue("shipping.city",        shippingAddr.city       || "");
+      setValue("shipping.state",       shippingAddr.state      || "");
       setValue("shipping.postal_code", shippingAddr.postalCode || "");
-      setValue("shipping.country", shippingAddr.country || "");
-      setValue("shipping_address_id", shippingAddr.addressId);
+      setValue("shipping.country",     shippingAddr.country    || "");
+      setValue("shipping_address_id",  shippingAddr.addressId);
     }
   }, [reorderPreview, setValue]);
 
   // ── Copy billing → shipping ───────────────────────────────────────────────
   useEffect(() => {
     if (sameAddress) {
-      setValue("shipping.line1", billing?.line1 || "");
-      setValue("shipping.line2", billing?.line2 || "");
-      setValue("shipping.city", billing?.city || "");
-      setValue("shipping.state", billing?.state || "");
-      setValue("shipping.postal_code", billing?.postal_code || "");
-      setValue("shipping.country", billing?.country || "");
+      setValue("shipping.line1",       billing?.line1        || "");
+      setValue("shipping.line2",       billing?.line2        || "");
+      setValue("shipping.city",        billing?.city         || "");
+      setValue("shipping.state",       billing?.state        || "");
+      setValue("shipping.postal_code", billing?.postal_code  || "");
+      setValue("shipping.country",     billing?.country      || "");
     } else {
-      setValue("shipping.line1", "");
-      setValue("shipping.line2", "");
-      setValue("shipping.city", "");
-      setValue("shipping.state", "");
+      setValue("shipping.line1",       "");
+      setValue("shipping.line2",       "");
+      setValue("shipping.city",        "");
+      setValue("shipping.state",       "");
       setValue("shipping.postal_code", "");
-      setValue("shipping.country", "");
+      setValue("shipping.country",     "");
     }
   }, [sameAddress, billing, setValue]);
 
@@ -123,9 +119,7 @@ const ReorderCheckoutPage = () => {
   }, [reorderSuccess]);
 
   useEffect(() => {
-    if (reorderError) {
-      toast.error(reorderError);
-    }
+    if (reorderError) toast.error(reorderError);
   }, [reorderError]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
@@ -140,13 +134,18 @@ const ReorderCheckoutPage = () => {
       const payload = {
         originalOrderId: Number(orderId),
 
+        // ✅ Include couponCode only when a coupon has been successfully applied
+        ...(couponSuccess && couponData?.couponCode
+          ? { couponCode: couponData.couponCode }
+          : {}),
+
         addresses: [
           {
-            addressId: Number(data.shipping_address_id),
+            addressId:   Number(data.shipping_address_id),
             addressType: "SHIPPING",
           },
           {
-            addressId: Number(data.billing_address_id),
+            addressId:   Number(data.billing_address_id),
             addressType: "BILLING",
           },
         ],
@@ -154,11 +153,11 @@ const ReorderCheckoutPage = () => {
         orderDetails: {
           grandTotalAmount: reorderPreview?.orderDetails?.grandTotalAmount ?? 0,
           groups: (reorderPreview?.orderDetails?.groups ?? []).map((group) => ({
-            id: group.id,
+            id:    group.id,
             items: (group.items ?? []).map((item) => ({
-              id: item.id,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
+              id:           item.id,
+              quantity:     item.quantity,
+              unitPrice:    item.unitPrice,
               lineSubtotal: item.lineSubtotal,
             })),
           })),
@@ -177,13 +176,7 @@ const ReorderCheckoutPage = () => {
     <>
       <div>
         <ToastContainer />
-        {/* <div className='banner_area py-0 lg:p-0'>
-          <div className="relative">
-            <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
-            <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
-          </div>
-        </div> */}
-        <Banner/>
+        <Banner />
 
         <div className="py-10 lg:pb-20 lg:pt-10">
 
@@ -238,7 +231,7 @@ const ReorderCheckoutPage = () => {
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className='lg:flex items-start justify-start gap-8'>
 
-                  {/* ── LEFT: Forms (exactly same as checkout) ── */}
+                  {/* ── LEFT: Forms ── */}
                   <div className='lg:w-10/12 form_area mb-4 lg:mb-0'>
 
                     <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Personal Information</h3>
@@ -271,23 +264,18 @@ const ReorderCheckoutPage = () => {
                         <div className="mb-2 block">
                           <Label htmlFor="email">Email</Label>
                         </div>
-
                         <div className="relative">
                           <input
                             type="email"
                             readOnly
-                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-100 
-        text-gray-500 cursor-not-allowed outline-none"
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed outline-none"
                             {...register("email", { required: true })}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
                             ✓ Verified
                           </span>
                         </div>
-
-                        {errors.email && (
-                          <small className="text-red-500">Email is required</small>
-                        )}
+                        {errors.email && <small className="text-red-500">Email is required</small>}
                       </div>
                       <div className='w-6/12'>
                         <div className="mb-2 block">

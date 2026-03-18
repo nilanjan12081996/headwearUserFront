@@ -16,15 +16,15 @@ import Banner from '../ui/Banner';
 // Map orderStatus string → badge color classes
 const getStatusColor = (status) => {
   const s = (status || '').toLowerCase();
-  if (s.includes('shipped'))    return 'bg-blue-100 text-blue-700';
+  if (s.includes('shipped')) return 'bg-blue-100 text-blue-700';
   if (s.includes('production')) return 'bg-purple-100 text-purple-700';
-  if (s.includes('proof'))      return 'bg-yellow-100 text-yellow-700';
-  if (s.includes('submitted'))  return 'bg-green-100 text-green-700';
-  if (s.includes('received'))   return 'bg-orange-100 text-orange-700';
-  if (s.includes('delivered'))  return 'bg-teal-100 text-teal-700';
-  if (s.includes('invoice'))    return 'bg-indigo-100 text-indigo-700';
-  if (s.includes('payment'))    return 'bg-pink-100 text-pink-700';
-  if (s.includes('terms'))      return 'bg-cyan-100 text-cyan-700';
+  if (s.includes('proof')) return 'bg-yellow-100 text-yellow-700';
+  if (s.includes('submitted')) return 'bg-green-100 text-green-700';
+  if (s.includes('received')) return 'bg-orange-100 text-orange-700';
+  if (s.includes('delivered')) return 'bg-teal-100 text-teal-700';
+  if (s.includes('invoice')) return 'bg-indigo-100 text-indigo-700';
+  if (s.includes('payment')) return 'bg-pink-100 text-pink-700';
+  if (s.includes('terms')) return 'bg-cyan-100 text-cyan-700';
   return 'bg-gray-100 text-gray-700';
 };
 
@@ -43,7 +43,7 @@ function Pagination({ currentPage, totalPages, totalElements, pageSize, onPageCh
   if (totalPages <= 1) return null;
 
   const from = currentPage * pageSize + 1;
-  const to   = Math.min((currentPage + 1) * pageSize, totalElements);
+  const to = Math.min((currentPage + 1) * pageSize, totalElements);
 
   // Build page numbers with ellipsis
   const getPageNumbers = () => {
@@ -115,11 +115,11 @@ function Pagination({ currentPage, totalPages, totalElements, pageSize, onPageCh
 }
 
 export default function OrdersPage() {
-  const [search, setSearch]             = useState('');
-  const [dateFilter, setDateFilter]     = useState('');
+  const [search, setSearch] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [expandedColors, setExpandedColors]   = useState({});
+  const [expandedColors, setExpandedColors] = useState({});
   const [reorderingId, setReorderingId] = useState(null);
   // Pagination page state (for search pagination)
   const [searchPage, setSearchPage] = useState(0);
@@ -128,8 +128,8 @@ export default function OrdersPage() {
     setExpandedColors((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const filterRef = useRef(null);
-  const router    = useRouter();
-  const dispatch  = useDispatch();
+  const router = useRouter();
+  const dispatch = useDispatch();
 
   const {
     orders = [],
@@ -169,7 +169,7 @@ export default function OrdersPage() {
   // Search API — re-runs on filter change or search page change
   useEffect(() => {
     const hasSearch = debouncedSearch.trim();
-    const hasDate   = dateFilter.trim();
+    const hasDate = dateFilter.trim();
     const hasStatus = statusFilter.trim();
     if (!hasSearch && !hasDate && !hasStatus) return;
 
@@ -182,10 +182,10 @@ export default function OrdersPage() {
 
     dispatch(searchOrders({
       orderNumber: hasSearch || undefined,
-      status:      hasStatus || undefined,
-      date:        dateParam  || undefined,
-      page:        searchPage,
-      size:        10,
+      status: hasStatus || undefined,
+      date: dateParam || undefined,
+      page: searchPage,
+      size: 10,
     }));
   }, [debouncedSearch, dateFilter, statusFilter, searchPage, dispatch]);
 
@@ -209,16 +209,17 @@ export default function OrdersPage() {
       });
     });
     return {
-      id:          order.orderNumber,
-      rawId:       order.id,
-      status:      order.orderStatus,
+      id: order.orderNumber,
+      rawId: order.id,
+      status: order.orderStatus,
       statusColor: getStatusColor(order.orderStatus),
-      created:     order.createdAt,
-      items:       hatNames,
-      quantity:    totalQty,
-      colors:      allColors,
-      tracking:    order.trackingNumber ?? null,
-      total:       `$${Number(order.grandTotalAmount ?? 0).toFixed(2)}`,
+      created: order.createdAt,
+      items: hatNames,
+      quantity: totalQty,
+      colors: allColors,
+      tracking: order.trackingNumber ?? null,
+      total: `$${Number(order.grandTotalAmount ?? 0).toFixed(2)}`,
+      couponAmount: Number(order.couponAddAmount ?? 0),  // ✅ ADD THIS
     };
   });
 
@@ -258,23 +259,23 @@ export default function OrdersPage() {
   // Pagination values depending on active filter
   const paginationProps = hasActiveFilter
     ? {
-        currentPage:   searchPage,
-        totalPages:    searchTotalPages    ?? 1,
-        totalElements: searchTotalElements ?? 0,
-        pageSize:      10,
-        onPageChange:  handleSearchPageChange,
-      }
+      currentPage: searchPage,
+      totalPages: searchTotalPages ?? 1,
+      totalElements: searchTotalElements ?? 0,
+      pageSize: 10,
+      onPageChange: handleSearchPageChange,
+    }
     : {
-        currentPage:   currentPage  ?? 0,
-        totalPages:    totalPages   ?? 1,
-        totalElements: totalElements ?? 0,
-        pageSize:      pageSize      ?? 10,
-        onPageChange:  handlePageChange,
-      };
+      currentPage: currentPage ?? 0,
+      totalPages: totalPages ?? 1,
+      totalElements: totalElements ?? 0,
+      pageSize: pageSize ?? 10,
+      onPageChange: handlePageChange,
+    };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Banner/>
+      <Banner />
 
       {/* Breadcrumb + CTA */}
       <div className="max-w-6xl mx-auto px-4 lg:px-0 mt-5 flex justify-between items-center">
@@ -504,7 +505,11 @@ export default function OrdersPage() {
                     <div className="flex flex-col items-end gap-2 shrink-0">
                       <div className="text-right">
                         <p className="text-xs text-gray-400">Total Amount</p>
-                        <p className="text-xl font-bold text-gray-900">{order.total}</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {order.couponAmount > 0
+                            ? `$${order.couponAmount.toFixed(2)}`
+                            : order.total}
+                        </p>
                       </div>
                       <div className="flex gap-2">
                         <button
