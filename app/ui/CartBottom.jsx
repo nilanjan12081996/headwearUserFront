@@ -1,10 +1,9 @@
 'use client';
-import React, { useEffect, useState, useRef } from "react";
-import { cartList, deleteCartItem, updateCartItem } from "../reducers/CartSlice";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "react-toastify";
+import { useCartActions } from "../hooks/useCartActions";
 
 // ─── Controlled qty input ─────────────────────────────────────────────────────
 const QtyInput = ({ item, onManualChange }) => {
@@ -50,172 +49,25 @@ const QtyInput = ({ item, onManualChange }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const CartBottom = ({ open, onClose }) => {
-  const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
-
-  const { cartListItem } = useSelector((state) => state.cart);
-  const savedUUid =
-    typeof window !== "undefined" ? sessionStorage.getItem("uuid") : null;
-
-  // ─── LOCAL STABLE STATE ───────────────────────────────────────────────────
-  const [localItems, setLocalItems] = useState([]);
-  const [localTotalItems, setLocalTotalItems] = useState(0);
-  const [localSubtotal, setLocalSubtotal] = useState("0.00");
-  const isFirstLoad = useRef(true);
-
-  useEffect(() => {
-    if (open && savedUUid) {
-      dispatch(cartList({ id: savedUUid }));
-    }
-  }, [open, savedUUid, dispatch]);
-
-  useEffect(() => {
-    const groups = cartListItem?.data?.cart_groups || [];
-    const incoming = groups.flatMap((group) => group.items);
-
-    if (isFirstLoad.current) {
-      setLocalItems(incoming);
-      isFirstLoad.current = false;
-    } else {
-      const incomingIds = incoming.map((i) => i.id).sort().join(",");
-      const localIds = localItems.map((i) => i.id).sort().join(",");
-      if (incomingIds !== localIds) {
-        setLocalItems(incoming);
-      }
-    }
-
-    setLocalTotalItems(cartListItem?.data?.cart?.total_items || 0);
-    setLocalSubtotal(cartListItem?.data?.cart?.subtotal_amount || "0.00");
-  }, [cartListItem]);
-
-  if (!open) return null;
-
-  const charges = cartListItem?.data?.charges || [];
   const base_url = process.env.NEXT_PUBLIC_API_BASE_URL;
   const isUploadPage = pathname === "/upload-artwork";
 
-  // ─── SESSION SYNC ─────────────────────────────────────────────────────────
-  const syncSession = (itemId, newQty) => {
-    const hatQuantities = JSON.parse(sessionStorage.getItem("hatQuantities") || "{}");
-    const cartItemMap = JSON.parse(sessionStorage.getItem("cartItemMap") || "{}");
-    const matchedKey = Object.keys(cartItemMap).find(
-      (k) => Number(cartItemMap[k]) === Number(itemId)
-    );
-    if (matchedKey) {
-      const [groupKey, color, sizeId] = matchedKey.split("-");
-      if (hatQuantities[groupKey]?.[color] !== undefined) {
-        hatQuantities[groupKey][color][sizeId] = newQty;
-        sessionStorage.setItem("hatQuantities", JSON.stringify(hatQuantities));
-        window.dispatchEvent(new Event("hatQuantitiesChanged"));
-      }
-    }
-  };
+  const {
+    localItems,
+    localTotalItems,
+    localSubtotal,
+    charges,
+    grandTotal,
+    handleIncrease,
+    handleDecrease,
+    handleManualChange,
+    handleDelete,
+  } = useCartActions({ open });
 
-  // ─── DELETE ───────────────────────────────────────────────────────────────
-  const handleDelete = async (item) => {
-    const cartItemId = Number(item.id);
+  if (!open) return null;
 
-    setLocalItems((prev) => prev.filter((i) => i.id !== item.id));
-    setLocalTotalItems((prev) => Math.max(0, prev - item.quantity));
-
-    try {
-      await dispatch(deleteCartItem(cartItemId));
-
-      const cartItemMap = JSON.parse(sessionStorage.getItem("cartItemMap") || "{}");
-      const hatQuantities = JSON.parse(sessionStorage.getItem("hatQuantities") || "{}");
-
-      let matchedKey = null;
-      Object.keys(cartItemMap).forEach((key) => {
-        if (Number(cartItemMap[key]) === cartItemId) matchedKey = key;
-      });
-
-      if (matchedKey) {
-        const [groupKey, color, sizeId] = matchedKey.split("-");
-        if (hatQuantities[groupKey]?.[color]?.[sizeId] !== undefined)
-          delete hatQuantities[groupKey][color][sizeId];
-        if (hatQuantities[groupKey]?.[color] && Object.keys(hatQuantities[groupKey][color]).length === 0)
-          delete hatQuantities[groupKey][color];
-        if (hatQuantities[groupKey] && Object.keys(hatQuantities[groupKey]).length === 0)
-          delete hatQuantities[groupKey];
-        delete cartItemMap[matchedKey];
-      }
-
-      sessionStorage.setItem("hatQuantities", JSON.stringify(hatQuantities));
-      sessionStorage.setItem("cartItemMap", JSON.stringify(cartItemMap));
-      window.dispatchEvent(new Event("hatQuantitiesChanged"));
-      dispatch(cartList({ id: savedUUid }));
-    } catch (err) {
-      console.error("Cart delete failed", err);
-      setLocalItems((prev) => [...prev, item]);
-      setLocalTotalItems((prev) => prev + item.quantity);
-    }
-  };
-
-  // ─── INCREASE ─────────────────────────────────────────────────────────────
-  const handleIncrease = async (item) => {
-    const newQty = item.quantity + 1;
-    setLocalItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, quantity: newQty } : i))
-    );
-    setLocalTotalItems((prev) => prev + 1);
-    try {
-      await dispatch(updateCartItem({ id: Number(item.id), quantity: newQty }));
-      syncSession(item.id, newQty);
-      dispatch(cartList({ id: savedUUid }));
-    } catch (err) {
-      console.error("Cart increase failed", err);
-      setLocalItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, quantity: item.quantity } : i))
-      );
-      setLocalTotalItems((prev) => prev - 1);
-    }
-  };
-
-  // ─── DECREASE ─────────────────────────────────────────────────────────────
-  const handleDecrease = async (item) => {
-    if (item.quantity <= 1) { handleDelete(item); return; }
-    const newQty = item.quantity - 1;
-    setLocalItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, quantity: newQty } : i))
-    );
-    setLocalTotalItems((prev) => prev - 1);
-    try {
-      await dispatch(updateCartItem({ id: Number(item.id), quantity: newQty }));
-      syncSession(item.id, newQty);
-      dispatch(cartList({ id: savedUUid }));
-    } catch (err) {
-      console.error("Cart decrease failed", err);
-      setLocalItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, quantity: item.quantity } : i))
-      );
-      setLocalTotalItems((prev) => prev + 1);
-    }
-  };
-
-  // ─── MANUAL INPUT ─────────────────────────────────────────────────────────
-  const handleManualChange = async (item, newQty) => {
-    const oldQty = item.quantity;
-    const diff = newQty - oldQty;
-    if (newQty === 0) { handleDelete(item); return; }
-    setLocalItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, quantity: newQty } : i))
-    );
-    setLocalTotalItems((prev) => prev + diff);
-    try {
-      await dispatch(updateCartItem({ id: Number(item.id), quantity: newQty }));
-      syncSession(item.id, newQty);
-      dispatch(cartList({ id: savedUUid }));
-    } catch (err) {
-      console.error("Cart manual update failed", err);
-      setLocalItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, quantity: oldQty } : i))
-      );
-      setLocalTotalItems((prev) => prev - diff);
-    }
-  };
-
-  // ─── NEXT ACTION ──────────────────────────────────────────────────────────
   const handleAction = () => {
     onClose();
     if (!isUploadPage) {
@@ -231,10 +83,8 @@ const CartBottom = ({ open, onClose }) => {
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
 
-      {/* Bottom Sheet */}
       <div className="fixed bottom-0 left-0 w-full bg-white z-50 rounded-t-2xl shadow-2xl flex flex-col max-h-[85vh]">
 
         {/* Drag Handle */}
@@ -270,42 +120,27 @@ const CartBottom = ({ open, onClose }) => {
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
           {localItems.length > 0 ? (
             localItems.map((item) => {
-              const hatName = item?.hat?.name;
-              const size = item?.variant?.size_label;
-              const colorName = item?.color?.name;
               const qty = item?.quantity;
               const price = item?.unit_price;
               const image = item?.color?.primary_image_url;
               const lineTotal = (Number(price) * qty).toFixed(2);
 
               return (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100"
-                >
-                  {/* Image */}
+                <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <div className="w-14 h-14 rounded-lg overflow-hidden bg-white border border-gray-200 flex-shrink-0 flex items-center justify-center">
                     {image ? (
-                      <Image
-                        src={base_url + image}
-                        width={56}
-                        height={56}
-                        alt="hat"
-                        className="object-contain w-full h-full"
-                      />
+                      <Image src={base_url + image} width={56} height={56} alt="hat" className="object-contain w-full h-full" />
                     ) : (
                       <div className="w-full h-full bg-gray-100 rounded-lg" />
                     )}
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{hatName}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{colorName} · Size {size}</p>
+                    <p className="text-sm font-semibold text-gray-800 truncate">{item?.hat?.name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{item?.color?.name} · Size {item?.variant?.size_label}</p>
                     <p className="text-xs font-semibold text-[#ed1c24] mt-1">${lineTotal}</p>
                   </div>
 
-                  {/* Controls */}
                   <div className="flex flex-col items-center gap-2 flex-shrink-0">
                     <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
                       <button
@@ -316,9 +151,7 @@ const CartBottom = ({ open, onClose }) => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4"/>
                         </svg>
                       </button>
-
                       <QtyInput item={item} onManualChange={handleManualChange} />
-
                       <button
                         onClick={() => handleIncrease(item)}
                         className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer"
@@ -328,13 +161,7 @@ const CartBottom = ({ open, onClose }) => {
                         </svg>
                       </button>
                     </div>
-
-                    {/* Delete */}
-                    <button
-                      onClick={() => handleDelete(item)}
-                      className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
-                      title="Remove item"
-                    >
+                    <button onClick={() => handleDelete(item)} className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer" title="Remove item">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -358,16 +185,13 @@ const CartBottom = ({ open, onClose }) => {
           )}
         </div>
 
-        {/* Summary + CTA — sticky at bottom */}
+        {/* Summary + CTA — sticky bottom */}
         {localTotalItems > 0 && (
           <div className="border-t border-gray-100 px-5 py-4 space-y-2 bg-white">
-            {/* Subtotal */}
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-500">Subtotal</span>
               <span className="font-semibold text-gray-800">${localSubtotal}</span>
             </div>
-
-            {/* Charges */}
             {charges.length > 0 && (
               <>
                 <div className="border-t border-dashed border-gray-100 pt-2 space-y-1.5">
@@ -383,14 +207,10 @@ const CartBottom = ({ open, onClose }) => {
                 </div>
                 <div className="flex justify-between items-center pt-1 border-t border-gray-200">
                   <span className="text-sm font-semibold text-gray-800">Grand Total</span>
-                  <span className="text-base font-bold text-[#ed1c24]">
-                    ${cartListItem?.data?.cart?.grand_total_amount}
-                  </span>
+                  <span className="text-base font-bold text-[#ed1c24]">${grandTotal}</span>
                 </div>
               </>
             )}
-
-            {/* Min qty hint */}
             {localTotalItems < 24 && (
               <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
                 <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -402,9 +222,29 @@ const CartBottom = ({ open, onClose }) => {
                 </p>
               </div>
             )}
+            <button
+              onClick={handleAction}
+              className="w-full flex items-center justify-center gap-2 bg-[#ed1c24] hover:bg-[#c51920] active:scale-[0.98] text-white font-semibold py-3 rounded-xl transition-all duration-200 cursor-pointer shadow-md shadow-red-100 mt-1"
+            >
+              {isUploadPage ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                  </svg>
+                  Proceed to Checkout
+                </>
+              ) : (
+                <>
+                  Continue Order
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                  </svg>
+                </>
+              )}
+            </button>
           </div>
         )}
-
       </div>
     </>
   );
