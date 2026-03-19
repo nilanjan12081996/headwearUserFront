@@ -9,6 +9,7 @@ import { addCartItem, cartList, deleteCartItem, updateCartItem } from '../reduce
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import { v4 as uuidv4 } from "uuid";
+import HatSearchFilter from '../components/HatSearchFilter ';
 
 // ─── Animation Styles ─────────────────────────────────────────────────────────
 const ANIM_STYLE = `
@@ -639,13 +640,18 @@ const ProductAccordion = ({ selectedDecoName, selectedDecoId, hatQuantities: ini
         }
         router.push("/upload-artwork");
     };
-
+    const [filteredHats, setFilteredHats] = useState({});
     return (
         <div className='product_details_area max-w-[1400px] mx-auto p-4'>
             <ToastContainer />
+            <HatSearchFilter
+                brandList={brandList}
+                brandWiseHatList={brandWiseHatList}
+                onFilter={(filtered) => setFilteredHats(filtered)}
+            />
 
             {brandList?.data?.map((brand) => {
-                const hats = brandWiseHatList?.[brand.id]?.list || [];
+                const hats = filteredHats[brand.id] ?? (brandWiseHatList?.[brand.id]?.list || []);
                 return (
                     <div key={brand.id} className="mb-10">
                         <div className='bg-[#efefef] p-4 rounded-xl mb-4'>
