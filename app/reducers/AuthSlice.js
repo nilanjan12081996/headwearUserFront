@@ -62,7 +62,6 @@ export const registerCustomer = createAsyncThunk(
                 '/api/customers/register',
                 userInput
             );
-
             if (response?.status === 200 || response?.status === 201) {
                 return response.data;
             } else {

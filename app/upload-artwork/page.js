@@ -464,7 +464,26 @@ const page = () => {
 
     return payload;
   };
+
+  useEffect(() => {
+    const uuid = sessionStorage.getItem("uuid");
+    if (uuid) {
+      dispatch(cartList({ id: uuid }));
+    }
+  }, []);
   const handleCheckoutClick = async () => {
+    const totalQty = cartListItem?.data?.cart?.total_items
+      || (() => {
+        const hatQuantities = JSON.parse(sessionStorage.getItem("hatQuantities") || "{}");
+        return Object.values(hatQuantities)
+          .flatMap(h => Object.values(h).flatMap(c => Object.values(c)))
+          .reduce((sum, qty) => sum + Number(qty || 0), 0);
+      })();
+
+    if (totalQty < 24) {
+      toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+      return;
+    }
     if (!agree) {
       setErrorMsg("You must agree to copyright/ownership permission.");
       checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });

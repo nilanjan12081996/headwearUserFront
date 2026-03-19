@@ -42,8 +42,8 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
     };
 
     const res = await dispatch(registerCustomer(payload));
-
-    if (res?.payload?.status_code === 200 || res?.payload?.status_code === 201) {
+    console.log('resss', res)
+    if (res?.payload?.status === true || res?.payload?.message === "Customer registered successfully") {
       toast.success("Registration successful!");
       reset();
       setOpenRegisterModal(false);
@@ -51,7 +51,7 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
       toast.error(res?.payload || "Registration failed. Please try again.");
     }
   };
-  
+
 
   const openLogin = () => {
     setOpenLoginModal(true);
@@ -69,7 +69,7 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-[900px] mx-4 bg-white rounded-2xl overflow-hidden shadow-2xl flex min-h-[520px]">
+      <div className="relative z-10 w-full max-w-[900px] mx-4 bg-white rounded-2xl overflow-hidden shadow-2xl flex min-h-[520px]" onClick={(e) => e.stopPropagation()} >
 
         {/* Left - Image Panel */}
         <div className="hidden lg:flex w-1/2 relative">

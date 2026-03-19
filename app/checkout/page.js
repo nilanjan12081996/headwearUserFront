@@ -75,6 +75,7 @@ import { getMyProfile, sendSecurityCode, verifySecurityCode } from '../reducers/
 import { IoClose } from "react-icons/io5";
 import { clearCouponState, sendHeadwearCreateOrderEmail } from '../reducers/OrdersSlice';
 import Banner from '../ui/Banner';
+import RegistrationModal from '../modal/RegistrationModal';
 
 
 
@@ -92,7 +93,8 @@ const page = () => {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState("EMAIL");
   const router = useRouter();
-
+  const [openRegisterModal, setOpenRegisterModal] = useState(false);
+  const [openLoginModal, setOpenLoginModal] = useState(false);
   const params = useSearchParams();
   const artworkId = params.get("artwork_id");
 
@@ -508,6 +510,17 @@ const page = () => {
               <span className="ml-2">Existing Customer</span>
               {/* <button type='button' onClick={handleLoginModal}>Existing Customer</button> */}
             </div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2 bg-gray-5 text-sm">
+              <span className="text-gray-500">New to Show Me Headwear?</span>
+              <button
+                type="button"
+                onClick={() => setOpenRegisterModal(true)}
+                className="text-[#ed1c24] font-semibold hover:underline transition-colors cursor-pointer"
+              >
+                Create a free account
+              </button>
+              <span className="text-gray-300 hidden sm:inline">·</span>
+            </div>
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className='lg:flex items-start justify-start gap-8'>
 
@@ -830,7 +843,16 @@ const page = () => {
         </div>
       )}
 
-
+      <RegistrationModal
+        openRegisterModal={openRegisterModal}
+        setOpenRegisterModal={setOpenRegisterModal}
+        setOpenLoginModal={setOpenLoginModal}
+      />
+      <LoginModal
+        openLoginModal={openLoginModal}
+        setOpenLoginModal={setOpenLoginModal}
+        setOpenRegisterModal={setOpenRegisterModal}
+      />
     </>
   )
 }

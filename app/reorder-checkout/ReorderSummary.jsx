@@ -17,10 +17,10 @@ const ReorderSummary = ({ orderLoading }) => {
   // ── Coupon state from redux (same slice as OrderSummary) ──
   const { couponLoading, couponSuccess, couponData } = useSelector((state) => state?.order);
 
-  const base_url   = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const groups     = reorderPreview?.orderDetails?.groups ?? [];
-  const hatImages  = reorderPreview?.hatImages ?? [];
-  const artwork    = reorderPreview?.artworkConfig ?? null;
+  const base_url = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const groups = reorderPreview?.orderDetails?.groups ?? [];
+  const hatImages = reorderPreview?.hatImages ?? [];
+  const artwork = reorderPreview?.artworkConfig ?? null;
   const grandTotal = reorderPreview?.orderDetails?.grandTotalAmount ?? 0;
 
   const [showCouponInput, setShowCouponInput] = useState(false);
@@ -57,22 +57,22 @@ const ReorderSummary = ({ orderLoading }) => {
   let cartItemIdx = 0;
   const resolvedItems = groups.flatMap((group) =>
     (group.items ?? []).map((item, idx) => {
-      const color     = group.hatColors?.[idx] ?? null;
-      const colorId   = color?.id ?? 0;
-      const cartItem  = cartItems[cartItemIdx++] ?? null;
+      const color = group.hatColors?.[idx] ?? null;
+      const colorId = color?.id ?? 0;
+      const cartItem = cartItems[cartItemIdx++] ?? null;
       const sizeLabel = cartItem?.variant?.size_label ?? 'OSFM';
       return {
         ...item,
-        hatName:   group.hatName,
+        hatName: group.hatName,
         colorName: color?.name ?? 'N/A',
-        imgSrc:    getImageByColorId(colorId),
+        imgSrc: getImageByColorId(colorId),
         sizeLabel,
       };
     })
   );
 
   const totalItems = resolvedItems.reduce((s, i) => s + (i.quantity ?? 0), 0);
-  const addons     = artwork?.addons ?? [];
+  const addons = artwork?.addons ?? [];
 
   const getAddonPrice = (addon) => {
     const tiers = addon?.decorationAddon?.priceTiers ?? [];
@@ -135,7 +135,7 @@ const ReorderSummary = ({ orderLoading }) => {
 
           {/* ── Addon charges ── */}
           {addons.map((addonEntry) => {
-            const addon     = addonEntry?.decorationAddon;
+            const addon = addonEntry?.decorationAddon;
             const unitPrice = getAddonPrice(addonEntry);
             const lineTotal = unitPrice != null ? unitPrice * totalItems : null;
             return (
@@ -191,11 +191,10 @@ const ReorderSummary = ({ orderLoading }) => {
                       type="button"
                       onClick={handleApplyCoupon}
                       disabled={couponLoading || !couponCode.trim()}
-                      className={`px-4 py-2 rounded-lg text-[13px] font-semibold text-white transition-all ${
-                        couponLoading || !couponCode.trim()
+                      className={`px-4 py-2 rounded-lg text-[13px] font-semibold text-white transition-all ${couponLoading || !couponCode.trim()
                           ? 'bg-gray-300 cursor-not-allowed'
                           : 'bg-[#ED1C24] hover:bg-black cursor-pointer'
-                      }`}
+                        }`}
                     >
                       {couponLoading ? '...' : 'Apply'}
                     </button>
@@ -291,6 +290,14 @@ const ReorderSummary = ({ orderLoading }) => {
       {/* ── Button ── */}
       <button
         type="submit"
+        onClick={(e) => {
+          const totalQty = cartListItem?.data?.cart?.total_items || 0;
+          if (totalQty < 24) {
+            e.preventDefault();
+            toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+            return;
+          }
+        }}
         disabled={orderLoading || reorderPreviewLoading || !reorderPreview}
         className={`text-white text-base font-semibold rounded-full w-full py-3 mt-2 transition-all flex items-center justify-center gap-2
           ${orderLoading || reorderPreviewLoading || !reorderPreview

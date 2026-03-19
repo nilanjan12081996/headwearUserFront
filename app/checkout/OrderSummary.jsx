@@ -360,11 +360,10 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading,
                       type="button"
                       onClick={handleApplyCoupon}
                       disabled={couponLoading || !couponCode.trim()}
-                      className={`px-4 py-2 rounded-lg text-[13px] font-semibold text-white transition-all ${
-                        couponLoading || !couponCode.trim()
+                      className={`px-4 py-2 rounded-lg text-[13px] font-semibold text-white transition-all ${couponLoading || !couponCode.trim()
                           ? "bg-gray-300 cursor-not-allowed"
                           : "bg-[#ED1C24] hover:bg-black cursor-pointer"
-                      }`}
+                        }`}
                     >
                       {couponLoading ? "..." : "Apply"}
                     </button>
@@ -474,6 +473,14 @@ const OrderSummary = ({ cust_id, billingId, shippingId, artworkId, orderLoading,
 
         <button
           type="submit"
+          onClick={(e) => {
+            const totalQty = cartListItem?.data?.cart?.total_items || 0;
+            if (totalQty < 24) {
+              e.preventDefault();
+              toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+              return;
+            }
+          }}
           className={`text-white text-base font-semibold rounded-full w-full py-3 mt-2 transition-all cursor-pointer ${orderLoading ? 'bg-gray-400' : 'bg-[#ED1C24] hover:bg-black shadow-lg hover:shadow-xl'}`}
           disabled={orderLoading}
         >
