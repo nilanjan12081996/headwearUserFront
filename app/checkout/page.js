@@ -308,6 +308,18 @@ const page = () => {
 
           // ── Webhook call after successful order ──
           if (orderRes?.status_code === 201) {
+            // const webhookPayload = {
+            //   customer: {
+            //     first_name: data.first_name,
+            //     last_name: data.last_name,
+            //     email: data.email,
+            //     phone: data.phone,
+            //     company_name: data.company_name,
+            //   },
+            //   order_id: orderRes?.data?.order_id,
+            //   order_number: orderRes?.data?.order_number,
+            //   grand_total: orderRes?.data?.grand_total,
+            // };
             const webhookPayload = {
               customer: {
                 first_name: data.first_name,
@@ -319,6 +331,41 @@ const page = () => {
               order_id: orderRes?.data?.order_id,
               order_number: orderRes?.data?.order_number,
               grand_total: orderRes?.data?.grand_total,
+
+              // Cart full details
+              cart: {
+                total_items: cartListItem?.data?.cart?.total_items,
+                subtotal_amount: cartListItem?.data?.cart?.subtotal_amount,
+                addons_amount: cartListItem?.data?.cart?.addons_amount,
+                artwork_setup_amount: cartListItem?.data?.cart?.artwork_setup_amount,
+                shipping_amount: cartListItem?.data?.cart?.shipping_amount,
+                tax_amount: cartListItem?.data?.cart?.tax_amount,
+                grand_total_amount: cartListItem?.data?.cart?.grand_total_amount,
+              },
+
+              // Cart items grouped
+              cart_groups: cartListItem?.data?.cart_groups?.map((group) => ({
+                group_qty: group.group_qty,
+                base_unit_price: group.base_unit_price,
+                group_subtotal: group.group_subtotal,
+                items: group.items?.map((item) => ({
+                  quantity: item.quantity,
+                  unit_price: item.unit_price,
+                  line_total: item.line_total,
+                  hat_name: item.hat?.name,
+                  color_name: item.color?.name,
+                  size_label: item.variant?.size_label,
+                })),
+              })),
+
+              // Charges (addons, shipping, etc.)
+              charges: cartListItem?.data?.charges?.map((charge) => ({
+                type: charge.type,
+                name: charge.name,
+                qty: charge.qty,
+                unit_price: charge.unit_price,
+                line_total: charge.line_total,
+              })),
             };
 
             try {

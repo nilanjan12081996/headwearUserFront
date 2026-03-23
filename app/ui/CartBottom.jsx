@@ -1,15 +1,22 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "react-toastify";
 import { useCartActions } from "../hooks/useCartActions";
 
-// ─── Controlled qty input ─────────────────────────────────────────────────────
-const QtyInput = ({ item, onManualChange }) => {
+// ─── Spinner ──────────────────────────────────────────────────────────────────
+const Spinner = () => (
+  <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin inline-block" />
+);
+
+// ─── QtyInput with loading ────────────────────────────────────────────────────
+const QtyInput = ({ item, onManualChange, onIncrease, onDecrease }) => {
   const [display, setDisplay] = useState(
     item.quantity === 0 ? "" : String(item.quantity)
   );
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     setDisplay(item.quantity === 0 ? "" : String(item.quantity));
@@ -21,29 +28,81 @@ const QtyInput = ({ item, onManualChange }) => {
     const num = parseInt(raw, 10);
     if (isNaN(num) || num < 0) return;
     setDisplay(String(num));
+
+    // 500ms debounce — "100" type করলে শুধু শেষে একটা API call
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      if (num !== item.quantity) {
+        setLoading(true);
+        try { await onManualChange(item, num); } finally { setLoading(false); }
+      }
+    }, 500);
   };
 
-  const commit = () => {
-    const num = parseInt(display, 10);
-    if (isNaN(num) || num < 0 || display === "") {
-      setDisplay(item.quantity === 0 ? "" : String(item.quantity));
-      return;
+  const handleBlur = async () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+      const num = display === "" ? 0 : parseInt(display, 10);
+      if (!isNaN(num) && num !== item.quantity) {
+        setLoading(true);
+        try { await onManualChange(item, num); } finally { setLoading(false); }
+      } else {
+        setDisplay(item.quantity === 0 ? "" : String(item.quantity));
+      }
     }
-    if (num === item.quantity) return;
-    onManualChange(item, num);
+  };
+
+  const handleIncrease = async () => {
+    if (loading) return;
+    setLoading(true);
+    try { await onIncrease(item); } finally { setLoading(false); }
+  };
+
+  const handleDecrease = async () => {
+    if (loading) return;
+    setLoading(true);
+    try { await onDecrease(item); } finally { setLoading(false); }
   };
 
   return (
-    <input
-      type="number"
-      value={display}
-      onChange={handleChange}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
-      placeholder="0"
-      min={0}
-      className="w-10 h-8 text-center text-sm font-bold text-gray-800 border-x border-gray-200 bg-white outline-none focus:bg-gray-50 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-    />
+    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <button
+        onClick={handleDecrease}
+        disabled={loading}
+        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-[#ed1c24] transition-colors cursor-pointer disabled:opacity-50"
+      >
+        {loading ? <Spinner /> : (
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4"/>
+          </svg>
+        )}
+      </button>
+
+      <input
+        type="number"
+        value={display}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+        disabled={loading}
+        placeholder="0"
+        min={0}
+        className="w-10 h-8 text-center text-sm font-bold text-gray-800 border-x border-gray-200 bg-white outline-none focus:bg-gray-50 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:bg-gray-50"
+      />
+
+      <button
+        onClick={handleIncrease}
+        disabled={loading}
+        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer disabled:opacity-50"
+      >
+        {loading ? <Spinner /> : (
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/>
+          </svg>
+        )}
+      </button>
+    </div>
   );
 };
 
@@ -142,25 +201,12 @@ const CartBottom = ({ open, onClose }) => {
                   </div>
 
                   <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                      <button
-                        onClick={() => handleDecrease(item)}
-                        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-[#ed1c24] transition-colors cursor-pointer"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4"/>
-                        </svg>
-                      </button>
-                      <QtyInput item={item} onManualChange={handleManualChange} />
-                      <button
-                        onClick={() => handleIncrease(item)}
-                        className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/>
-                        </svg>
-                      </button>
-                    </div>
+                    <QtyInput
+                      item={item}
+                      onManualChange={handleManualChange}
+                      onIncrease={handleIncrease}
+                      onDecrease={handleDecrease}
+                    />
                     <button onClick={() => handleDelete(item)} className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer" title="Remove item">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -185,7 +231,7 @@ const CartBottom = ({ open, onClose }) => {
           )}
         </div>
 
-        {/* Summary + CTA — sticky bottom */}
+        {/* Summary + CTA */}
         {localTotalItems > 0 && (
           <div className="border-t border-gray-100 px-5 py-4 space-y-2 bg-white">
             <div className="flex justify-between items-center text-sm">
@@ -253,123 +299,250 @@ const CartBottom = ({ open, onClose }) => {
 export default CartBottom;
 
 // 'use client';
-// import React, { useEffect } from "react";
-// import { cartList } from "../reducers/CartSlice";
-// import { useDispatch, useSelector } from "react-redux";
+// import React, { useEffect, useState } from "react";
 // import Image from "next/image";
+// import { useRouter, usePathname } from "next/navigation";
+// import { toast } from "react-toastify";
+// import { useCartActions } from "../hooks/useCartActions";
 
-// const CartBottom = ({ open, onClose }) => {
-//   const dispatch = useDispatch();
-//   const { cartListItem } = useSelector((state) => state.cart);
-//   const savedUUid = sessionStorage.getItem("uuid");
+// // ─── Controlled qty input ─────────────────────────────────────────────────────
+// const QtyInput = ({ item, onManualChange }) => {
+//   const [display, setDisplay] = useState(
+//     item.quantity === 0 ? "" : String(item.quantity)
+//   );
 
 //   useEffect(() => {
-//     if (open && savedUUid) {
-//       dispatch(cartList({ id: savedUUid }));
+//     setDisplay(item.quantity === 0 ? "" : String(item.quantity));
+//   }, [item.quantity]);
+
+//   const handleChange = (e) => {
+//     const raw = e.target.value;
+//     if (raw === "") { setDisplay(""); return; }
+//     const num = parseInt(raw, 10);
+//     if (isNaN(num) || num < 0) return;
+//     setDisplay(String(num));
+//   };
+
+//   const commit = () => {
+//     const num = parseInt(display, 10);
+//     if (isNaN(num) || num < 0 || display === "") {
+//       setDisplay(item.quantity === 0 ? "" : String(item.quantity));
+//       return;
 //     }
-//   }, [open, savedUUid, dispatch]);
+//     if (num === item.quantity) return;
+//     onManualChange(item, num);
+//   };
+
+//   return (
+//     <input
+//       type="number"
+//       value={display}
+//       onChange={handleChange}
+//       onBlur={commit}
+//       onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+//       placeholder="0"
+//       min={0}
+//       className="w-10 h-8 text-center text-sm font-bold text-gray-800 border-x border-gray-200 bg-white outline-none focus:bg-gray-50 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+//     />
+//   );
+// };
+
+// // ─── Main Component ───────────────────────────────────────────────────────────
+// const CartBottom = ({ open, onClose }) => {
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const base_url = process.env.NEXT_PUBLIC_API_BASE_URL;
+//   const isUploadPage = pathname === "/upload-artwork";
+
+//   const {
+//     localItems,
+//     localTotalItems,
+//     localSubtotal,
+//     charges,
+//     grandTotal,
+//     handleIncrease,
+//     handleDecrease,
+//     handleManualChange,
+//     handleDelete,
+//   } = useCartActions({ open });
 
 //   if (!open) return null;
 
-//   const cartGroups = cartListItem?.data?.cart_groups || [];
-//   const charges = cartListItem?.data?.charges || [];
-//   const base_url =  process.env.NEXT_PUBLIC_API_BASE_URL;
+//   const handleAction = () => {
+//     onClose();
+//     if (!isUploadPage) {
+//       if (localTotalItems < 24) {
+//         toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+//         return;
+//       }
+//       router.push("/upload-artwork");
+//       return;
+//     }
+//     router.push("/checkout");
+//   };
 
 //   return (
 //     <>
-//       {/* BACKDROP */}
-//       <div
-//         className="fixed inset-0 bg-black/40 z-50"
-//         onClick={onClose}
-//       />
+//       <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
 
-//       {/* BOTTOM CART */}
-//       <div className="fixed bottom-0 left-0 w-full bg-white z-50 border-t shadow-xl h-[400px] overflow-y-auto">
+//       <div className="fixed bottom-0 left-0 w-full bg-white z-50 rounded-t-2xl shadow-2xl flex flex-col max-h-[85vh]">
 
-//         {/* CLOSE BAR */}
-//         <div
-//           onClick={onClose}
-//           className="w-full bg-red-600 text-white text-center py-2 font-semibold cursor-pointer"
-//         >
-//           CLOSE
+//         {/* Drag Handle */}
+//         <div className="flex justify-center pt-3 pb-1">
+//           <div className="w-10 h-1 bg-gray-200 rounded-full" />
 //         </div>
 
-//         {/* ITEMS */}
-//         <div className="px-4 py-3">
-//           {cartGroups.length > 0 ? (
-//             cartGroups.map((group) =>
-//               group.items.map((item) => {
-//                 const image = item?.color?.primary_image_url;
-//                 return (
-//                   <div
-//                     key={item.id}
-//                     className="flex justify-between items-center py-3"
-//                   >
-//                     <div className="flex gap-3 items-center">
-//                       {image ? (
-//                         <Image
-//                           src={base_url + image}
-//                           width={40}
-//                           height={40}
-//                           alt="product"
-//                         />
-//                       ) : (
-//                         <div className="w-10 h-10 bg-gray-200" />
-//                       )}
+//         {/* Header */}
+//         <div className="flex justify-between items-center px-5 py-3 border-b border-gray-100">
+//           <div className="flex items-center gap-2">
+//             <svg className="w-5 h-5 text-[#ed1c24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+//                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m5-9l2 9"/>
+//             </svg>
+//             <h2 className="text-base font-semibold text-gray-800">Your Cart</h2>
+//             {localTotalItems > 0 && (
+//               <span className="bg-[#ed1c24] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+//                 {localTotalItems}
+//               </span>
+//             )}
+//           </div>
+//           <button
+//             onClick={onClose}
+//             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all cursor-pointer"
+//           >
+//             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+//             </svg>
+//           </button>
+//         </div>
 
-//                       <div>
-//                         <p className="text-sm font-medium">
-//                           {item?.hat?.name} - {item?.color?.name}
-//                         </p>
-//                         <p className="text-xs text-gray-500">
-//                           {item?.variant?.size_label}
-//                         </p>
-//                       </div>
-//                     </div>
+//         {/* Scrollable Items */}
+//         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+//           {localItems.length > 0 ? (
+//             localItems.map((item) => {
+//               const qty = item?.quantity;
+//               const price = item?.unit_price;
+//               const image = item?.color?.primary_image_url;
+//               const lineTotal = (Number(price) * qty).toFixed(2);
 
-//                     <p className="text-sm font-semibold">
-//                       ${item?.unit_price} x {item?.quantity}
-//                     </p>
+//               return (
+//                 <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+//                   <div className="w-14 h-14 rounded-lg overflow-hidden bg-white border border-gray-200 flex-shrink-0 flex items-center justify-center">
+//                     {image ? (
+//                       <Image src={base_url + image} width={56} height={56} alt="hat" className="object-contain w-full h-full" />
+//                     ) : (
+//                       <div className="w-full h-full bg-gray-100 rounded-lg" />
+//                     )}
 //                   </div>
-//                 );
-//               })
-//             )
+
+//                   <div className="flex-1 min-w-0">
+//                     <p className="text-sm font-semibold text-gray-800 truncate">{item?.hat?.name}</p>
+//                     <p className="text-xs text-gray-400 mt-0.5">{item?.color?.name} · Size {item?.variant?.size_label}</p>
+//                     <p className="text-xs font-semibold text-[#ed1c24] mt-1">${lineTotal}</p>
+//                   </div>
+
+//                   <div className="flex flex-col items-center gap-2 flex-shrink-0">
+//                     <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+//                       <button
+//                         onClick={() => handleDecrease(item)}
+//                         className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-[#ed1c24] transition-colors cursor-pointer"
+//                       >
+//                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4"/>
+//                         </svg>
+//                       </button>
+//                       <QtyInput item={item} onManualChange={handleManualChange} />
+//                       <button
+//                         onClick={() => handleIncrease(item)}
+//                         className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer"
+//                       >
+//                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/>
+//                         </svg>
+//                       </button>
+//                     </div>
+//                     <button onClick={() => handleDelete(item)} className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer" title="Remove item">
+//                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+//                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+//                       </svg>
+//                     </button>
+//                   </div>
+//                 </div>
+//               );
+//             })
 //           ) : (
-//             <p className="text-center py-10 text-gray-400">
-//               Cart is empty
-//             </p>
+//             <div className="flex flex-col items-center justify-center py-14 text-center">
+//               <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+//                 <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+//                     d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m5-9l2 9"/>
+//                 </svg>
+//               </div>
+//               <p className="text-sm font-medium text-gray-400">Your cart is empty</p>
+//               <p className="text-xs text-gray-300 mt-1">Add some hats to get started!</p>
+//             </div>
 //           )}
 //         </div>
 
-//         {/* SUBTOTAL & ADDONS */}
-//         {cartGroups.length > 0 && (
-//           <div className="px-3 py-2">
-//             <div className="flex justify-between items-center text-sm text-gray-800 py-1">
-//               <span>Subtotal</span>
-//               <span>${cartListItem?.data?.cart?.subtotal_amount}</span>
+//         {/* Summary + CTA — sticky bottom */}
+//         {localTotalItems > 0 && (
+//           <div className="border-t border-gray-100 px-5 py-4 space-y-2 bg-white">
+//             <div className="flex justify-between items-center text-sm">
+//               <span className="text-gray-500">Subtotal</span>
+//               <span className="font-semibold text-gray-800">${localSubtotal}</span>
 //             </div>
-//           </div>
-//         )}
-
-//         {/* PROMO / CHARGES */}
-//         {charges.length > 0 && (
-//           <div className="px-4 py-3">
-//             <h3 className="text-sm font-semibold mb-1">Charges</h3>
-//             {charges.map((charge, idx) => (
-//               <div
-//                 key={idx}
-//                 className="flex justify-between text-sm py-1"
-//               >
-//                 <span>{charge.name}</span>
-//                 <span>${charge.line_total}</span>
+//             {charges.length > 0 && (
+//               <>
+//                 <div className="border-t border-dashed border-gray-100 pt-2 space-y-1.5">
+//                   {charges.map((charge, idx) => (
+//                     <div key={idx} className="flex justify-between items-center text-xs">
+//                       <span className="text-gray-400">
+//                         {charge.name}
+//                         {charge.qty > 1 && <span className="ml-1 text-gray-300">×{charge.qty}</span>}
+//                       </span>
+//                       <span className="text-gray-600">${charge.line_total}</span>
+//                     </div>
+//                   ))}
+//                 </div>
+//                 <div className="flex justify-between items-center pt-1 border-t border-gray-200">
+//                   <span className="text-sm font-semibold text-gray-800">Grand Total</span>
+//                   <span className="text-base font-bold text-[#ed1c24]">${grandTotal}</span>
+//                 </div>
+//               </>
+//             )}
+//             {localTotalItems < 24 && (
+//               <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+//                 <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+//                     d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+//                 </svg>
+//                 <p className="text-[11px] text-amber-700 font-medium">
+//                   Add {24 - localTotalItems} more hat{24 - localTotalItems !== 1 ? "s" : ""} to reach minimum of 24
+//                 </p>
 //               </div>
-//             ))}
-//           </div>
-//         )}
-//         {cartGroups.length > 0 && (
-//           <div className="flex justify-between items-center text-sm font-semibold text-gray-900 p-2">
-//             <span>Grand Total</span>
-//             <span>${cartListItem?.data?.cart?.grand_total_amount}</span>
+//             )}
+//             <button
+//               onClick={handleAction}
+//               className="w-full flex items-center justify-center gap-2 bg-[#ed1c24] hover:bg-[#c51920] active:scale-[0.98] text-white font-semibold py-3 rounded-xl transition-all duration-200 cursor-pointer shadow-md shadow-red-100 mt-1"
+//             >
+//               {isUploadPage ? (
+//                 <>
+//                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+//                       d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+//                   </svg>
+//                   Proceed to Checkout
+//                 </>
+//               ) : (
+//                 <>
+//                   Continue Order
+//                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+//                   </svg>
+//                 </>
+//               )}
+//             </button>
 //           </div>
 //         )}
 //       </div>

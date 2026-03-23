@@ -22,72 +22,173 @@ const NotAvailableBadge = () => (
 );
 
 // ─── SizeInput ────────────────────────────────────────────────────────────────
+// const SizeInput = ({ size, qty, maxQty, onIncrease, onDecrease, onChange }) => {
+//   const [displayValue, setDisplayValue] = useState(qty === 0 ? "" : String(qty));
+
+//   useEffect(() => {
+//     setDisplayValue(qty === 0 ? "" : String(qty));
+//   }, [qty]);
+
+//   const handleChange = (e) => {
+//     const raw = e.target.value;
+
+//     if (raw === "") {
+//       setDisplayValue("");
+//       onChange(size, 0);
+//       return;
+//     }
+
+//     const num = parseInt(raw, 10);
+//     if (isNaN(num) || num < 0) return;
+
+//     if (num > maxQty) {
+//       alert(`Only ${maxQty} items available`);
+//       setDisplayValue(String(maxQty));
+//       onChange(size, maxQty);
+//       return;
+//     }
+
+//     setDisplayValue(String(num));
+//     onChange(size, num);
+//   };
+
+//   return (
+//     <div
+//       className={`border rounded-[10px] p-2 min-w-[150px] flex-shrink-0 ${
+//         qty > 0 ? "border-[#ed1c24]" : "border-[#dddddd]"
+//       }`}
+//     >
+//       <p className="text-sm font-medium mb-2 text-black">{size.size_label}</p>
+//       <div className="flex items-center justify-center gap-2">
+//         <button
+//           onClick={() => onDecrease(size)}
+//           disabled={qty === 0}
+//           className={`w-10 h-10 flex items-center justify-center text-white text-xl !rounded-md cursor-pointer ${
+//             qty === 0 ? "bg-[#cccccc] cursor-not-allowed" : "bg-[#ed1c24] hover:bg-black"
+//           }`}
+//         >
+//           –
+//         </button>
+
+//         <input
+//           type="number"
+//           value={displayValue}
+//           onChange={handleChange}
+//           placeholder="0"
+//           min={0}
+//           max={maxQty}
+//           className="w-16 text-center border border-gray-300 rounded-md p-2 no-spinner"
+//         />
+
+//         <button
+//           onClick={() => onIncrease(size)}
+//           disabled={qty >= maxQty}
+//           className={`w-10 h-10 flex items-center justify-center text-white text-xl rounded-md ${
+//             qty >= maxQty ? "bg-[#cccccc] cursor-not-allowed" : "bg-[#ed1c24] hover:bg-black"
+//           }`}
+//         >
+//           +
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };
+
+// ─── Spinner ──────────────────────────────────────────────────────────────────
+const Spinner = () => (
+  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+);
+
+// ─── SizeInput ────────────────────────────────────────────────────────────────
 const SizeInput = ({ size, qty, maxQty, onIncrease, onDecrease, onChange }) => {
   const [displayValue, setDisplayValue] = useState(qty === 0 ? "" : String(qty));
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     setDisplayValue(qty === 0 ? "" : String(qty));
   }, [qty]);
 
+  const handleIncrease = async () => {
+    if (loading) return;
+    setLoading(true);
+    try { await onIncrease(size); } finally { setLoading(false); }
+  };
+
+  const handleDecrease = async () => {
+    if (loading || qty === 0) return;
+    setLoading(true);
+    try { await onDecrease(size); } finally { setLoading(false); }
+  };
+
   const handleChange = (e) => {
     const raw = e.target.value;
-
-    if (raw === "") {
-      setDisplayValue("");
-      onChange(size, 0);
-      return;
-    }
-
+    if (raw === "") { setDisplayValue(""); return; }
     const num = parseInt(raw, 10);
     if (isNaN(num) || num < 0) return;
-
     if (num > maxQty) {
       alert(`Only ${maxQty} items available`);
       setDisplayValue(String(maxQty));
-      onChange(size, maxQty);
       return;
     }
-
     setDisplayValue(String(num));
-    onChange(size, num);
+
+    // ✅ 500ms debounce — "100" type করলে শুধু শেষে একটা API call
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      try { await onChange(size, num); } finally { setLoading(false); }
+    }, 500);
+  };
+
+  const handleBlur = async () => {
+    // pending debounce থাকলে সাথে সাথে fire করো
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+      const num = displayValue === "" ? 0 : parseInt(displayValue, 10);
+      if (!isNaN(num) && num !== qty) {
+        setLoading(true);
+        try { await onChange(size, num); } finally { setLoading(false); }
+      }
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') e.target.blur();
   };
 
   return (
-    <div
-      className={`border rounded-[10px] p-2 min-w-[150px] flex-shrink-0 ${
-        qty > 0 ? "border-[#ed1c24]" : "border-[#dddddd]"
-      }`}
-    >
+    <div className={`border rounded-[10px] p-2 min-w-[150px] flex-shrink-0 ${qty > 0 ? "border-[#ed1c24]" : "border-[#dddddd]"}`}>
       <p className="text-sm font-medium mb-2 text-black">{size.size_label}</p>
       <div className="flex items-center justify-center gap-2">
         <button
-          onClick={() => onDecrease(size)}
-          disabled={qty === 0}
-          className={`w-10 h-10 flex items-center justify-center text-white text-xl !rounded-md cursor-pointer ${
-            qty === 0 ? "bg-[#cccccc] cursor-not-allowed" : "bg-[#ed1c24] hover:bg-black"
-          }`}
+          onClick={handleDecrease}
+          disabled={qty === 0 || loading}
+          className={`w-10 h-10 flex items-center justify-center text-white text-xl !rounded-md cursor-pointer ${qty === 0 || loading ? "bg-[#cccccc] cursor-not-allowed" : "bg-[#ed1c24] hover:bg-black"}`}
         >
-          –
+          {loading ? <Spinner /> : "–"}
         </button>
 
         <input
           type="number"
           value={displayValue}
           onChange={handleChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          disabled={loading}
           placeholder="0"
           min={0}
           max={maxQty}
-          className="w-16 text-center border border-gray-300 rounded-md p-2 no-spinner"
+          className={`w-16 text-center border border-gray-300 rounded-md p-2 no-spinner ${loading ? "bg-gray-100" : ""}`}
         />
 
         <button
-          onClick={() => onIncrease(size)}
-          disabled={qty >= maxQty}
-          className={`w-10 h-10 flex items-center justify-center text-white text-xl rounded-md ${
-            qty >= maxQty ? "bg-[#cccccc] cursor-not-allowed" : "bg-[#ed1c24] hover:bg-black"
-          }`}
+          onClick={handleIncrease}
+          disabled={qty >= maxQty || loading}
+          className={`w-10 h-10 flex items-center justify-center text-white text-xl rounded-md ${qty >= maxQty || loading ? "bg-[#cccccc] cursor-not-allowed" : "bg-[#ed1c24] hover:bg-black"}`}
         >
-          +
+          {loading ? <Spinner /> : "+"}
         </button>
       </div>
     </div>
