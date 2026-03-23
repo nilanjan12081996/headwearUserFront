@@ -290,14 +290,14 @@ const ReorderSummary = ({ orderLoading }) => {
       {/* ── Button ── */}
       <button
         type="submit"
-        onClick={(e) => {
-          const totalQty = cartListItem?.data?.cart?.total_items || 0;
-          if (totalQty < 24) {
-            e.preventDefault();
-            toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
-            return;
-          }
-        }}
+        // onClick={(e) => {
+        //   const totalQty = cartListItem?.data?.cart?.total_items || 0;
+        //   if (totalQty < 24) {
+        //     e.preventDefault();
+        //     toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+        //     return;
+        //   }
+        // }}
         disabled={orderLoading || reorderPreviewLoading || !reorderPreview}
         className={`text-white text-base font-semibold rounded-full w-full py-3 mt-2 transition-all flex items-center justify-center gap-2
           ${orderLoading || reorderPreviewLoading || !reorderPreview
