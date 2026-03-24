@@ -283,8 +283,12 @@ const page = () => {
       const res = await dispatch(addAddress(payload)).unwrap();
       if (res?.status_code === 201) {
         const customerId = res?.data?.customer?.id;
-        const shipping_id = res?.data?.addresses?.[0]?.data?.id;
-        const billing_id = res?.data?.addresses?.[1]?.data?.id;
+        // const shipping_id = res?.data?.addresses?.[0]?.data?.id;
+        // const billing_id = res?.data?.addresses?.[1]?.data?.id;
+
+        const addresses = res?.data?.addresses || [];
+        const shipping_id = addresses.find(addr => addr.type === 'SHIPPING')?.data?.address_id;
+        const billing_id = addresses.find(addr => addr.type === 'BILLING')?.data?.address_id;
 
         setCust_id(customerId);
         setShippingId(shipping_id);
