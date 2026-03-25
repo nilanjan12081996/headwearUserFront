@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { registerCustomer } from "../reducers/AuthSlice";
+import { getMyProfile, registerCustomer } from "../reducers/AuthSlice";
 import { RiUserLine, RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiPhoneLine, RiBuildingLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import Image from "next/image";
@@ -44,6 +44,7 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
     const res = await dispatch(registerCustomer(payload));
     console.log('resss', res)
     if (res?.payload?.status === true || res?.payload?.message === "Customer registered successfully") {
+       await dispatch(getMyProfile())
       toast.success("Registration successful!");
       reset();
       setOpenRegisterModal(false);

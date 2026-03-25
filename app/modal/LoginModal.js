@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { loginCustomer } from "../reducers/AuthSlice";
+import { getMyProfile, loginCustomer } from "../reducers/AuthSlice";
 import { RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import Image from "next/image";
@@ -31,6 +31,7 @@ const LoginModal = ({ openLoginModal, setOpenLoginModal, setOpenRegisterModal })
     const res = await dispatch(loginCustomer(payload));
 
     if (res?.payload?.status_code === 200) {
+       await dispatch(getMyProfile()); 
       toast.success(res?.payload?.message || "Login successful!");
       setOpenLoginModal(false);
     } else {

@@ -23,44 +23,46 @@ export function useCartActions({ open } = {}) {
   }, [savedUUid, dispatch, open]);
 
   // ─── Sync Redux → local state ─────────────────────────────────────────────
-  useEffect(() => {
-    const groups = cartListItem?.data?.cart_groups || [];
-    const incoming = groups.flatMap((g) => g.items);
+  // ─── Sync Redux → local state ─────────────────────────────────────────────
+useEffect(() => {
+  const groups = cartListItem?.data?.cart_groups || [];
+  const incoming = groups.flatMap((g) => g.items);
 
-    if (isFirstLoad.current) {
-      setLocalItems(incoming);
-      isFirstLoad.current = false;
-      setLocalTotalItems(cartListItem?.data?.cart?.total_items || 0);
-      setLocalSubtotal(cartListItem?.data?.cart?.subtotal_amount || "0.00");
-      return;
-    }
-
-    const incomingIds = incoming.map((i) => i.id).sort().join(",");
-    const localIds = localItems.map((i) => i.id).sort().join(",");
-
-    if (incomingIds !== localIds) {
-      setLocalItems(incoming);
-    } else {
-      setLocalItems((prev) =>
-        prev.map((localItem) => {
-          const weOwn =
-            pendingQty.current[localItem.id] !== undefined ||
-            inFlight.current[localItem.id];
-
-          if (weOwn) return localItem;
-
-          const serverItem = incoming.find((i) => i.id === localItem.id);
-          if (serverItem && serverItem.quantity !== localItem.quantity) {
-            return { ...localItem, quantity: serverItem.quantity };
-          }
-          return localItem;
-        })
-      );
-    }
-
+  if (isFirstLoad.current) {
+    setLocalItems(incoming);
+    isFirstLoad.current = false;
     setLocalTotalItems(cartListItem?.data?.cart?.total_items || 0);
     setLocalSubtotal(cartListItem?.data?.cart?.subtotal_amount || "0.00");
-  }, [cartListItem]);
+    return;
+  }
+
+  const incomingIds = incoming.map((i) => i.id).sort().join(",");
+  const localIds = localItems.map((i) => i.id).sort().join(",");
+
+  if (incomingIds !== localIds) {
+    setLocalItems(incoming);
+  } else {
+    setLocalItems((prev) =>
+      prev.map((localItem) => {
+        const weOwn =
+          pendingQty.current[localItem.id] !== undefined ||
+          inFlight.current[localItem.id];
+
+        if (weOwn) return localItem;
+
+        const serverItem = incoming.find((i) => i.id === localItem.id);
+        if (serverItem && serverItem.quantity !== localItem.quantity) {
+          syncSession(localItem.id, serverItem.quantity);
+          return { ...localItem, quantity: serverItem.quantity };
+        }
+        return localItem;
+      })
+    );
+  }
+
+  setLocalTotalItems(cartListItem?.data?.cart?.total_items || 0);
+  setLocalSubtotal(cartListItem?.data?.cart?.subtotal_amount || "0.00");
+}, [cartListItem]);
 
   // ─── Debounced cartList refresh ───────────────────────────────────────────
   const scheduleRefresh = () => {

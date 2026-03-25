@@ -115,14 +115,17 @@ const page = () => {
     loading: authLoading,
   } = useSelector((state) => state.auth);
 
-  const { profile } = useSelector((state) => state.auth ?? {});
-  const isLoggedIn = !!profile?.email;
+const { profile, isLoggedIn: authIsLoggedIn } = useSelector((state) => state.auth ?? {});
+const isLoggedIn = authIsLoggedIn || !!profile?.email;
 
-  useEffect(() => {
-    if (profile?.email) {
-      setValue("email", profile.email);
-    }
-  }, [profile, setValue]);
+useEffect(() => {
+  if (profile?.email) {
+    setValue("email", profile.email);
+  } else {
+    setValue("email", "");
+  }
+}, [profile, setValue]);
+
   useEffect(() => {
     dispatch(getMyProfile());
   }, [dispatch]);
@@ -561,17 +564,19 @@ const page = () => {
               <span className="ml-2">Existing Customer</span>
               {/* <button type='button' onClick={handleLoginModal}>Existing Customer</button> */}
             </div>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2 bg-gray-5 text-sm">
-              <span className="text-gray-500">New to Show Me Headwear?</span>
-              <button
-                type="button"
-                onClick={() => setOpenRegisterModal(true)}
-                className="text-[#ed1c24] font-semibold hover:underline transition-colors cursor-pointer"
-              >
-                Create a free account
-              </button>
-              <span className="text-gray-300 hidden sm:inline">·</span>
-            </div>
+            {!isLoggedIn && (
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2 bg-gray-5 text-sm">
+                <span className="text-gray-500">New to Show Me Headwear?</span>
+                <button
+                  type="button"
+                  onClick={() => setOpenRegisterModal(true)}
+                  className="text-[#ed1c24] font-semibold hover:underline transition-colors cursor-pointer"
+                >
+                  Create a free account
+                </button>
+                <span className="text-gray-300 hidden sm:inline">·</span>
+              </div>
+            )}
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className='lg:flex items-start justify-start gap-8'>
 

@@ -292,6 +292,7 @@ const authSlice = createSlice({
                 state.isLoggedIn = true;
                 state.message = payload;
                 state.error = false;
+                 state.profile = payload?.data || null;
 
                 if (payload?.token) {
                     sessionStorage.setItem(
@@ -323,6 +324,7 @@ const authSlice = createSlice({
             .addCase(logoutCustomer.fulfilled, (state, { payload }) => {
                 state.loading = false;
                 state.isLoggedIn = false;
+                state.profile = null; 
                 state.message = payload;
                 state.error = false;
 
