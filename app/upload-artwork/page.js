@@ -471,6 +471,64 @@ const page = () => {
       dispatch(cartList({ id: uuid }));
     }
   }, []);
+  // const handleCheckoutClick = async () => {
+  //   const totalQty = cartListItem?.data?.cart?.total_items
+  //     || (() => {
+  //       const hatQuantities = JSON.parse(sessionStorage.getItem("hatQuantities") || "{}");
+  //       return Object.values(hatQuantities)
+  //         .flatMap(h => Object.values(h).flatMap(c => Object.values(c)))
+  //         .reduce((sum, qty) => sum + Number(qty || 0), 0);
+  //     })();
+
+  //   if (totalQty < 24) {
+  //     toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+  //     return;
+  //   }
+  //   if (!agree) {
+  //     setErrorMsg("You must agree to copyright/ownership permission.");
+  //     checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  //     return;
+  //   }
+  //   if (embroideryType === "patch" && !patchOption) {
+  //     toast.error("Please select a patch style.");
+  //     document.getElementById("patch-options-section")?.scrollIntoView({ behavior: "smooth" });
+  //     return;
+  //   }
+  //   const payload = preparePayload();
+  //   console.log('Checkout Payload:', payload);
+
+  //   // Create FormData for file uploads
+  //   const formData = new FormData();
+  //   Object.keys(payload).forEach(key => {
+  //     if (payload[key] !== null && payload[key] !== "") {
+  //       if (key.includes('_file') && payload[key] instanceof File) {
+  //         formData.append(key, payload[key]);
+  //       } else if (typeof payload[key] === 'boolean') {
+  //         formData.append(key, payload[key].toString());
+  //       } else {
+  //         formData.append(key, payload[key]);
+  //       }
+  //     }
+  //   });
+
+  //   // Here you would dispatch your API call
+  //   await dispatch(addArtWork(formData)).then((res) => {
+  //     console.log("addartwork", res);
+  //     // if (res?.payload?.status_code === 201) {
+  //     //   router.push("/checkout")
+  //     // }
+
+  //     if (res?.payload?.status_code === 201) {
+
+  //       const artworkId = res?.payload?.data?.id;
+  //       router.push(`/checkout?artwork_id=${artworkId}`);
+  //     }
+
+  //   });
+
+
+  // };
+
   const handleCheckoutClick = async () => {
     const totalQty = cartListItem?.data?.cart?.total_items
       || (() => {
@@ -484,20 +542,40 @@ const page = () => {
       toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
       return;
     }
+
+    // ── Per-hat validation ─────────────────────────────────────
+    const cartGroups = cartListItem?.data?.cart_groups || [];
+    const invalidHats = cartGroups
+        .filter(group => group.group_qty > 0 && group.group_qty < 24)
+        .map(group => {
+            const hatName = group.items?.[0]?.hat?.name || `Hat #${group.hat_id}`;
+            return `${hatName} (${group.group_qty}/24)`;
+        });
+
+    if (invalidHats.length > 0) {
+        toast.error(
+            `These hats need minimum 24 items: ${invalidHats.join(", ")}`,
+            { autoClose: 5000 }
+        );
+        return;
+    }
+    // ──────────────────────────────────────────────────────────
+
     if (!agree) {
       setErrorMsg("You must agree to copyright/ownership permission.");
       checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+
     if (embroideryType === "patch" && !patchOption) {
       toast.error("Please select a patch style.");
       document.getElementById("patch-options-section")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
+
     const payload = preparePayload();
     console.log('Checkout Payload:', payload);
 
-    // Create FormData for file uploads
     const formData = new FormData();
     Object.keys(payload).forEach(key => {
       if (payload[key] !== null && payload[key] !== "") {
@@ -511,23 +589,14 @@ const page = () => {
       }
     });
 
-    // Here you would dispatch your API call
     await dispatch(addArtWork(formData)).then((res) => {
       console.log("addartwork", res);
-      // if (res?.payload?.status_code === 201) {
-      //   router.push("/checkout")
-      // }
-
       if (res?.payload?.status_code === 201) {
-
         const artworkId = res?.payload?.data?.id;
         router.push(`/checkout?artwork_id=${artworkId}`);
       }
-
     });
-
-
-  };
+};
 
   const totalQty = cartListItem?.data?.cart?.total_items || 0;
 

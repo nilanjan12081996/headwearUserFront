@@ -125,19 +125,52 @@ const CartDropdown = ({ open, onClose }) => {
     handleDelete,
   } = useCartActions({ open });
 
+  // const handleAction = () => {
+  //   onClose();
+  //   if (!isUploadPage) {
+  //     if (localTotalItems < 24) {
+  //       toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+  //       return;
+  //     }
+  //     router.push("/upload-artwork");
+  //     return;
+  //   }
+  //   router.push("/checkout");
+  // };
+
   const handleAction = () => {
+    if (localTotalItems < 24) {
+        toast.error("A minimum of 24 hats is required to proceed.");
+        return;
+    }
+
+    // hat.id দিয়ে group করো
+    const hatTotals = {};
+    localItems.forEach((item) => {
+        const hatId = item?.hat?.id;
+        const hatName = item?.hat?.name;
+        if (!hatId) return;
+        if (!hatTotals[hatId]) hatTotals[hatId] = { name: hatName, qty: 0 };
+        hatTotals[hatId].qty += item.quantity || 0;
+    });
+
+    const invalidHats = Object.values(hatTotals).filter(h => h.qty > 0 && h.qty < 24);
+
+    if (invalidHats.length > 0) {
+        toast.error(
+            `These hats need minimum 24 items: ${invalidHats.map(h => `${h.name} (${h.qty}/24)`).join(", ")}`,
+            { autoClose: 5000 }
+        );
+        return;
+    }
+
     onClose();
     if (!isUploadPage) {
-      if (localTotalItems < 24) {
-        toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+        router.push("/upload-artwork");
         return;
-      }
-      router.push("/upload-artwork");
-      return;
     }
     router.push("/checkout");
-  };
-
+};
   return (
     <>
       <div className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-40" onClick={onClose} />
