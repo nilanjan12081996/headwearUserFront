@@ -110,6 +110,8 @@ import c19 from "../assets/imagesource/c19.jpg";
 import c20 from "../assets/imagesource/c20.jpg";
 import c21 from "../assets/imagesource/c21.jpg";
 import c22 from "../assets/imagesource/c22.jpg";
+import { getLogoPlacementList } from '../reducers/BannerLogoSlice';
+import Banner from '../ui/Banner';
 
 
 
@@ -141,6 +143,15 @@ const page = () => {
   const [patchOption, setPatchOption] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [imageToggle, setImageToggle] = useState(false);
+  const { logoPlacementList, logoPlacementListLoading } = useSelector((state) => state.bannerLogo);
+  const base_url = "https://customheadwearjava.showmecustomapparel.com";
+  useEffect(() => {
+    dispatch(getLogoPlacementList());
+  }, [dispatch])
+  useEffect(() => {
+    console.log('logoPlacementList updated:', logoPlacementList);
+  }, [logoPlacementList]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setImageToggle((prev) => !prev);
@@ -393,20 +404,49 @@ const page = () => {
   const savedCardId = sessionStorage.getItem('cartId')
   const cart_id = sessionStorage.getItem('cart_id')
   // Prepare final payload
+  // const preparePayload = () => {
+  //   const selectedDecoration = decorationList?.data?.find(
+  //     item => item.recordId === selectedDecorationId
+  //   );
+
+  //   const payload = {
+  //     sessionUuid: sessionUUid || deviceId,
+  //     // cart_id: cartId,
+  //     cart_id: cart_id,
+  //     logo_id: logoId,
+  //     primary_decoration_type_id: selectedOption.id,
+  //     embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
+  //     patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
+  //     patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
+  //     logo_placement: Array.isArray(logoPlacement) ? logoPlacement.join(",") : logoPlacement,
+  //     placement_size_notes: placementSizeNotes,
+  //     order_notes: orderNotes,
+  //     color_notes: colorNotes,
+  //     back_stitching: backStitching,
+  //     back_stitch_details: backStitching ? backStitchDetails : "",
+  //     back_stitching_file: backStitching && backStitchingFile ? backStitchingFile : null,
+  //     left_stitching: leftStitching,
+  //     left_side_details: leftStitching ? leftSideDetails : "",
+  //     left_stitching_file: leftStitching && leftStitchingFile ? leftStitchingFile : null,
+  //     right_stitching: rightStitching,
+  //     right_side_details: rightStitching ? rightSideDetails : "",
+  //     right_stitching_file: rightStitching && rightStitchingFile ? rightStitchingFile : null,
+  //   };
+
+  //   return payload;
+  // };
+
   const preparePayload = () => {
-    const selectedDecoration = decorationList?.data?.find(
-      item => item.recordId === selectedDecorationId
-    );
+    const isPatch = embroideryType === "patch";
 
     const payload = {
       sessionUuid: sessionUUid || deviceId,
-      // cart_id: cartId,
       cart_id: cart_id,
       logo_id: logoId,
       primary_decoration_type_id: selectedOption.id,
-      embroidery_type: selectedOption?.name === "Embroidery" ? embroideryType : "",
-      patch_shape: selectedOption?.name === "Leather Patch" ? patchShape : "",
-      patch_color: selectedOption?.name === "Leather Patch" ? patchColor : "",
+      embroidery_type: isPatch ? "" : (embroideryType ?? ""),
+      patch_shape: isPatch && patchOption ? String(patchOption) : "",
+      patch_color: isPatch ? patchColor : "",
       logo_placement: Array.isArray(logoPlacement) ? logoPlacement.join(",") : logoPlacement,
       placement_size_notes: placementSizeNotes,
       order_notes: orderNotes,
@@ -424,16 +464,118 @@ const page = () => {
 
     return payload;
   };
+
+  useEffect(() => {
+    const uuid = sessionStorage.getItem("uuid");
+    if (uuid) {
+      dispatch(cartList({ id: uuid }));
+    }
+  }, []);
+  // const handleCheckoutClick = async () => {
+  //   const totalQty = cartListItem?.data?.cart?.total_items
+  //     || (() => {
+  //       const hatQuantities = JSON.parse(sessionStorage.getItem("hatQuantities") || "{}");
+  //       return Object.values(hatQuantities)
+  //         .flatMap(h => Object.values(h).flatMap(c => Object.values(c)))
+  //         .reduce((sum, qty) => sum + Number(qty || 0), 0);
+  //     })();
+
+  //   if (totalQty < 24) {
+  //     toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+  //     return;
+  //   }
+  //   if (!agree) {
+  //     setErrorMsg("You must agree to copyright/ownership permission.");
+  //     checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  //     return;
+  //   }
+  //   if (embroideryType === "patch" && !patchOption) {
+  //     toast.error("Please select a patch style.");
+  //     document.getElementById("patch-options-section")?.scrollIntoView({ behavior: "smooth" });
+  //     return;
+  //   }
+  //   const payload = preparePayload();
+  //   console.log('Checkout Payload:', payload);
+
+  //   // Create FormData for file uploads
+  //   const formData = new FormData();
+  //   Object.keys(payload).forEach(key => {
+  //     if (payload[key] !== null && payload[key] !== "") {
+  //       if (key.includes('_file') && payload[key] instanceof File) {
+  //         formData.append(key, payload[key]);
+  //       } else if (typeof payload[key] === 'boolean') {
+  //         formData.append(key, payload[key].toString());
+  //       } else {
+  //         formData.append(key, payload[key]);
+  //       }
+  //     }
+  //   });
+
+  //   // Here you would dispatch your API call
+  //   await dispatch(addArtWork(formData)).then((res) => {
+  //     console.log("addartwork", res);
+  //     // if (res?.payload?.status_code === 201) {
+  //     //   router.push("/checkout")
+  //     // }
+
+  //     if (res?.payload?.status_code === 201) {
+
+  //       const artworkId = res?.payload?.data?.id;
+  //       router.push(`/checkout?artwork_id=${artworkId}`);
+  //     }
+
+  //   });
+
+
+  // };
+
   const handleCheckoutClick = async () => {
+    const totalQty = cartListItem?.data?.cart?.total_items
+      || (() => {
+        const hatQuantities = JSON.parse(sessionStorage.getItem("hatQuantities") || "{}");
+        return Object.values(hatQuantities)
+          .flatMap(h => Object.values(h).flatMap(c => Object.values(c)))
+          .reduce((sum, qty) => sum + Number(qty || 0), 0);
+      })();
+
+    if (totalQty < 24) {
+      toast.error("A minimum of 24 hats is required to proceed. Please add more hats to continue.");
+      return;
+    }
+
+    // ── Per-hat validation ─────────────────────────────────────
+    const cartGroups = cartListItem?.data?.cart_groups || [];
+    const invalidHats = cartGroups
+        .filter(group => group.group_qty > 0 && group.group_qty < 24)
+        .map(group => {
+            const hatName = group.items?.[0]?.hat?.name || `Hat #${group.hat_id}`;
+            return `${hatName} (${group.group_qty}/24)`;
+        });
+
+    if (invalidHats.length > 0) {
+        toast.error(
+            `These hats need minimum 24 items: ${invalidHats.join(", ")}`,
+            { autoClose: 5000 }
+        );
+        return;
+    }
+    // ──────────────────────────────────────────────────────────
+
     if (!agree) {
       setErrorMsg("You must agree to copyright/ownership permission.");
       checkboxRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+
+    if (embroideryType === "patch" && !patchOption) {
+      toast.error("Please select a patch style.");
+      document.getElementById("patch-options-section")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
     const payload = preparePayload();
     console.log('Checkout Payload:', payload);
 
-    // Create FormData for file uploads
     const formData = new FormData();
     Object.keys(payload).forEach(key => {
       if (payload[key] !== null && payload[key] !== "") {
@@ -447,23 +589,14 @@ const page = () => {
       }
     });
 
-    // Here you would dispatch your API call
     await dispatch(addArtWork(formData)).then((res) => {
       console.log("addartwork", res);
-      // if (res?.payload?.status_code === 201) {
-      //   router.push("/checkout")
-      // }
-
       if (res?.payload?.status_code === 201) {
-
         const artworkId = res?.payload?.data?.id;
         router.push(`/checkout?artwork_id=${artworkId}`);
       }
-
     });
-
-
-  };
+};
 
   const totalQty = cartListItem?.data?.cart?.total_items || 0;
 
@@ -541,12 +674,12 @@ const page = () => {
     }
   };
 
- useEffect(() => {
-  if (!logoPlacement?.length || !selectedOption.id) return;
-  handleArtworkUpdate({
-    logoPlacement: logoPlacement, // already array
-  });
-}, [logoPlacement, selectedOption.id]);
+  useEffect(() => {
+    if (!logoPlacement?.length || !selectedOption.id) return;
+    handleArtworkUpdate({
+      logoPlacement: logoPlacement, // already array
+    });
+  }, [logoPlacement, selectedOption.id]);
 
 
   const hatQuantities = JSON.parse(
@@ -632,15 +765,16 @@ const page = () => {
     );
   };
 
+  const codeMap = {
+    "right_side": "right",
+    "front_center": "center",
+    "left_side": "left",
+  };
 
   return (
     <div>
       <ToastContainer />
-      <div className='banner_area py-0 lg:p-0'>
-        <div className="relative">
-          <Image src={list_banner} alt='list_banner' className="w-full" />
-        </div>
-      </div>
+      <Banner />
 
       <div className="py-10 lg:pb-20 lg:pt-10">
         <div className='mb-10'>
@@ -883,7 +1017,7 @@ const page = () => {
           </div> */}
 
           {/* Artwork Setup section */}
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <div className='p-4 bg-[#ff0000]'>
               <h2 className='text-2xl font-bold text-white'>Artwork Setup</h2>
             </div>
@@ -904,11 +1038,11 @@ const page = () => {
                   We keep your artwork on file for all future orders.`}
               </p>
             </div>
-          </div>
+          </div> */}
 
 
           {/* Pricing selector Section  */}
-          <div className="">
+          {/* <div className="">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[300px]">
 
               <label
@@ -1084,7 +1218,7 @@ const page = () => {
               </label>
 
             </div>
-          </div>
+          </div> */}
 
           {/* Embroidery Options */}
           {/* {selectedOption?.name === "Embroidery" && (
@@ -1609,48 +1743,47 @@ const page = () => {
               <div className='p-4 bg-[#ff0000] mb-4'>
                 <h2 className='text-2xl font-bold text-white'>Logo Placement</h2>
               </div>
-              {/* <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Logo Placement</h3> */}
-
-              {/* <div className='grid grid-cols-3 gap-2'>
-                {placements.map((item) => (
-                  <div
-                    key={item.id}
-                    className='product_list_box text-center cursor-pointer'
-                    onClick={() => setLogoPlacement(item.label)}
-                  >
-                    <div
-                      className={`mb-3 border-4 rounded-[8px] overflow-hidden 
-          ${logoPlacement === item.label ? "border-[#ed1c24]" : "border-[#E2E2E2]"} `}
-                    >
-                      <Image src={item.img} alt={item.label} />
-                    </div>
-
-                    <p className='text-[18px] text-[#353535] font-medium'>{item.heading}</p>
-                  </div>
-                ))}
-              </div> */}
               <div className='grid grid-cols-3 gap-2'>
-                {placements.map((item) => (
-                  <div
-                    key={item.id}
-                    className='product_list_box text-center cursor-pointer'
-                    onClick={() => handleLogoPlacement(item.label)}
-                  >
-                    <div
-                      className={`mb-3 border-4 rounded-[8px] overflow-hidden 
-          ${logoPlacement.includes(item.label)
-                          ? "border-[#ed1c24]"
-                          : "border-[#E2E2E2]"
-                        }`}
-                    >
-                      <Image src={item.img} alt={item.label} />
-                    </div>
+                {placements.map((item) => {
+                  const apiCode = codeMap[item.label];
+                  const apiPlacement = logoPlacementList?.find(p => p.code === apiCode);
+                  const dynamicImage = apiPlacement
+                    ? `${base_url}${apiPlacement.logoImage}`
+                    : null;
 
-                    <p className='text-[18px] text-[#353535] font-medium'>
-                      {item.heading}
-                    </p>
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={item.id}
+                      className='product_list_box text-center cursor-pointer'
+                      onClick={() => handleLogoPlacement(item.label)}
+                    >
+                      <div
+                        className={`mb-3 border-4 rounded-[8px] overflow-hidden md:h-[300px] h-[160px] bg-white flex items-center justify-center
+    ${logoPlacement.includes(item.label)
+                            ? "border-[#ed1c24]"
+                            : "border-[#E2E2E2]"
+                          }`}
+                      >
+                        {dynamicImage ? (
+                          <img
+                            src={dynamicImage}
+                            alt={item.label}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <Image
+                            src={item.img}
+                            alt={item.label}
+                            className="w-full h-full object-contain"
+                          />
+                        )}
+                      </div>
+                      <p className='text-[18px] text-[#353535] font-medium'>
+                        {item.heading}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

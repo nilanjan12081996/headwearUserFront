@@ -71,8 +71,11 @@ import OrderSummary from './OrderSummary';
 import { toast, ToastContainer } from 'react-toastify';
 import { useSearchParams } from 'next/navigation';
 import LoginModal from '../modal/LoginModal';
-import { sendSecurityCode, verifySecurityCode } from '../reducers/AuthSlice';
+import { getMyProfile, sendSecurityCode, verifySecurityCode } from '../reducers/AuthSlice';
 import { IoClose } from "react-icons/io5";
+import { clearCouponState, sendHeadwearCreateOrderEmail } from '../reducers/OrdersSlice';
+import Banner from '../ui/Banner';
+import RegistrationModal from '../modal/RegistrationModal';
 
 
 
@@ -90,7 +93,8 @@ const page = () => {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState("EMAIL");
   const router = useRouter();
-
+  const [openRegisterModal, setOpenRegisterModal] = useState(false);
+  const [openLoginModal, setOpenLoginModal] = useState(false);
   const params = useSearchParams();
   const artworkId = params.get("artwork_id");
 
@@ -111,7 +115,20 @@ const page = () => {
     loading: authLoading,
   } = useSelector((state) => state.auth);
 
+const { profile, isLoggedIn: authIsLoggedIn } = useSelector((state) => state.auth ?? {});
+const isLoggedIn = authIsLoggedIn || !!profile?.email;
 
+useEffect(() => {
+  if (profile?.email) {
+    setValue("email", profile.email);
+  } else {
+    setValue("email", "");
+  }
+}, [profile, setValue]);
+
+  useEffect(() => {
+    dispatch(getMyProfile());
+  }, [dispatch]);
 
   useEffect(() => {
     console.log("showExistingCustomerModal", showExistingCustomerModal);
@@ -145,11 +162,94 @@ const page = () => {
   }, [sameAddress, billing, setValue]);
 
 
+  // const onSubmit = async (data) => {
+  //   const totalQty = cartListItem?.data?.cart?.total_items || 0;
+  //   if (totalQty < 24) {
+  //     toast.error("A minimum of 24 hats is required to proceed. Please add more hats.");
+  //     return; 
+  //   }
+  //   setOrderLoading(true);
+
+  //   const payload = {
+  //     customer: {
+  //       first_name: data.first_name,
+  //       last_name: data.last_name,
+  //       email: data.email,
+  //       phone: data.phone,
+  //       company_name: data.company_name,
+  //       session_uuid: savedUUid
+  //     },
+  //     billing: {
+  //       line1: data.billing.line1,
+  //       line2: data.billing.line2,
+  //       city: data.billing.city,
+  //       state: data.billing.state,
+  //       postal_code: data.billing.postal_code,
+  //       country: data.billing.country,
+  //       address_type: "BILLING",
+  //     },
+  //     shipping: {
+  //       line1: data.shipping.line1,
+  //       line2: data.shipping.line2,
+  //       city: data.shipping.city,
+  //       state: data.shipping.state,
+  //       postal_code: data.shipping.postal_code,
+  //       country: data.shipping.country,
+  //       address_type: "SHIPPING",
+  //     },
+  //   };
+
+  //   try {
+  //     const res = await dispatch(addAddress(payload)).unwrap();
+  //     if (res?.status_code === 201) {
+  //       const customerId = res?.data?.customer?.id;
+  //       const shipping_id = res?.data?.addresses?.[0]?.data?.id;
+  //       const billing_id = res?.data?.addresses?.[1]?.data?.id;
+
+  //       setCust_id(customerId);
+  //       setShippingId(shipping_id);
+  //       setBillingId(billing_id);
+
+  //       const updateRes = await dispatch(updateCustomer({
+  //         id: cart_id,
+  //         customer_id: customerId
+  //       })).unwrap();
+
+  //       if (updateRes.status_code === 200) {
+  //         const orderData = {
+  //           cart_id: cart_id,
+  //           billing_address_id: billing_id,
+  //           shipping_address_id: shipping_id,
+  //           shipping_method_id: 1,
+  //           artwork_config_id: artworkId,
+  //         };
+
+  //         await dispatch(saveOrder(orderData)).unwrap();
+
+  //         sessionStorage.removeItem("cartId");
+  //         sessionStorage.removeItem("cart_id");
+  //         sessionStorage.removeItem("cartItemMap");
+  //         sessionStorage.removeItem("hatQuantities");
+  //         sessionStorage.removeItem("uuid");
+
+  //         toast.success("Order placed successfully!");
+  //         setTimeout(() => {
+  //           router.push("/order-confirm");
+  //         }, 1500);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Order failed:", error);
+  //   } finally {
+  //     setOrderLoading(false);
+  //   }
+  // };
+
   const onSubmit = async (data) => {
     const totalQty = cartListItem?.data?.cart?.total_items || 0;
     if (totalQty < 24) {
       toast.error("A minimum of 24 hats is required to proceed. Please add more hats.");
-      return; 
+      return;
     }
     setOrderLoading(true);
 
@@ -186,8 +286,12 @@ const page = () => {
       const res = await dispatch(addAddress(payload)).unwrap();
       if (res?.status_code === 201) {
         const customerId = res?.data?.customer?.id;
-        const shipping_id = res?.data?.addresses?.[0]?.data?.id;
-        const billing_id = res?.data?.addresses?.[1]?.data?.id;
+        // const shipping_id = res?.data?.addresses?.[0]?.data?.id;
+        // const billing_id = res?.data?.addresses?.[1]?.data?.id;
+
+        const addresses = res?.data?.addresses || [];
+        const shipping_id = addresses.find(addr => addr.type === 'SHIPPING')?.data?.address_id;
+        const billing_id = addresses.find(addr => addr.type === 'BILLING')?.data?.address_id;
 
         setCust_id(customerId);
         setShippingId(shipping_id);
@@ -207,14 +311,83 @@ const page = () => {
             artwork_config_id: artworkId,
           };
 
-          await dispatch(saveOrder(orderData)).unwrap();
+          const orderRes = await dispatch(saveOrder(orderData)).unwrap();
+
+          // ── Webhook call after successful order ──
+          if (orderRes?.status_code === 201) {
+            // const webhookPayload = {
+            //   customer: {
+            //     first_name: data.first_name,
+            //     last_name: data.last_name,
+            //     email: data.email,
+            //     phone: data.phone,
+            //     company_name: data.company_name,
+            //   },
+            //   order_id: orderRes?.data?.order_id,
+            //   order_number: orderRes?.data?.order_number,
+            //   grand_total: orderRes?.data?.grand_total,
+            // };
+            const webhookPayload = {
+              customer: {
+                first_name: data.first_name,
+                last_name: data.last_name,
+                email: data.email,
+                phone: data.phone,
+                company_name: data.company_name,
+              },
+              order_id: orderRes?.data?.order_id,
+              order_number: orderRes?.data?.order_number,
+              grand_total: orderRes?.data?.grand_total,
+
+              // Cart full details
+              cart: {
+                total_items: cartListItem?.data?.cart?.total_items,
+                subtotal_amount: cartListItem?.data?.cart?.subtotal_amount,
+                addons_amount: cartListItem?.data?.cart?.addons_amount,
+                artwork_setup_amount: cartListItem?.data?.cart?.artwork_setup_amount,
+                shipping_amount: cartListItem?.data?.cart?.shipping_amount,
+                tax_amount: cartListItem?.data?.cart?.tax_amount,
+                grand_total_amount: cartListItem?.data?.cart?.grand_total_amount,
+              },
+
+              // Cart items grouped
+              cart_groups: cartListItem?.data?.cart_groups?.map((group) => ({
+                group_qty: group.group_qty,
+                base_unit_price: group.base_unit_price,
+                group_subtotal: group.group_subtotal,
+                items: group.items?.map((item) => ({
+                  quantity: item.quantity,
+                  unit_price: item.unit_price,
+                  line_total: item.line_total,
+                  hat_name: item.hat?.name,
+                  color_name: item.color?.name,
+                  size_label: item.variant?.size_label,
+                })),
+              })),
+
+              // Charges (addons, shipping, etc.)
+              charges: cartListItem?.data?.charges?.map((charge) => ({
+                type: charge.type,
+                name: charge.name,
+                qty: charge.qty,
+                unit_price: charge.unit_price,
+                line_total: charge.line_total,
+              })),
+            };
+
+            try {
+              await dispatch(sendHeadwearCreateOrderEmail(webhookPayload)).unwrap();
+            } catch (webhookErr) {
+              console.error("Webhook failed (non-blocking):", webhookErr);
+            }
+          }
 
           sessionStorage.removeItem("cartId");
           sessionStorage.removeItem("cart_id");
           sessionStorage.removeItem("cartItemMap");
           sessionStorage.removeItem("hatQuantities");
           sessionStorage.removeItem("uuid");
-
+          dispatch(clearCouponState());
           toast.success("Order placed successfully!");
           setTimeout(() => {
             router.push("/order-confirm");
@@ -334,16 +507,13 @@ const page = () => {
 
       <div>
         <ToastContainer />
-        <div className='banner_area py-0 lg:p-0'>
-          {/* home banner section start here */}
+        {/* <div className='banner_area py-0 lg:p-0'>
           <div className="relative">
             <Image src={list_banner} alt='list_banner' className="hidden lg:block w-full" />
             <Image src={list_banner} alt='list_banner' className="block lg:hidden w-full" />
           </div>
-        </div>
-
-
-
+        </div> */}
+        <Banner />
         {/* Who We Are section start here */}
         <div className="py-10 lg:pb-20 lg:pt-10">
 
@@ -394,6 +564,19 @@ const page = () => {
               <span className="ml-2">Existing Customer</span>
               {/* <button type='button' onClick={handleLoginModal}>Existing Customer</button> */}
             </div>
+            {!isLoggedIn && (
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2 bg-gray-5 text-sm">
+                <span className="text-gray-500">New to Show Me Headwear?</span>
+                <button
+                  type="button"
+                  onClick={() => setOpenRegisterModal(true)}
+                  className="text-[#ed1c24] font-semibold hover:underline transition-colors cursor-pointer"
+                >
+                  Create a free account
+                </button>
+                <span className="text-gray-300 hidden sm:inline">·</span>
+              </div>
+            )}
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className='lg:flex items-start justify-start gap-8'>
 
@@ -436,7 +619,7 @@ const page = () => {
                       <div className="mb-2 block">
                         <Label htmlFor="base">Email</Label>
                       </div>
-                      <TextInput {...register("email", { required: true })} id="base" type="email" sizing="md" placeholder='Email Address' />
+                      <TextInput {...register("email", { required: true })} id="base" type="email" sizing="md" placeholder='Email Address' readOnly={isLoggedIn} disabled={isLoggedIn} className={isLoggedIn ? "bg-gray-100 cursor-not-allowed opacity-70" : ""} />
                       {errors.email && (
                         <small className="text-red-500">
                           Email is required
@@ -536,7 +719,7 @@ const page = () => {
 
 
                   <h3 className='text-[27px] font-semibold text-[#1A1A1A] pb-4'>Shipping Information</h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Address Line 1</Label>
@@ -555,7 +738,7 @@ const page = () => {
                       <TextInput {...register("shipping.line2")} id="base" type="text" sizing="md" placeholder='Addess Line 2' />
                     </div>
                   </div>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Country / Region</Label>
@@ -580,7 +763,7 @@ const page = () => {
                     </div>
                   </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className='w-full'>
                       <div className="mb-2 block">
                         <Label htmlFor="base">Postal Code</Label>
@@ -716,7 +899,16 @@ const page = () => {
         </div>
       )}
 
-
+      <RegistrationModal
+        openRegisterModal={openRegisterModal}
+        setOpenRegisterModal={setOpenRegisterModal}
+        setOpenLoginModal={setOpenLoginModal}
+      />
+      <LoginModal
+        openLoginModal={openLoginModal}
+        setOpenLoginModal={setOpenLoginModal}
+        setOpenRegisterModal={setOpenRegisterModal}
+      />
     </>
   )
 }

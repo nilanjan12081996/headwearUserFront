@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { registerCustomer } from "../reducers/AuthSlice";
+import { getMyProfile, registerCustomer } from "../reducers/AuthSlice";
 import { RiUserLine, RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiPhoneLine, RiBuildingLine } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import Image from "next/image";
@@ -42,16 +42,17 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
     };
 
     const res = await dispatch(registerCustomer(payload));
-
-    if (res?.payload?.status_code === 200 || res?.payload?.status_code === 201) {
+    console.log('resss', res)
+    if (res?.payload?.status === true || res?.payload?.message === "Customer registered successfully") {
+       await dispatch(getMyProfile())
       toast.success("Registration successful!");
       reset();
       setOpenRegisterModal(false);
     } else {
-      toast.error(res?.payload?.message || "Registration failed. Please try again.");
+      toast.error(res?.payload || "Registration failed. Please try again.");
     }
   };
-  
+
 
   const openLogin = () => {
     setOpenLoginModal(true);
@@ -69,7 +70,7 @@ const RegistrationModal = ({ openRegisterModal, setOpenRegisterModal, setOpenLog
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-[900px] mx-4 bg-white rounded-2xl overflow-hidden shadow-2xl flex min-h-[520px]">
+      <div className="relative z-10 w-full max-w-[900px] mx-4 bg-white rounded-2xl overflow-hidden shadow-2xl flex min-h-[520px]" onClick={(e) => e.stopPropagation()} >
 
         {/* Left - Image Panel */}
         <div className="hidden lg:flex w-1/2 relative">
