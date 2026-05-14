@@ -195,6 +195,12 @@ const Header = () => {
               ))}
             </nav>
             <div className="flex items-center gap-2">
+              {/* <Link href="/product-list"
+                className="text-white bg-[#ed1c24] uppercase font-medium text-xs lg:text-[13px] rounded-full px-3 py-2 lg:px-5 lg:py-2.5 hover:bg-black transition-colors duration-200 whitespace-nowrap"
+              >
+                Get Sample
+              </Link> */}
+
               <Link href="/product-list"
                 className="text-white bg-[#ed1c24] uppercase font-medium text-xs lg:text-[13px] rounded-full px-3 py-2 lg:px-5 lg:py-2.5 hover:bg-black transition-colors duration-200 whitespace-nowrap"
               >
